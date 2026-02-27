@@ -13,12 +13,13 @@ export const UserParameterSchema = t.Object({
 
 export const UserResponseSchema = t.Object({
   id: t.Number(),
+  name: t.Nullable(t.String()),
   email: t.String(),
   role: t.String(),
   createdAt: t.Nullable(t.String()),
   updatedAt: t.Nullable(t.String()),
-  createdByName: t.Nullable(t.String()),
-  updatedByName: t.Nullable(t.String())
+  createdBy: t.Nullable(t.String()),
+  updatedBy: t.Nullable(t.String())
 });
 
 export const UserForCreateSchema = t.Object({
@@ -26,7 +27,7 @@ export const UserForCreateSchema = t.Object({
   password: t.String({ minLength: 6 }),
   name: t.Optional(t.String({ maxLength: 150 })),
   avatarUrl: t.Optional(t.String()),
-  role: t.String()
+  role: t.Union([t.Literal('admin'), t.Literal('manager'), t.Literal('employee')])
 });
 
 export const UserForUpdateSchema = t.Object({
@@ -34,7 +35,7 @@ export const UserForUpdateSchema = t.Object({
   password: t.Optional(t.String({ minLength: 6 })),
   name: t.Optional(t.String({ maxLength: 150 })),
   avatarUrl: t.Optional(t.String()),
-  role: t.Optional(t.String())
+  role: t.Optional(t.Union([t.Literal('admin'), t.Literal('manager'), t.Literal('employee')]))
 });
 
 export const UserIdParamSchema = t.Object({

@@ -75,6 +75,34 @@ export class UserRepository implements IUserRepository
         return this.mapRowToUser(result[0]);
     }
 
+    async GetUserByEmail(email: string, includeDeleted: boolean = false): Promise<User | null>
+    {
+        const deletedFilter = includeDeleted ? sql`` : sql`AND deleted = false`;
+
+        const result = await this._db.db.execute<UserRow>(sql`
+            SELECT
+                id,
+                email,
+                password_hash,
+                name,
+                avatar_url,
+                created_at,
+                updated_at,
+                created_by,
+                updated_by,
+                deleted,
+                role
+            FROM ${users}
+            WHERE email = ${email}
+            ${deletedFilter}
+            LIMIT 1
+        `);
+
+        if (!result || result.length === 0) return null;
+
+        return this.mapRowToUser(result[0]);
+    }
+
     async GetListUser(parameters: UserParameter): Promise<PagedResult<User>>
     {
         const params = normalizeRequestParameters(parameters);
@@ -133,14 +161,13 @@ export class UserRepository implements IUserRepository
 
     async CreateUser(user: User): Promise<User>
     {
+        // console.log(user)
         const result = await this._db.db.execute<UserRow>(sql`
             INSERT INTO ${users} (
                 email,
                 password_hash,
                 name,
                 avatar_url,
-                created_at,
-                updated_at,
                 created_by,
                 updated_by,
                 deleted,
@@ -151,8 +178,6 @@ export class UserRepository implements IUserRepository
                 ${user.passwordHash},
                 ${user.name},
                 ${user.avatarUrl},
-                ${user.createdAt},
-                ${user.updatedAt},
                 ${user.createdBy},
                 ${user.updatedBy},
                 ${user.deleted ?? false},
@@ -164,13 +189,13 @@ export class UserRepository implements IUserRepository
                 password_hash,
                 name,
                 avatar_url,
-                created_at,
-                updated_at,
                 created_by,
                 updated_by,
                 deleted,
                 role
         `);
+
+        console.log(result)
 
         return this.mapRowToUser(result[0]);
     }
@@ -186,7 +211,8 @@ export class UserRepository implements IUserRepository
                 avatar_url    = COALESCE(${user.avatarUrl ?? null}, avatar_url),
                 updated_at    = ${new Date().toISOString()},
                 updated_by    = COALESCE(${user.updatedBy ?? null}, updated_by),
-                role          = COALESCE(${user.role ?? null}, role)
+                role          = COALESCE(${user.role ?? null}::roles_enum, role),
+                deleted       = COALESCE(${user.deleted ?? null}, deleted)
             WHERE id = ${user.id}
             RETURNING
                 id,
