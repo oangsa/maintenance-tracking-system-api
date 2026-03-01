@@ -1,5 +1,5 @@
 import { IUserService } from "../IUserService";
-import { IConfigurationManager } from "../../../Infrastructures/Core/IConfigurationManager";
+import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
 
 export interface IServiceManager {
     configurationManager: IConfigurationManager;
