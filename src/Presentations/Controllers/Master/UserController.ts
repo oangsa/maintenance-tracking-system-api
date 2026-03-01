@@ -27,8 +27,7 @@ export class UserController
                             const params: UserParameter = {
                                 pageNumber: body.pageNumber ?? 1,
                                 pageSize: body.pageSize ?? 10,
-                                orderBy:
-                                    body.orderBy as UserParameter["orderBy"],
+                                orderBy: body.orderBy as UserParameter["orderBy"],
                                 search: body.search,
                                 searchTerm: body.searchTerm,
                                 deleted: body.deleted ?? false,

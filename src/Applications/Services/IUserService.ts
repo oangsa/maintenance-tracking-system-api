@@ -4,7 +4,8 @@ import { UserForUpdateDto } from "../DataTransferObjects/User/UserForUpdateDto";
 import { UserParameter } from "../../Domains/RequestFeatures/UserParameter";
 import { PagedResult } from "../../Domains/RequestFeatures/Core/PageResult";
 
-export interface IUserService {
+export interface IUserService
+{
     GetListUser(parameters: UserParameter): Promise<PagedResult<UserDto>>;
     GetUser(id: number): Promise<UserDto>;
     CreateUser(userForCreateDto: UserForCreateDto): Promise<UserDto>;

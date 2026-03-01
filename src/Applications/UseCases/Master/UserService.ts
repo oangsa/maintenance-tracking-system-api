@@ -1,6 +1,7 @@
 import { IUserService } from "../../Services/IUserService";
 import { ICoreAdapterManager } from "../CoreAdaptorManager";
 import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
+import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { UserDto } from "../../DataTransferObjects/User/UserDto";
 import { UserForCreateDto } from "../../DataTransferObjects/User/UserForCreateDto";
 import { UserForUpdateDto } from "../../DataTransferObjects/User/UserForUpdateDto";
@@ -15,24 +16,12 @@ export class UserService implements IUserService
     private static readonly SystemPlaceholder = "System";
 
     private readonly _repositoryManager: IRepositoryManager;
+    private readonly _mapperManager: IMapperManager;
 
-    constructor(coreAdapterManager: ICoreAdapterManager)
+    constructor(coreAdapterManager: ICoreAdapterManager, mapperManager: IMapperManager)
     {
         this._repositoryManager = coreAdapterManager.repositoryManager;
-    }
-
-    private mapUserToDto(user: User): UserDto
-    {
-        return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-            createdBy: user.createdBy,
-            updatedBy: user.updatedBy,
-        };
+        this._mapperManager = mapperManager;
     }
 
     private async GetUserAndCheckIfItExists(id: number): Promise<User>
@@ -52,7 +41,7 @@ export class UserService implements IUserService
         const pagedUsers = await this._repositoryManager.userRepository.GetListUser(parameters);
 
         return {
-            items: pagedUsers.items.map(user => this.mapUserToDto(user)),
+            items: pagedUsers.items.map(user => this._mapperManager.userMapper.toDto(user)),
             meta: pagedUsers.meta,
         };
     }
@@ -60,7 +49,7 @@ export class UserService implements IUserService
     async GetUser(id: number): Promise<UserDto>
     {
         const userEntity = await this.GetUserAndCheckIfItExists(id);
-        return this.mapUserToDto(userEntity);
+        return this._mapperManager.userMapper.toDto(userEntity);
     }
 
     async CreateUser(userForCreateDto: UserForCreateDto): Promise<UserDto>
@@ -88,7 +77,7 @@ export class UserService implements IUserService
                 updatedBy: UserService.SystemPlaceholder,
                 deleted: false,
             });
-            return this.mapUserToDto(restoredUser);
+            return this._mapperManager.userMapper.toDto(restoredUser);
         }
 
         const userEntity: User = {
@@ -106,7 +95,7 @@ export class UserService implements IUserService
         };
 
         const createdUser = await this._repositoryManager.userRepository.CreateUser(userEntity);
-        return this.mapUserToDto(createdUser);
+        return this._mapperManager.userMapper.toDto(createdUser);
     }
 
     async UpdateUser(id: number, userForUpdateDto: UserForUpdateDto): Promise<UserDto>
@@ -137,7 +126,7 @@ export class UserService implements IUserService
         try
         {
             const updatedUser = await this._repositoryManager.userRepository.UpdateUser(updates);
-            return this.mapUserToDto(updatedUser);
+            return this._mapperManager.userMapper.toDto(updatedUser);
         }
         catch (error: any)
         {
