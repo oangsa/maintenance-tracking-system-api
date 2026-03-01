@@ -108,6 +108,7 @@ export class AuthService implements IAuthService
             refreshTokenId: newRecord.id,
             rawRefreshToken: newRawRefreshToken,
             userId: user.id,
+            email: user.email,
             role: user.role,
             tokenVersion: user.tokenVersion,
         };

@@ -33,6 +33,7 @@ export const JwtPlugin = (secret: string, authService: IAuthService) =>
             return {
                 currentUser: {
                     userId,
+                    email: payload.email as string,
                     role: payload.role as string,
                     tokenVersion,
                 },

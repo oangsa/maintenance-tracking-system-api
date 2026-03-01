@@ -24,30 +24,33 @@ export class UserController
                 .use(JwtPlugin(secret, this._service.authService))
                 .post(
                     "/search",
-                    async ({ body, set }) =>
+                    async ({ body, currentUser, set }) =>
                     {
-                        try
+                        return this._service.userProvider.run(currentUser!, async () =>
                         {
-                            const params: UserParameter = {
-                                pageNumber: body.pageNumber ?? 1,
-                                pageSize: body.pageSize ?? 10,
-                                orderBy: body.orderBy as UserParameter["orderBy"],
-                                search: body.search,
-                                searchTerm: body.searchTerm,
-                                deleted: body.deleted ?? false,
-                            };
+                            try
+                            {
+                                const params: UserParameter = {
+                                    pageNumber: body.pageNumber ?? 1,
+                                    pageSize: body.pageSize ?? 10,
+                                    orderBy: body.orderBy as UserParameter["orderBy"],
+                                    search: body.search,
+                                    searchTerm: body.searchTerm,
+                                    deleted: body.deleted ?? false,
+                                };
 
-                            const result = await this._service.userService.GetListUser(params);
+                                const result = await this._service.userService.GetListUser(params);
 
-                            set.headers["X-Pagination"] = JSON.stringify(result.meta);
-                            set.status = 200;
+                                set.headers["X-Pagination"] = JSON.stringify(result.meta);
+                                set.status = 200;
 
-                            return result.items;
-                        }
-                        catch (error: any)
-                        {
-                            return this.handleError(error, set);
-                        }
+                                return result.items;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
                         body: UserParameterSchema,
@@ -56,20 +59,23 @@ export class UserController
                 )
                 .get(
                     "/:id",
-                    async ({ params, set }) =>
+                    async ({ params, currentUser, set }) =>
                     {
-                        try
+                        return this._service.userProvider.run(currentUser!, async () =>
                         {
-                            const id = parseInt(params.id, 10);
-                            const user = await this._service.userService.GetUser(id);
-                            set.status = 200;
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const user = await this._service.userService.GetUser(id);
+                                set.status = 200;
 
-                            return user;
-                        }
-                        catch (error: any)
-                        {
-                            return this.handleError(error, set);
-                        }
+                                return user;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
                         params: UserIdParamSchema,
@@ -78,20 +84,23 @@ export class UserController
                 )
                 .post(
                     "/",
-                    async ({ body, set }) =>
+                    async ({ body, currentUser, set }) =>
                     {
-                        try
+                        return this._service.userProvider.run(currentUser!, async () =>
                         {
-                            const createdUser = await this._service.userService.CreateUser(body);
-                            set.status = 201;
-                            set.headers["Location"] = `/user/${createdUser.id}`;
+                            try
+                            {
+                                const createdUser = await this._service.userService.CreateUser(body);
+                                set.status = 201;
+                                set.headers["Location"] = `/user/${createdUser.id}`;
 
-                            return createdUser;
-                        }
-                        catch (error: any)
-                        {
-                            return this.handleError(error, set);
-                        }
+                                return createdUser;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
                         body: UserForCreateSchema,
@@ -101,20 +110,23 @@ export class UserController
 
                 .put(
                     "/:id",
-                    async ({ params, body, set }) =>
+                    async ({ params, body, currentUser, set }) =>
                     {
-                        try
+                        return this._service.userProvider.run(currentUser!, async () =>
                         {
-                            const id = parseInt(params.id, 10);
-                            const updatedUser = await this._service.userService.UpdateUser(id, body);
-                            set.status = 200;
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const updatedUser = await this._service.userService.UpdateUser(id, body);
+                                set.status = 200;
 
-                            return updatedUser;
-                        }
-                        catch (error: any)
-                        {
-                            return this.handleError(error, set);
-                        }
+                                return updatedUser;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
                         params: UserIdParamSchema,
@@ -125,19 +137,22 @@ export class UserController
 
                 .delete(
                     "/:id",
-                    async ({ params, set }) =>
+                    async ({ params, currentUser, set }) =>
                     {
-                        try
+                        return this._service.userProvider.run(currentUser!, async () =>
                         {
-                            const id = parseInt(params.id, 10);
-                            await this._service.userService.DeleteUser(id);
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                await this._service.userService.DeleteUser(id);
 
-                            set.status = 204;
-                        }
-                        catch (error: any)
-                        {
-                            return this.handleError(error, set);
-                        }
+                                set.status = 204;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
                         params: UserIdParamSchema,
@@ -147,20 +162,23 @@ export class UserController
 
                 .delete(
                     "/collection",
-                    async ({ body, set }) =>
+                    async ({ body, currentUser, set }) =>
                     {
-                        try
+                        return this._service.userProvider.run(currentUser!, async () =>
                         {
-                            const ids = body.ids.map((id: string) => parseInt(id, 10));
+                            try
+                            {
+                                const ids = body.ids.map((id: string) => parseInt(id, 10));
 
-                            await this._service.userService.DeleteUserCollection(ids);
+                                await this._service.userService.DeleteUserCollection(ids);
 
-                            set.status = 204;
-                        }
-                        catch (error: any)
-                        {
-                            return this.handleError(error, set);
-                        }
+                                set.status = 204;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
                         body: DeleteCollectionSchema,

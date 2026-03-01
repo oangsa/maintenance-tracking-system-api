@@ -2,6 +2,7 @@ import { IUserService } from "../../Services/IUserService";
 import { ICoreAdapterManager } from "../CoreAdaptorManager";
 import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
+import { IUserProvider } from "../../Providers/UserProvider";
 import { UserDto } from "../../DataTransferObjects/User/UserDto";
 import { UserForCreateDto } from "../../DataTransferObjects/User/UserForCreateDto";
 import { UserForUpdateDto } from "../../DataTransferObjects/User/UserForUpdateDto";
@@ -13,15 +14,21 @@ import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/Us
 
 export class UserService implements IUserService
 {
-    private static readonly SystemPlaceholder = "System";
-
     private readonly _repositoryManager: IRepositoryManager;
     private readonly _mapperManager: IMapperManager;
+    private readonly _userProvider: IUserProvider;
 
-    constructor(coreAdapterManager: ICoreAdapterManager, mapperManager: IMapperManager)
+    constructor(coreAdapterManager: ICoreAdapterManager, mapperManager: IMapperManager, userProvider: IUserProvider)
     {
         this._repositoryManager = coreAdapterManager.repositoryManager;
         this._mapperManager = mapperManager;
+        this._userProvider = userProvider;
+    }
+
+    private getCalledBy(): string
+    {
+        const current = this._userProvider.getCurrentUser();
+        return current?.email ?? "System";
     }
 
     private async GetUserAndCheckIfItExists(id: number): Promise<User>
@@ -74,7 +81,7 @@ export class UserService implements IUserService
                 avatarUrl: userForCreateDto.avatarUrl ?? existingUser.avatarUrl,
                 role: userForCreateDto.role.toLowerCase() as User["role"],
                 updatedAt: dateNow,
-                updatedBy: UserService.SystemPlaceholder,
+                updatedBy: this.getCalledBy(),
                 deleted: false,
             });
             return this._mapperManager.userMapper.UserToDto(restoredUser);
@@ -89,8 +96,8 @@ export class UserService implements IUserService
             role: userForCreateDto.role.toLowerCase() as User["role"],
             createdAt: dateNow,
             updatedAt: dateNow,
-            createdBy: UserService.SystemPlaceholder,
-            updatedBy: UserService.SystemPlaceholder,
+            createdBy: this.getCalledBy(),
+            updatedBy: this.getCalledBy(),
             deleted: false,
             tokenVersion: 0,
         };
@@ -121,7 +128,7 @@ export class UserService implements IUserService
             avatarUrl: userForUpdateDto.avatarUrl ?? userEntity.avatarUrl,
             role: (userForUpdateDto.role?.toLowerCase() as User["role"]) ?? userEntity.role,
             updatedAt: new Date().toISOString(),
-            updatedBy: UserService.SystemPlaceholder,
+            updatedBy: this.getCalledBy(),
         };
 
         try
