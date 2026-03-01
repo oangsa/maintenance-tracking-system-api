@@ -1,21 +1,21 @@
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { RoleRank } from "../../Constants/RoleRank";
 
-function getRank(role: string): number
-{
-    return RoleRank[role.toLowerCase()] ?? 0;
-}
-
-function canManageRole(actorRole: string, targetRole: string): boolean
-{
-    return getRank(actorRole) > getRank(targetRole);
-}
-
 export class RoleAuthorizationGuard
 {
+    private static getRank(role: string): number
+    {
+        return RoleRank[role.toLowerCase()] ?? 0;
+    }
+
+    private static canManageRole(actorRole: string, targetRole: string): boolean
+    {
+        return this.getRank(actorRole) > this.getRank(targetRole);
+    }
+
     static assertCanCreate(actorRole: string, targetRole: string, actorDepartmentId?: number | null, targetDepartmentId?: number | null,): void
     {
-        if (!canManageRole(actorRole, targetRole))
+        if (!this.canManageRole(actorRole, targetRole))
         {
             throw new ForbiddenException(`A '${actorRole}' is not allowed to create a user with role '${targetRole}'.`);
         }
@@ -30,12 +30,12 @@ export class RoleAuthorizationGuard
 
     static assertCanUpdate(actorRole: string, currentTargetRole: string, incomingRole?: string | null, actorDepartmentId?: number | null, targetDepartmentId?: number | null ): void
     {
-        if (!canManageRole(actorRole, currentTargetRole))
+        if (!this.canManageRole(actorRole, currentTargetRole))
         {
             throw new ForbiddenException(`A '${actorRole}' is not allowed to update a '${currentTargetRole}' user.`);
         }
 
-        if (incomingRole && !canManageRole(actorRole, incomingRole))
+        if (incomingRole && !this.canManageRole(actorRole, incomingRole))
         {
             throw new ForbiddenException(`A '${actorRole}' is not allowed to assign the role '${incomingRole}' to another user.`);
         }
@@ -45,7 +45,7 @@ export class RoleAuthorizationGuard
 
     static assertCanDelete( actorRole: string, targetRole: string, actorDepartmentId?: number | null, targetDepartmentId?: number | null): void
     {
-        if (!canManageRole(actorRole, targetRole))
+        if (!this.canManageRole(actorRole, targetRole))
         {
             throw new ForbiddenException(`A '${actorRole}' is not allowed to delete a '${targetRole}' user.`);
         }
