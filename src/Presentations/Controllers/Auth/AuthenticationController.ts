@@ -46,7 +46,7 @@ export class AuthenticationController
                             const accessToken = await accessJwt.sign({
                                 type: "access",
                                 sub: String(result.user.id),
-                                email: result.user.email,
+                                name: result.user.name,
                                 role: result.user.role,
                                 tokenVersion: result.tokenVersion,
                             });
@@ -101,7 +101,7 @@ export class AuthenticationController
                             const accessToken = await accessJwt.sign({
                                 type: "access",
                                 sub: String(result.userId),
-                                email: result.email,
+                                name: result.name,
                                 role: result.role,
                                 tokenVersion: result.tokenVersion,
                             });

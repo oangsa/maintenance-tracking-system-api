@@ -1,7 +1,7 @@
 export interface CurrentUserDto
 {
     userId: number;
-    email: string;
+    name: string | null;
     role: string;
     tokenVersion: number;
 };

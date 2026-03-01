@@ -28,7 +28,7 @@ export class UserService implements IUserService
     private getCalledBy(): string
     {
         const current = this._userProvider.getCurrentUser();
-        return current?.email ?? "System";
+        return current?.name ?? "System";
     }
 
     private async GetUserAndCheckIfItExists(id: number): Promise<User>

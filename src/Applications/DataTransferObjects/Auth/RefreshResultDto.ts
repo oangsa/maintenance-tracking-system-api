@@ -3,7 +3,7 @@ export interface RefreshResultDto
     refreshTokenId: number;
     rawRefreshToken: string;
     userId: number;
-    email: string;
+    name: string | null;
     role: string;
     tokenVersion: number;
 };
