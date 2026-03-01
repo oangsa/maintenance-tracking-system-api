@@ -3,6 +3,7 @@ import { IServiceManager } from "../../../Applications/Services/Core/IServiceMan
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequstException";
+import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
 import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema } from "../../Validators/UserSchemaValidation";
 
@@ -212,6 +213,17 @@ export class UserController
                 statusCode: 400,
                 message: error.message,
                 error: "Bad Request",
+            };
+        }
+
+        if (error instanceof ForbiddenException)
+        {
+            set.status = 403;
+
+            return {
+                statusCode: 403,
+                message: error.message,
+                error: "Forbidden",
             };
         }
 

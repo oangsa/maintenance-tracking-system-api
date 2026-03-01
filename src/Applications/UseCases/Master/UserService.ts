@@ -11,6 +11,8 @@ import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
 import { User } from "../../../Infrastructures/Entities/Master/User";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequstException";
+import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
+import { hashPassword } from "../../../Shared/Utilities/Authentication/PasswordUtils";
 
 export class UserService implements IUserService
 {
@@ -61,6 +63,13 @@ export class UserService implements IUserService
 
     async CreateUser(userForCreateDto: UserForCreateDto): Promise<UserDto>
     {
+        const currentUser = this._userProvider.getCurrentUser();
+
+        RoleAuthorizationGuard.assertCanCreate(
+            currentUser!.role,
+            userForCreateDto.role.toLowerCase(),
+        );
+
         const existingUser = await this._repositoryManager.userRepository.GetUserByEmail(userForCreateDto.email, true);
 
         if (existingUser && !existingUser.deleted)
@@ -69,6 +78,7 @@ export class UserService implements IUserService
         }
 
         const dateNow = new Date().toISOString();
+        const hashedPassword = await hashPassword(userForCreateDto.password);
 
         // Restore soft-deleted user instead of inserting a duplicate
         if (existingUser && existingUser.deleted)
@@ -76,7 +86,7 @@ export class UserService implements IUserService
             const restoredUser = await this._repositoryManager.userRepository.UpdateUser({
                 id: existingUser.id,
                 email: userForCreateDto.email,
-                passwordHash: userForCreateDto.password,
+                passwordHash: hashedPassword,
                 name: userForCreateDto.name ?? existingUser.name,
                 avatarUrl: userForCreateDto.avatarUrl ?? existingUser.avatarUrl,
                 role: userForCreateDto.role.toLowerCase() as User["role"],
@@ -90,7 +100,7 @@ export class UserService implements IUserService
         const userEntity: User = {
             id: 0,
             email: userForCreateDto.email,
-            passwordHash: userForCreateDto.password,
+            passwordHash: hashedPassword,
             name: userForCreateDto.name ?? null,
             avatarUrl: userForCreateDto.avatarUrl ?? null,
             role: userForCreateDto.role.toLowerCase() as User["role"],
@@ -108,7 +118,14 @@ export class UserService implements IUserService
 
     async UpdateUser(id: number, userForUpdateDto: UserForUpdateDto): Promise<UserDto>
     {
+        const currentUser = this._userProvider.getCurrentUser();
         const userEntity = await this.GetUserAndCheckIfItExists(id);
+
+        RoleAuthorizationGuard.assertCanUpdate(
+            currentUser!.role,
+            userEntity.role,
+            userForUpdateDto.role?.toLowerCase(),
+        );
 
         if (userForUpdateDto.email && userForUpdateDto.email !== userEntity.email)
         {
@@ -123,7 +140,9 @@ export class UserService implements IUserService
         const updates: Partial<User> = {
             id: userEntity.id,
             email: userForUpdateDto.email ?? userEntity.email,
-            passwordHash: userForUpdateDto.password ?? userEntity.passwordHash,
+            passwordHash: userForUpdateDto.password
+                ? await hashPassword(userForUpdateDto.password)
+                : userEntity.passwordHash,
             name: userForUpdateDto.name ?? userEntity.name,
             avatarUrl: userForUpdateDto.avatarUrl ?? userEntity.avatarUrl,
             role: (userForUpdateDto.role?.toLowerCase() as User["role"]) ?? userEntity.role,
@@ -148,7 +167,14 @@ export class UserService implements IUserService
 
     async DeleteUser(id: number): Promise<void>
     {
-        await this.GetUserAndCheckIfItExists(id);
+        const currentUser = this._userProvider.getCurrentUser();
+        const userEntity = await this.GetUserAndCheckIfItExists(id);
+
+        RoleAuthorizationGuard.assertCanDelete(
+            currentUser!.role,
+            userEntity.role,
+        );
+
         await this._repositoryManager.userRepository.DeleteUser(id);
     }
 
