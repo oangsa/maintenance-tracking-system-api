@@ -1,7 +1,7 @@
 import { IServiceManager } from "../../Services/Core/IServiceManager";
 import { IAuthService } from "../../Services/IAuthService";
 import { IUserService } from "../../Services/IUserService";
-import { IMapperManager } from "../../Mappers/Core/IMapperManager";
+import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { MapperManager } from "../../Mappers/Core/MapperManager";
 import { AuthService } from "../Auth/AuthService";
 import { UserService } from "../Master/UserService";
@@ -11,6 +11,7 @@ import { IConfigurationManager } from "../../../Infrastructures/Core/Configurati
 export class ServiceManager implements IServiceManager
 {
     private readonly _coreAdapterManager: ICoreAdapterManager;
+
     private readonly _authService: IAuthService;
     private readonly _userService: IUserService;
 

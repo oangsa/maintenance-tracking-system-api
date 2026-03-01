@@ -126,7 +126,7 @@ export class UserService implements IUserService
         try
         {
             const updatedUser = await this._repositoryManager.userRepository.UpdateUser(updates);
-            return this._mapperManager.userMapper.toDto(updatedUser);
+            return this._mapperManager.userMapper.UserToDto(updatedUser);
         }
         catch (error: any)
         {
