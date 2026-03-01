@@ -49,5 +49,5 @@ export const UserIdParamSchema = t.Object({
 });
 
 export const DeleteCollectionSchema = t.Object({
-    ids: t.String({ pattern: "^[0-9]+(,[0-9]+)*$" }),
+    ids: t.Array(t.String({ pattern: "^[0-9]+$" }), { minItems: 1 }),
 });

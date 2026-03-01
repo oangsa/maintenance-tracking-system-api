@@ -1,5 +1,5 @@
 import Elysia from "elysia";
-import { UserController } from "../UserController";
+import { UserController } from "../Master/UserController";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 
 export class ControllerManager
