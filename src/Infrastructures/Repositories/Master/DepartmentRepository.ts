@@ -1,7 +1,7 @@
 import { IDepartmentRepository } from "../../../Domains/Repositories/IDepartmentRepository";
 import { AppDrizzleDB } from "../../Database";
 import { Department } from "../../Entities/Master/Department";
-import { department } from "../../Database/Drizzle/schema";
+import { department as departmentTable } from "../../Database/Drizzle/schema";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
 import { DepartmentParameter } from "../../../Domains/RequestFeatures/DepartmentParameter";
@@ -55,7 +55,7 @@ export class DepartmentRepository implements IDepartmentRepository
                 created_by,
                 updated_by,
                 deleted
-            FROM ${department}
+            FROM ${departmentTable}
             WHERE id = ${id}
         `);
 
@@ -81,7 +81,7 @@ export class DepartmentRepository implements IDepartmentRepository
                 created_by,
                 updated_by,
                 deleted
-            FROM ${department}
+            FROM ${departmentTable}
             WHERE code = ${code}
               ${deletedFilter}
             LIMIT 1
@@ -129,7 +129,7 @@ export class DepartmentRepository implements IDepartmentRepository
                     created_by,
                     updated_by,
                     deleted
-                FROM ${department}
+                FROM ${departmentTable}
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -137,7 +137,7 @@ export class DepartmentRepository implements IDepartmentRepository
             `),
             this._db.db.execute<{ count: number }>(sql`
                 SELECT COUNT(*)::int AS count
-                FROM ${department}
+                FROM ${departmentTable}
                 ${whereClause}
             `),
         ]);
@@ -152,7 +152,7 @@ export class DepartmentRepository implements IDepartmentRepository
     async CreateDeparment(department: Department): Promise<Department>
     {
         const result = await this._db.db.execute<DepartmentRow>(sql`
-            INSERT INTO ${department} (
+            INSERT INTO ${departmentTable} (
                 code,
                 name,
                 created_by,
@@ -183,7 +183,7 @@ export class DepartmentRepository implements IDepartmentRepository
     async UpdateDepartment(department: Partial<Department>): Promise<Department>
     {
         const result = await this._db.db.execute<DepartmentRow>(sql`
-            UPDATE ${department}
+            UPDATE ${departmentTable}
             SET
                 code = COALESCE(${department.code}, code),
                 name = COALESCE(${department.name}, name),
@@ -209,7 +209,7 @@ export class DepartmentRepository implements IDepartmentRepository
     async DeleteDepartment(id: number): Promise<void>
     {
         await this._db.db.execute(sql`
-            UPDATE ${department}
+            UPDATE ${departmentTable}
             SET
                 deleted = true,
                 updated_at = CURRENT_TIMESTAMP

@@ -1,5 +1,6 @@
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { RoleRank } from "../../Constants/RoleRank";
+import type { Role } from "../../Enums/Role";
 
 export class RoleAuthorizationGuard
 {
@@ -21,6 +22,14 @@ export class RoleAuthorizationGuard
         }
 
         RoleAuthorizationGuard.assertSameDepartment(actorRole, actorDepartmentId, targetDepartmentId);
+    }
+
+    static assertExpectedRole(actorRole: string, expectedRole: Role): void
+    {
+        if (actorRole.toLowerCase() !== expectedRole.toLowerCase())
+        {
+            throw new ForbiddenException(`A '${actorRole}' is not allowed to perform this action. Expected role: '${expectedRole}'.`);
+        }
     }
 
     static assertCanRead(_actorRole: string): void

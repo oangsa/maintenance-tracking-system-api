@@ -22,7 +22,7 @@ export const DepartmentResponseSchema = t.Object({
 });
 
 export const DepartmentForCreateSchema = t.Object({
-    code: t.String({ format: "email", maxLength: 150 }),
+    code: t.String({ maxLength: 150 }),
     name: t.String({ maxLength: 150 }),
 });
 

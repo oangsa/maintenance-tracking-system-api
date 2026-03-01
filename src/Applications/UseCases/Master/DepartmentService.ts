@@ -11,6 +11,8 @@ import { ICoreAdapterManager } from "../CoreAdaptorManager";
 import { DepartmentNotFoundException } from "../../../Domains/Exceptions/Department/DepartmentNotFoundException";
 import { Department } from "../../../Infrastructures/Entities/Master/Department";
 import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadRequstException";
+import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
+import { Role } from "../../../Shared/Enums/Role";
 
 export class DepartmentService implements IDepartmentService
 {
@@ -23,6 +25,11 @@ export class DepartmentService implements IDepartmentService
         this._repositoryManager = coreAdapterManager.repositoryManager;
         this._mapperManager = mapperManager;
         this._userProvider = userProvider;
+    }
+
+    private ExpectRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledBy(): string
@@ -45,6 +52,8 @@ export class DepartmentService implements IDepartmentService
 
     async GetListDepartment(parameters: DepartmentParameter): Promise<PagedResult<DepartmentDto>>
     {
+        this.ExpectRole('admin');
+
         const pagedDepartments = await this._repositoryManager.departmentRepository.GetListDepartment(parameters);
 
         return {
@@ -62,7 +71,9 @@ export class DepartmentService implements IDepartmentService
 
     async CreateDepartment(departmentForCreateDto: DepartmentForCreateDto): Promise<DepartmentDto>
     {
-        const existingDepartment = await this._repositoryManager.departmentRepository.GetDepartmentByCode(departmentForCreateDto.code, false);
+        this.ExpectRole('admin');
+
+        const existingDepartment = await this._repositoryManager.departmentRepository.GetDepartmentByCode(departmentForCreateDto.code, true);
 
         if (existingDepartment && !existingDepartment.deleted)
         {
@@ -82,24 +93,39 @@ export class DepartmentService implements IDepartmentService
             deleted: false,
         };
 
-        if (existingDepartment && existingDepartment.deleted)
+        try
         {
-            const restoredDepartment = await this._repositoryManager.departmentRepository.UpdateDepartment({
-                ...existingDepartment,
-                ...newDepartment,
-                id: existingDepartment.id,
-                deleted: false,
-            });
+            if (existingDepartment && existingDepartment.deleted)
+            {
+                const restoredDepartment = await this._repositoryManager.departmentRepository.UpdateDepartment({
+                    ...existingDepartment,
+                    ...newDepartment,
+                    id: existingDepartment.id,
+                    deleted: false,
+                });
 
-            return this._mapperManager.departmentMapper.DepartmentToDto(restoredDepartment);
+                return this._mapperManager.departmentMapper.DepartmentToDto(restoredDepartment);
+            }
+
+            const createdDepartment = await this._repositoryManager.departmentRepository.CreateDeparment(newDepartment);
+            return this._mapperManager.departmentMapper.DepartmentToDto(createdDepartment);
+        }
+        catch (error: any)
+        {
+            if (error.code === "23505")
+            {
+                throw new DepartmentDuplicateBadRequestException(departmentForCreateDto.code);
+            }
+
+            throw error;
         }
 
-        const createdDepartment = await this._repositoryManager.departmentRepository.CreateDeparment(newDepartment);
-        return this._mapperManager.departmentMapper.DepartmentToDto(createdDepartment);
     }
 
     async UpdateDepartment(id: number, departmentForUpdateDto: DepartmentForUpdateDto): Promise<DepartmentDto>
     {
+        this.ExpectRole('admin');
+
         const departmentEntity = await this.GetDepartmentAndCheckIfItExists(id);
 
         if (departmentForUpdateDto.code)
@@ -138,6 +164,8 @@ export class DepartmentService implements IDepartmentService
 
     async DeleteDepartment(id: number): Promise<void>
     {
+        this.ExpectRole('admin');
+
         await this.GetDepartmentAndCheckIfItExists(id);
         await this._repositoryManager.departmentRepository.DeleteDepartment(id);
     }
