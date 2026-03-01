@@ -41,7 +41,7 @@ export class UserService implements IUserService
         const pagedUsers = await this._repositoryManager.userRepository.GetListUser(parameters);
 
         return {
-            items: pagedUsers.items.map(user => this._mapperManager.userMapper.toDto(user)),
+            items: pagedUsers.items.map(user => this._mapperManager.userMapper.UserToDto(user)),
             meta: pagedUsers.meta,
         };
     }
@@ -49,7 +49,7 @@ export class UserService implements IUserService
     async GetUser(id: number): Promise<UserDto>
     {
         const userEntity = await this.GetUserAndCheckIfItExists(id);
-        return this._mapperManager.userMapper.toDto(userEntity);
+        return this._mapperManager.userMapper.UserToDto(userEntity);
     }
 
     async CreateUser(userForCreateDto: UserForCreateDto): Promise<UserDto>
@@ -77,7 +77,7 @@ export class UserService implements IUserService
                 updatedBy: UserService.SystemPlaceholder,
                 deleted: false,
             });
-            return this._mapperManager.userMapper.toDto(restoredUser);
+            return this._mapperManager.userMapper.UserToDto(restoredUser);
         }
 
         const userEntity: User = {
@@ -95,7 +95,7 @@ export class UserService implements IUserService
         };
 
         const createdUser = await this._repositoryManager.userRepository.CreateUser(userEntity);
-        return this._mapperManager.userMapper.toDto(createdUser);
+        return this._mapperManager.userMapper.UserToDto(createdUser);
     }
 
     async UpdateUser(id: number, userForUpdateDto: UserForUpdateDto): Promise<UserDto>
