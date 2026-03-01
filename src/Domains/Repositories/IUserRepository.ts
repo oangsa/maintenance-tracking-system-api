@@ -2,7 +2,8 @@ import { User } from "../../Infrastructures/Entities/Master/User";
 import { UserParameter } from "../RequestFeatures/UserParameter";
 import { PagedResult } from "../RequestFeatures/Core/PageResult";
 
-export interface IUserRepository {
+export interface IUserRepository
+{
     GetUserById(id: number): Promise<User | null>;
     GetUserByEmail(email: string, includeDeleted?: boolean): Promise<User | null>;
     GetListUser(parameters: UserParameter): Promise<PagedResult<User>>;

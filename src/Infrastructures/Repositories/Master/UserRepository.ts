@@ -201,8 +201,6 @@ export class UserRepository implements IUserRepository
                 token_version
         `);
 
-        console.log(result)
-
         return this.mapRowToUser(result[0]);
     }
 

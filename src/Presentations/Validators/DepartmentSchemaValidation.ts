@@ -14,7 +14,7 @@ export const DepartmentParameterSchema = t.Object({
 export const DepartmentResponseSchema = t.Object({
     id: t.Number(),
     code: t.String(),
-    email: t.String(),
+    name: t.String(),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
