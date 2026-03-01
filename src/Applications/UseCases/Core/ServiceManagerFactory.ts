@@ -1,16 +1,17 @@
 import { ServiceManager } from "./ServiceManager";
 import { CoreAdapterManager } from "../CoreAdaptorManager";
 import { IServiceManager } from "../../Services/Core/IServiceManager";
+import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
 
 let serviceManagerInstance: IServiceManager | null = null;
 
 export class ServiceManagerFactory
 {
-    static initialize(): IServiceManager
+    static initialize(configurationManager: IConfigurationManager): IServiceManager
     {
         if (!serviceManagerInstance)
         {
-            const coreAdapterManager = new CoreAdapterManager();
+            const coreAdapterManager = new CoreAdapterManager(configurationManager);
             serviceManagerInstance = new ServiceManager(coreAdapterManager);
         }
 
@@ -21,7 +22,7 @@ export class ServiceManagerFactory
     {
         if (!serviceManagerInstance)
         {
-            throw new Error("ServiceManager not initialized. Call ServiceManagerFactory.initialize() first.");
+            throw new Error("ServiceManager not initialized. Call ServiceManagerFactory.initialize() to initialized it.");
         }
 
         return serviceManagerInstance;

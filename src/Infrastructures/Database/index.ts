@@ -1,5 +1,5 @@
 import { DrizzleDB, AppDrizzleDB } from "./Drizzle";
-import { Configuration } from "../Core/Configuration";
+import { IConfigurationManager } from "../Core/IConfigurationManager";
 import * as schema from "./Drizzle/schema";
 
 export type { AppDrizzleDB };
@@ -9,11 +9,11 @@ let drizzleInstance: AppDrizzleDB | null = null;
 
 export class DrizzleFactory
 {
-    static initialize(connectionString?: string): AppDrizzleDB
+    static initialize(configurationManager: IConfigurationManager): AppDrizzleDB
     {
         if (!drizzleInstance)
         {
-            const connString = connectionString || Configuration.getConnectionString();
+            const connString = configurationManager.database.connectionString;
             drizzleInstance = new DrizzleDB(connString, schema) as AppDrizzleDB;
         }
 
