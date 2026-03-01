@@ -1,6 +1,7 @@
 import { UserDto } from "../User/UserDto";
 
-export type LoginResultDto = {
+export interface LoginResultDto
+{
     refreshTokenId: number;
     rawRefreshToken: string;
     user: UserDto;

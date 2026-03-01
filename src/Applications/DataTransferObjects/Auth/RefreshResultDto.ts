@@ -1,4 +1,5 @@
-export type RefreshResultDto = {
+export interface RefreshResultDto
+{
     refreshTokenId: number;
     rawRefreshToken: string;
     userId: number;
