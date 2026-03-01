@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { inventoryMove, inventoryMoveItem, part, productType, department, product, repairRequest, workOrder, repairStatus, users, repairRequestItem, workTask, repairRequestStatusLog, workOrderPart, userDepartment } from "./schema";
+import { inventoryMove, inventoryMoveItem, part, productType, users, refreshToken, department, product, repairRequest, workOrder, repairStatus, repairRequestItem, workTask, repairRequestStatusLog, workOrderPart, userDepartment } from "./schema";
 
 export const inventoryMoveItemRelations = relations(inventoryMoveItem, ({one}) => ({
 	inventoryMove: one(inventoryMove, {
@@ -32,6 +32,20 @@ export const productTypeRelations = relations(productType, ({one, many}) => ({
 		references: [department.id]
 	}),
 	products: many(product),
+}));
+
+export const refreshTokenRelations = relations(refreshToken, ({one}) => ({
+	user: one(users, {
+		fields: [refreshToken.userId],
+		references: [users.id]
+	}),
+}));
+
+export const usersRelations = relations(users, ({many}) => ({
+	refreshTokens: many(refreshToken),
+	repairRequests: many(repairRequest),
+	repairRequestStatusLogs: many(repairRequestStatusLog),
+	userDepartments: many(userDepartment),
 }));
 
 export const departmentRelations = relations(department, ({many}) => ({
@@ -88,12 +102,6 @@ export const repairStatusRelations = relations(repairStatus, ({many}) => ({
 	repairRequestStatusLogs_oldStatusId: many(repairRequestStatusLog, {
 		relationName: "repairRequestStatusLog_oldStatusId_repairStatus_id"
 	}),
-}));
-
-export const usersRelations = relations(users, ({many}) => ({
-	repairRequests: many(repairRequest),
-	repairRequestStatusLogs: many(repairRequestStatusLog),
-	userDepartments: many(userDepartment),
 }));
 
 export const repairRequestItemRelations = relations(repairRequestItem, ({one}) => ({

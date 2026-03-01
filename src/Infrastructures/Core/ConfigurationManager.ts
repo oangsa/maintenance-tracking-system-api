@@ -9,6 +9,7 @@ interface JwtConfiguration
 {
     secret: string;
     expiresIn: string;
+    refreshExpiresIn: string;
 }
 
 export interface IConfigurationManager
@@ -57,7 +58,8 @@ export class ConfigurationManager implements IConfigurationManager
     private LoadJWTConfiguration(): JwtConfiguration
     {
         const secret = process.env.JWT_SECRET;
-        const expiresIn = process.env.JWT_EXPIRES_IN ?? "7d";
+        const expiresIn = process.env.JWT_EXPIRES_IN ?? "15m";
+        const refreshExpiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN ?? "7d";
 
         if (!secret)
         {
@@ -68,6 +70,6 @@ export class ConfigurationManager implements IConfigurationManager
             );
         }
 
-        return { secret, expiresIn };
+        return { secret, expiresIn, refreshExpiresIn };
     }
 }

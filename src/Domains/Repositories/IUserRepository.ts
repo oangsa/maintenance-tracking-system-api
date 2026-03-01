@@ -9,4 +9,5 @@ export interface IUserRepository {
     CreateUser(user: User): Promise<User>;
     UpdateUser(user: Partial<User>): Promise<User>;
     DeleteUser(id: number): Promise<void>;
+    UpdateTokenVersion(id: number): Promise<void>;
 }

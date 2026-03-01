@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
+import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequstException";
 import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
@@ -16,8 +17,11 @@ export class UserController
 
     public RegisterRoutes( app: Elysia<any>): void
     {
+        const { secret } = this._service.configurationManager.jwt;
+
         app.group("/user", (app) =>
             app
+                .use(JwtPlugin(secret, this._service.authService))
                 .post(
                     "/search",
                     async ({ body, set }) =>

@@ -92,6 +92,7 @@ export class UserService implements IUserService
             createdBy: UserService.SystemPlaceholder,
             updatedBy: UserService.SystemPlaceholder,
             deleted: false,
+            tokenVersion: 0,
         };
 
         const createdUser = await this._repositoryManager.userRepository.CreateUser(userEntity);

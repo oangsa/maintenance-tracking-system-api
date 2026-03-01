@@ -21,6 +21,7 @@ type UserRow = {
     updated_by: string | null;
     deleted: boolean | null;
     role: (typeof rolesEnum.enumValues)[number];
+    token_version: number;
 };
 
 export class UserRepository implements IUserRepository
@@ -46,6 +47,7 @@ export class UserRepository implements IUserRepository
             updatedBy: row.updated_by,
             deleted: row.deleted,
             role: row.role,
+            tokenVersion: row.token_version,
         };
     }
 
@@ -63,7 +65,8 @@ export class UserRepository implements IUserRepository
                 created_by,
                 updated_by,
                 deleted,
-                role
+                role,
+                token_version
             FROM ${users}
             WHERE id = ${id}
               AND deleted = false
@@ -91,7 +94,8 @@ export class UserRepository implements IUserRepository
                 created_by,
                 updated_by,
                 deleted,
-                role
+                role,
+                token_version
             FROM ${users}
             WHERE email = ${email}
             ${deletedFilter}
@@ -139,7 +143,8 @@ export class UserRepository implements IUserRepository
                     created_by,
                     updated_by,
                     deleted,
-                    role
+                    role,
+                    token_version
                 FROM ${users}
                 ${whereClause}
                 ${orderByClause}
@@ -192,7 +197,8 @@ export class UserRepository implements IUserRepository
                 created_by,
                 updated_by,
                 deleted,
-                role
+                role,
+                token_version
         `);
 
         console.log(result)
@@ -225,7 +231,8 @@ export class UserRepository implements IUserRepository
                 created_by,
                 updated_by,
                 deleted,
-                role
+                role,
+                token_version
         `);
 
         return this.mapRowToUser(result[0]);
@@ -236,6 +243,15 @@ export class UserRepository implements IUserRepository
         await this._db.db.execute(sql`
             UPDATE ${users}
             SET deleted = true, updated_at = ${new Date().toISOString()}
+            WHERE id = ${id}
+        `);
+    }
+
+    async UpdateTokenVersion(id: number): Promise<void>
+    {
+        await this._db.db.execute(sql`
+            UPDATE ${users}
+            SET token_version = token_version + 1
             WHERE id = ${id}
         `);
     }

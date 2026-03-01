@@ -1,4 +1,4 @@
-import { pgTable, unique, serial, varchar, timestamp, text, boolean, foreignKey, integer, primaryKey, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, unique, serial, varchar, timestamp, text, boolean, foreignKey, integer, index, primaryKey, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const inventoryMoveReason = pgEnum("inventory_move_reason", ['buy', 'use', 'lost', 'found', 'adjust'])
@@ -46,6 +46,23 @@ export const inventoryMoveItem = pgTable("inventory_move_item", {
 		}),
 ]);
 
+export const users = pgTable("users", {
+	id: serial().primaryKey().notNull(),
+	email: varchar({ length: 150 }).notNull(),
+	passwordHash: text("password_hash"),
+	name: varchar({ length: 150 }),
+	avatarUrl: text("avatar_url"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	createdBy: varchar("created_by", { length: 150 }),
+	updatedBy: varchar("updated_by", { length: 150 }),
+	deleted: boolean().default(false),
+	role: rolesEnum().notNull(),
+	tokenVersion: integer("token_version").default(0).notNull(),
+}, (table) => [
+	unique("users_email_key").on(table.email),
+]);
+
 export const part = pgTable("part", {
 	id: serial().primaryKey().notNull(),
 	code: varchar({ length: 50 }).notNull(),
@@ -63,6 +80,25 @@ export const part = pgTable("part", {
 			name: "part_product_type_id_fkey"
 		}),
 	unique("part_code_key").on(table.code),
+]);
+
+export const refreshToken = pgTable("refresh_token", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	tokenHash: text("token_hash").notNull(),
+	expiresAt: timestamp("expires_at", { withTimezone: true, mode: 'string' }).notNull(),
+	revoked: boolean().default(false).notNull(),
+	userAgent: text("user_agent"),
+	ipAddress: varchar("ip_address", { length: 100 }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("idx_refresh_token_expires_at").using("btree", table.expiresAt.asc().nullsLast().op("timestamptz_ops")),
+	index("idx_refresh_token_user_id").using("btree", table.userId.asc().nullsLast().op("int4_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "refresh_token_user_id_fkey"
+		}).onDelete("cascade"),
 ]);
 
 export const productType = pgTable("product_type", {
@@ -287,22 +323,6 @@ export const workOrderPart = pgTable("work_order_part", {
 			foreignColumns: [workOrder.id],
 			name: "work_order_part_work_order_id_fkey"
 		}),
-]);
-
-export const users = pgTable("users", {
-	id: serial().primaryKey().notNull(),
-	email: varchar({ length: 150 }).notNull(),
-	passwordHash: text("password_hash"),
-	name: varchar({ length: 150 }),
-	avatarUrl: text("avatar_url"),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	createdBy: varchar("created_by", { length: 150 }),
-	updatedBy: varchar("updated_by", { length: 150 }),
-	deleted: boolean().default(false),
-	role: rolesEnum().notNull(),
-}, (table) => [
-	unique("users_email_key").on(table.email),
 ]);
 
 export const userDepartment = pgTable("user_department", {
