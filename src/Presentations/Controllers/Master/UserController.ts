@@ -51,7 +51,7 @@ export class UserController
                     },
                     {
                         body: UserParameterSchema,
-                        detail: { summary: "Search users", tags: ["users"] },
+                        detail: { summary: "Search users", tags: ["Users"] },
                     },
                 )
                 .get(
@@ -73,7 +73,7 @@ export class UserController
                     },
                     {
                         params: UserIdParamSchema,
-                        detail: { summary: "Get user by ID", tags: ["users"] },
+                        detail: { summary: "Get user by ID", tags: ["Users"] },
                     },
                 )
                 .post(
@@ -95,7 +95,7 @@ export class UserController
                     },
                     {
                         body: UserForCreateSchema,
-                        detail: { summary: "Create user", tags: ["users"] },
+                        detail: { summary: "Create user", tags: ["Users"] },
                     },
                 )
 
@@ -166,7 +166,7 @@ export class UserController
                         body: DeleteCollectionSchema,
                         detail: {
                             summary: "Delete user collection",
-                            tags: ["users"],
+                            tags: ["Users"],
                         },
                     },
                 ),

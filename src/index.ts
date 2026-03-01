@@ -33,4 +33,4 @@ app.listen(3000);
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
 );
-console.log(`📄 Swagger UI available at http://localhost:3000/docs`);
+console.log(`📄 Swagger UI available at http://localhost:3000/swagger`);

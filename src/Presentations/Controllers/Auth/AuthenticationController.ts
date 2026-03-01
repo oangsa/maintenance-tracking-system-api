@@ -67,7 +67,7 @@ export class AuthenticationController
                     },
                     {
                         body: UserForLoginSchema,
-                        detail: { summary: "Login user", tags: ["authentication"] },
+                        detail: { summary: "Login user", tags: ["Authentications"] },
                     },
                 )
                 .post(
@@ -119,7 +119,7 @@ export class AuthenticationController
                             return this.handleError(error, set);
                         }
                     },
-                    { detail: { summary: "Refresh access token", tags: ["authentication"] } },
+                    { detail: { summary: "Refresh access token", tags: ["Authentications"] } },
                 )
                 .group("", (app) =>
                     app
@@ -140,7 +140,7 @@ export class AuthenticationController
 
                                 return { message: "Logged out successfully" };
                             },
-                            { detail: { summary: "Logout current device", tags: ["authentication"] } },
+                            { detail: { summary: "Logout current device", tags: ["Authentications"] } },
                         )
                         .post(
                             "/logout-all",
@@ -151,7 +151,7 @@ export class AuthenticationController
                                 cookie[REFRESH_COOKIE].remove();
                                 return { message: "Logged out from all devices" };
                             },
-                            { detail: { summary: "Logout all devices", tags: ["authentication"] } },
+                            { detail: { summary: "Logout all devices", tags: ["Authentications"] } },
                         ),
                 ),
         );
