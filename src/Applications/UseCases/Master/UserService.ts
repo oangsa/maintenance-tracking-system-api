@@ -1,5 +1,5 @@
 import { IUserService } from "../../Services/IUserService";
-import { ICoreAdapterManager } from "../CoreAdaptorManager";
+import { ICoreAdapterManager } from "../CoreAdapterManager";
 import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { IUserProvider } from "../../Providers/UserProvider";

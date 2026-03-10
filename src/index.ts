@@ -26,7 +26,7 @@ const app = new Elysia().use(ErrorHandlerPlugin).use(
 );
 
 const controllerManager = new ControllerManager(serviceManager);
-controllerManager.RegisterRoutes(app);
+controllerManager.RegisterRoutes(app as any);
 
 app.listen(3000);
 

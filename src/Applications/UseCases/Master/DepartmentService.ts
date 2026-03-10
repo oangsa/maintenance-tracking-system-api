@@ -7,7 +7,7 @@ import { IDepartmentService } from "../../Services/IDepartmentService";
 import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { IUserProvider } from "../../Providers/UserProvider";
-import { ICoreAdapterManager } from "../CoreAdaptorManager";
+import { ICoreAdapterManager } from "../CoreAdapterManager";
 import { DepartmentNotFoundException } from "../../../Domains/Exceptions/Department/DepartmentNotFoundException";
 import { Department } from "../../../Infrastructures/Entities/Master/Department";
 import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadRequstException";

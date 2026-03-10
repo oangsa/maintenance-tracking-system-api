@@ -1,5 +1,5 @@
 import { ServiceManager } from "./ServiceManager";
-import { CoreAdapterManager } from "../CoreAdaptorManager";
+import { CoreAdapterManager } from "../CoreAdapterManager";
 import { IServiceManager } from "../../Services/Core/IServiceManager";
 import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
 

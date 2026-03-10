@@ -1,7 +1,7 @@
 import { IAuthService } from "../../Services/IAuthService";
 import { LoginResultDto } from "../../DataTransferObjects/Auth/LoginResultDto";
 import { RefreshResultDto } from "../../DataTransferObjects/Auth/RefreshResultDto";
-import { ICoreAdapterManager } from "../CoreAdaptorManager";
+import { ICoreAdapterManager } from "../CoreAdapterManager";
 import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { InvalidCredentialsException } from "../../../Domains/Exceptions/Auth/InvalidCredentialsException";
