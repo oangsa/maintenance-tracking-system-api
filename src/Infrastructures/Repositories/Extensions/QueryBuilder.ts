@@ -3,6 +3,7 @@ import { SearchTerm } from "../../../Domains/RequestFeatures/Core/SearchTerm";
 import { QueryBuilderBadRequestException } from "../../../Domains/Exceptions/QueryBuilderBadRequestException";
 import { SQL, sql } from "drizzle-orm";
 
+
 type WhereCondition = Record<string, unknown>;
 type OrderByCondition = Record<string, unknown>;
 
@@ -33,7 +34,7 @@ export class QueryBuilder {
   private static buildRawSQLSingleCondition(search: Search, fieldName: string): SQL | null {
     const condition = search.condition?.toUpperCase();
     const value = search.value;
-    const field = sql.identifier(fieldName);
+    const field = this.buildIdentifier(fieldName);
 
     switch (condition) {
       case "CONTAINS":
@@ -90,7 +91,7 @@ export class QueryBuilder {
       if (!propertyName) continue;
 
       const fieldName = propertyName.toLowerCase();
-      const field = sql.identifier(fieldName);
+      const field = this.buildIdentifier(fieldName);
 
       conditions.push(sql`${field} ILIKE ${`%${searchValue}%`}`);
     }
@@ -124,7 +125,7 @@ export class QueryBuilder {
         ? 'DESC'
         : 'ASC';
 
-      const field = sql.identifier(fieldPath);
+      const field = this.buildIdentifier(fieldPath);
       orderParts.push(sql`${field} ${sql.raw(direction)}`);
     }
 
@@ -133,6 +134,31 @@ export class QueryBuilder {
     }
 
     return sql`ORDER BY ${sql.join(orderParts, sql`, `)}`;
+  }
+
+  /**
+   * Builds a SQL identifier that supports dot-notation for qualified column references.
+   *
+   * A plain name like "email" produces:
+   *   "email"
+   *
+   * A dot-notated name like "baseLocation.name" produces:
+   *   "baselocation"."name"
+   *
+   * This allows callers to reference columns from JOINed tables, e.g.:
+   *   searchTerm.name = "baseLocation.name,baseLocation.code,fromCurrency.code"
+   *
+   * Note: the repository query must already JOIN the referenced table under
+   * the matching alias for the generated SQL to be valid.
+   */
+  private static buildIdentifier(fieldName: string): SQL {
+    const parts = fieldName.split('.');
+
+    if (parts.length === 1) {
+      return sql`${sql.identifier(parts[0])}`;
+    }
+
+    return sql.join(parts.map(p => sql.identifier(p)), sql.raw('.'));
   }
 
   private static parseValue(value: string): string | number | boolean | Date {
