@@ -185,30 +185,30 @@ export class UserRepository implements IUserRepository
                     users.deleted,
                     users.role,
                     users.token_version,
-                    d.department_id,
-                    d.department_name,
-                    d.department_code,
-                    d.department_created_at,
-                    d.department_updated_at,
-                    d.department_created_by,
-                    d.department_updated_by,
-                    d.department_deleted
+                    department.id AS department_id,
+                    department.name AS department_name,
+                    department.code AS department_code,
+                    department.created_at AS department_created_at,
+                    department.updated_at AS department_updated_at,
+                    department.created_by AS department_created_by,
+                    department.updated_by AS department_updated_by,
+                    department.deleted AS department_deleted
                 FROM ${users}
                 LEFT JOIN LATERAL (
                     SELECT
-                        dept.id AS department_id,
-                        dept.name AS department_name,
-                        dept.code AS department_code,
-                        dept.created_at AS department_created_at,
-                        dept.updated_at AS department_updated_at,
-                        dept.created_by AS department_created_by,
-                        dept.updated_by AS department_updated_by,
-                        dept.deleted AS department_deleted
+                        dept.id,
+                        dept.name,
+                        dept.code,
+                        dept.created_at,
+                        dept.updated_at,
+                        dept.created_by,
+                        dept.updated_by,
+                        dept.deleted
                     FROM ${userDepartment} ud
                     JOIN ${department} dept ON ud.department_id = dept.id
                     WHERE ud.user_id = users.id
                     LIMIT 1
-                ) d ON true
+                ) department ON true
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -217,6 +217,16 @@ export class UserRepository implements IUserRepository
             this._db.db.execute<{ count: number }>(sql`
                 SELECT COUNT(*)::int AS count
                 FROM ${users}
+                LEFT JOIN LATERAL (
+                    SELECT
+                        dept.id,
+                        dept.name,
+                        dept.code
+                    FROM ${userDepartment} ud
+                    JOIN ${department} dept ON ud.department_id = dept.id
+                    WHERE ud.user_id = users.id
+                    LIMIT 1
+                ) department ON true
                 ${whereClause}
             `),
         ]);
@@ -294,7 +304,7 @@ export class UserRepository implements IUserRepository
                     d.deleted AS department_deleted
                 FROM ${users}
                 LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
-                LEFT JOIN ${department}     d  ON ud.department_id = d.id
+                LEFT JOIN ${department} d ON ud.department_id = d.id
                 WHERE users.id = ${userId}
                 LIMIT 1
             `);
