@@ -11,7 +11,7 @@ export class RoleAuthorizationGuard
 
     private static canManageRole(actorRole: string, targetRole: string): boolean
     {
-        return this.getRank(actorRole) > this.getRank(targetRole);
+        return this.getRank(actorRole) >= this.getRank(targetRole);
     }
 
     static assertCanCreate(actorRole: string, targetRole: string, actorDepartmentId?: number | null, targetDepartmentId?: number | null,): void

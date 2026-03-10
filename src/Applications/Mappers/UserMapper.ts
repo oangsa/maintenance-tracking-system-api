@@ -19,6 +19,9 @@ export class UserMapper implements IUserMapper
             updatedAt: user.updatedAt,
             createdBy: user.createdBy,
             updatedBy: user.updatedBy,
+            departmentId: user.department ? user.department.id : null,
+            departmentName: user.department ? user.department.name : null,
+            departmentCode: user.department ? user.department.code : null,
         };
     }
 }

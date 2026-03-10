@@ -4,7 +4,7 @@ import { User } from "../../Entities/Master/User";
 import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
 import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
 import { AppDrizzleDB } from "../../Database/Drizzle";
-import { rolesEnum, users } from "../../Database/Drizzle/schema";
+import { rolesEnum, users, department, userDepartment } from "../../Database/Drizzle/schema";
 import { QueryBuilder } from "../Extensions/QueryBuilder";
 import { createPagedResult } from "../../../Shared/Utilities/RequestFeatures/CreatePageResult";
 import { normalizeRequestParameters } from "../../../Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
@@ -22,6 +22,14 @@ type UserRow = {
     deleted: boolean | null;
     role: (typeof rolesEnum.enumValues)[number];
     token_version: number;
+    department_id: number | null;
+    department_name: string | null;
+    department_code: string | null;
+    department_created_at: string | null;
+    department_updated_at: string | null;
+    department_created_by: string | null;
+    department_updated_by: string | null;
+    department_deleted: boolean | null;
 };
 
 export class UserRepository implements IUserRepository
@@ -41,35 +49,57 @@ export class UserRepository implements IUserRepository
             passwordHash: row.password_hash,
             name: row.name,
             avatarUrl: row.avatar_url,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
+            createdAt: row.created_at ?? '',
+            updatedAt: row.updated_at ?? '',
             createdBy: row.created_by,
             updatedBy: row.updated_by,
-            deleted: row.deleted,
+            deleted: row.deleted ?? false,
             role: row.role,
             tokenVersion: row.token_version,
+            departmentId: row.department_id,
+            department: row.department_id ? {
+                id: row.department_id,
+                name: row.department_name ?? '',
+                code: row.department_code ?? '',
+                createdAt: row.department_created_at ?? '',
+                updatedAt: row.department_updated_at ?? '',
+                createdBy: row.department_created_by ?? null,
+                updatedBy: row.department_updated_by ?? null,
+                deleted: row.department_deleted ?? false,
+            } : undefined,
         };
     }
 
     async GetUserById(id: number): Promise<User | null>
     {
+
         const result = await this._db.db.execute<UserRow>(sql`
             SELECT
-                id,
-                email,
-                password_hash,
-                name,
-                avatar_url,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by,
-                deleted,
-                role,
-                token_version
+                users.id,
+                users.email,
+                users.password_hash,
+                users.name,
+                users.avatar_url,
+                users.created_at,
+                users.updated_at,
+                users.created_by,
+                users.updated_by,
+                users.deleted,
+                users.role,
+                users.token_version,
+                d.id AS department_id,
+                d.name AS department_name,
+                d.code AS department_code,
+                d.created_at AS department_created_at,
+                d.updated_at AS department_updated_at,
+                d.created_by AS department_created_by,
+                d.updated_by AS department_updated_by,
+                d.deleted AS department_deleted
             FROM ${users}
-            WHERE id = ${id}
-              AND deleted = false
+            LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
+            LEFT JOIN ${department} d ON ud.department_id = d.id
+            WHERE users.id = ${id}
+              AND users.deleted = false
             LIMIT 1
         `);
 
@@ -80,24 +110,34 @@ export class UserRepository implements IUserRepository
 
     async GetUserByEmail(email: string, includeDeleted: boolean = false): Promise<User | null>
     {
-        const deletedFilter = includeDeleted ? sql`` : sql`AND deleted = false`;
+        const deletedFilter = includeDeleted ? sql`` : sql`AND users.deleted = false`;
 
         const result = await this._db.db.execute<UserRow>(sql`
             SELECT
-                id,
-                email,
-                password_hash,
-                name,
-                avatar_url,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by,
-                deleted,
-                role,
-                token_version
+                users.id,
+                users.email,
+                users.password_hash,
+                users.name,
+                users.avatar_url,
+                users.created_at,
+                users.updated_at,
+                users.created_by,
+                users.updated_by,
+                users.deleted,
+                users.role,
+                users.token_version,
+                d.id AS department_id,
+                d.name AS department_name,
+                d.code AS department_code,
+                d.created_at AS department_created_at,
+                d.updated_at AS department_updated_at,
+                d.created_by AS department_created_by,
+                d.updated_by AS department_updated_by,
+                d.deleted AS department_deleted
             FROM ${users}
-            WHERE email = ${email}
+            LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
+            LEFT JOIN ${department} d ON ud.department_id = d.id
+            WHERE users.email = ${email}
             ${deletedFilter}
             LIMIT 1
         `);
@@ -113,7 +153,7 @@ export class UserRepository implements IUserRepository
         const offset = (params.pageNumber - 1) * params.pageSize;
         const limit = params.pageSize;
 
-        const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
+        const whereConditions: SQL[] = [sql`users.deleted = ${params.deleted ?? false}`];
 
         if (params.search && params.search.length > 0)
         {
@@ -133,19 +173,42 @@ export class UserRepository implements IUserRepository
         const [userResults, countResult] = await Promise.all([
             this._db.db.execute<UserRow>(sql`
                 SELECT
-                    id,
-                    email,
-                    password_hash,
-                    name,
-                    avatar_url,
-                    created_at,
-                    updated_at,
-                    created_by,
-                    updated_by,
-                    deleted,
-                    role,
-                    token_version
+                    users.id,
+                    users.email,
+                    users.password_hash,
+                    users.name,
+                    users.avatar_url,
+                    users.created_at,
+                    users.updated_at,
+                    users.created_by,
+                    users.updated_by,
+                    users.deleted,
+                    users.role,
+                    users.token_version,
+                    d.department_id,
+                    d.department_name,
+                    d.department_code,
+                    d.department_created_at,
+                    d.department_updated_at,
+                    d.department_created_by,
+                    d.department_updated_by,
+                    d.department_deleted
                 FROM ${users}
+                LEFT JOIN LATERAL (
+                    SELECT
+                        dept.id AS department_id,
+                        dept.name AS department_name,
+                        dept.code AS department_code,
+                        dept.created_at AS department_created_at,
+                        dept.updated_at AS department_updated_at,
+                        dept.created_by AS department_created_by,
+                        dept.updated_by AS department_updated_by,
+                        dept.deleted AS department_deleted
+                    FROM ${userDepartment} ud
+                    JOIN ${department} dept ON ud.department_id = dept.id
+                    WHERE ud.user_id = users.id
+                    LIMIT 1
+                ) d ON true
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -166,74 +229,157 @@ export class UserRepository implements IUserRepository
 
     async CreateUser(user: User): Promise<User>
     {
-        // console.log(user)
-        const result = await this._db.db.execute<UserRow>(sql`
-            INSERT INTO ${users} (
-                email,
-                password_hash,
-                name,
-                avatar_url,
-                created_by,
-                updated_by,
-                deleted,
-                role
-            )
-            VALUES (
-                ${user.email},
-                ${user.passwordHash},
-                ${user.name},
-                ${user.avatarUrl},
-                ${user.createdBy},
-                ${user.updatedBy},
-                ${user.deleted ?? false},
-                ${user.role}
-            )
-            RETURNING
-                id,
-                email,
-                password_hash,
-                name,
-                avatar_url,
-                created_by,
-                updated_by,
-                deleted,
-                role,
-                token_version
-        `);
+        const row = await this._db.db.transaction(async (tx) =>
+        {
+            const insertResult = await tx.execute<{ id: number }>(sql`
+                INSERT INTO ${users} (
+                    email,
+                    password_hash,
+                    name,
+                    avatar_url,
+                    created_by,
+                    updated_by,
+                    deleted,
+                    role
+                )
+                VALUES (
+                    ${user.email},
+                    ${user.passwordHash},
+                    ${user.name},
+                    ${user.avatarUrl},
+                    ${user.createdBy},
+                    ${user.updatedBy},
+                    ${user.deleted ?? false},
+                    ${user.role}
+                )
+                RETURNING id
+            `);
 
-        return this.mapRowToUser(result[0]);
+            const userId = insertResult[0].id;
+
+            if (user.departmentId)
+            {
+                await tx.execute(sql`
+                    INSERT INTO ${userDepartment} (user_id, department_id, created_by, updated_by)
+                    VALUES (
+                        ${userId},
+                        ${user.departmentId},
+                        ${user.createdBy ?? null},
+                        ${user.updatedBy ?? null}
+                    )
+                `);
+            }
+
+            const result = await tx.execute<UserRow>(sql`
+                SELECT
+                    users.id,
+                    users.email,
+                    users.password_hash,
+                    users.name,
+                    users.avatar_url,
+                    users.created_at,
+                    users.updated_at,
+                    users.created_by,
+                    users.updated_by,
+                    users.deleted,
+                    users.role,
+                    users.token_version,
+                    d.id AS department_id,
+                    d.name AS department_name,
+                    d.code AS department_code,
+                    d.created_at AS department_created_at,
+                    d.updated_at AS department_updated_at,
+                    d.created_by AS department_created_by,
+                    d.updated_by AS department_updated_by,
+                    d.deleted AS department_deleted
+                FROM ${users}
+                LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
+                LEFT JOIN ${department}     d  ON ud.department_id = d.id
+                WHERE users.id = ${userId}
+                LIMIT 1
+            `);
+
+            return result[0];
+        });
+
+        return this.mapRowToUser(row);
     }
 
     async UpdateUser(user: Partial<User>): Promise<User>
     {
-        const result = await this._db.db.execute<UserRow>(sql`
-            UPDATE ${users}
-            SET
-                email         = COALESCE(${user.email ?? null}, email),
-                password_hash = COALESCE(${user.passwordHash ?? null}, password_hash),
-                name          = COALESCE(${user.name ?? null}, name),
-                avatar_url    = COALESCE(${user.avatarUrl ?? null}, avatar_url),
-                updated_at    = ${new Date().toISOString()},
-                updated_by    = COALESCE(${user.updatedBy ?? null}, updated_by),
-                role          = COALESCE(${user.role ?? null}::roles_enum, role),
-                deleted       = COALESCE(${user.deleted ?? null}, deleted)
-            WHERE id = ${user.id}
-            RETURNING
-                id,
-                email,
-                password_hash,
-                name,
-                avatar_url,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by,
-                deleted,
-                role,
-                token_version
-        `);
+        const row = await this._db.db.transaction(async (tx) =>
+        {
+            await tx.execute(sql`
+                UPDATE ${users}
+                SET
+                    email = COALESCE(${user.email ?? null}, email),
+                    password_hash = COALESCE(${user.passwordHash ?? null}, password_hash),
+                    name = COALESCE(${user.name ?? null}, name),
+                    avatar_url = COALESCE(${user.avatarUrl ?? null}, avatar_url),
+                    updated_at = ${new Date().toISOString()},
+                    updated_by = COALESCE(${user.updatedBy ?? null}, updated_by),
+                    role = COALESCE(${user.role ?? null}::roles_enum, role),
+                    deleted = COALESCE(${user.deleted ?? null}, deleted)
+                WHERE id = ${user.id}
+            `);
 
-        return this.mapRowToUser(result[0]);
+            if (user.departmentId !== undefined)
+            {
+                await tx.execute(sql`
+                    DELETE FROM ${userDepartment}
+                    WHERE user_id = ${user.id}
+                `);
+
+                if (user.departmentId !== null)
+                {
+                    await tx.execute(sql`
+                        INSERT INTO ${userDepartment} (user_id, department_id, created_by, updated_by)
+                        VALUES (
+                            ${user.id},
+                            ${user.departmentId},
+                            ${user.updatedBy ?? null},
+                            ${user.updatedBy ?? null}
+                        )
+                        ON CONFLICT (user_id, department_id) DO UPDATE
+                            SET updated_by = EXCLUDED.updated_by,
+                                updated_at = now()
+                    `);
+                }
+            }
+
+            const result = await tx.execute<UserRow>(sql`
+                SELECT
+                    users.id,
+                    users.email,
+                    users.password_hash,
+                    users.name,
+                    users.avatar_url,
+                    users.created_at,
+                    users.updated_at,
+                    users.created_by,
+                    users.updated_by,
+                    users.deleted,
+                    users.role,
+                    users.token_version,
+                    d.id AS department_id,
+                    d.name AS department_name,
+                    d.code AS department_code,
+                    d.created_at AS department_created_at,
+                    d.updated_at AS department_updated_at,
+                    d.created_by AS department_created_by,
+                    d.updated_by AS department_updated_by,
+                    d.deleted AS department_deleted
+                FROM ${users}
+                LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
+                LEFT JOIN ${department} d ON ud.department_id = d.id
+                WHERE users.id = ${user.id}
+                LIMIT 1
+            `);
+
+            return result[0];
+        });
+
+        return this.mapRowToUser(row);
     }
 
     async DeleteUser(id: number): Promise<void>

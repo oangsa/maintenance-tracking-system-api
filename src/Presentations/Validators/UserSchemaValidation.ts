@@ -16,6 +16,9 @@ export const UserResponseSchema = t.Object({
     name: t.Nullable(t.String()),
     email: t.String(),
     role: t.String(),
+    departmentId: t.Nullable(t.Number()),
+    departmentName: t.Nullable(t.String()),
+    departmentCode: t.Nullable(t.String()),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
@@ -23,6 +26,7 @@ export const UserResponseSchema = t.Object({
 });
 
 export const UserForCreateSchema = t.Object({
+    departmentId: t.Optional(t.Number()),
     email: t.String({ format: "email", maxLength: 150 }),
     password: t.String({ minLength: 6 }),
     name: t.Optional(t.String({ maxLength: 150 })),
@@ -35,6 +39,7 @@ export const UserForCreateSchema = t.Object({
 });
 
 export const UserForUpdateSchema = t.Object({
+    departmentId: t.Optional(t.Number()),
     email: t.Optional(t.String({ format: "email", maxLength: 150 })),
     password: t.Optional(t.String({ minLength: 6 })),
     name: t.Optional(t.String({ maxLength: 150 })),

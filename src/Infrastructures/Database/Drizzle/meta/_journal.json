@@ -8,6 +8,13 @@
       "when": 1772199899474,
       "tag": "0000_cuddly_giant_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773161898781,
+      "tag": "0001_add_token_version_and_refresh_token",
+      "breakpoints": true
     }
   ]
 }

@@ -101,9 +101,10 @@ export class UserService implements IUserService
             id: 0,
             email: userForCreateDto.email,
             passwordHash: hashedPassword,
-            name: userForCreateDto.name ?? null,
-            avatarUrl: userForCreateDto.avatarUrl ?? null,
+            name: userForCreateDto.name ? userForCreateDto.name : null,
+            avatarUrl: userForCreateDto.avatarUrl ? userForCreateDto.avatarUrl : null,
             role: userForCreateDto.role.toLowerCase() as User["role"],
+            departmentId: userForCreateDto.departmentId ?? null,
             createdAt: dateNow,
             updatedAt: dateNow,
             createdBy: this.getCalledBy(),
@@ -121,11 +122,7 @@ export class UserService implements IUserService
         const currentUser = this._userProvider.getCurrentUser();
         const userEntity = await this.GetUserAndCheckIfItExists(id);
 
-        RoleAuthorizationGuard.assertCanUpdate(
-            currentUser!.role,
-            userEntity.role,
-            userForUpdateDto.role?.toLowerCase(),
-        );
+        RoleAuthorizationGuard.assertCanUpdate(currentUser!.role, userEntity.role, userForUpdateDto.role?.toLowerCase());
 
         if (userForUpdateDto.email && userForUpdateDto.email !== userEntity.email)
         {
@@ -148,6 +145,7 @@ export class UserService implements IUserService
             role: (userForUpdateDto.role?.toLowerCase() as User["role"]) ?? userEntity.role,
             updatedAt: new Date().toISOString(),
             updatedBy: this.getCalledBy(),
+            departmentId: userForUpdateDto.departmentId ?? userEntity.departmentId,
         };
 
         try
