@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
-import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequstException";
+import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
 import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema } from "../../Validators/UserSchemaValidation";

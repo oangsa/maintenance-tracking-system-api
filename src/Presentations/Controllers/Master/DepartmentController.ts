@@ -5,7 +5,7 @@ import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenExcepti
 import { DepartmentParameter } from "../../../Domains/RequestFeatures/DepartmentParameter";
 import { DepartmentForCreateSchema, DepartmentIdParamSchema, DepartmentParameterSchema, DeleteCollectionSchema, DepartmentForUpdateSchema} from "../../Validators/DepartmentSchemaValidation";
 import { DepartmentNotFoundException } from "../../../Domains/Exceptions/Department/DepartmentNotFoundException";
-import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadRequstException";
+import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadReqeustException";
 
 export class DepartmentController
 {

@@ -10,7 +10,7 @@ import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
 import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
 import { User } from "../../../Infrastructures/Entities/Master/User";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
-import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequstException";
+import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { hashPassword } from "../../../Shared/Utilities/Authentication/PasswordUtils";
 

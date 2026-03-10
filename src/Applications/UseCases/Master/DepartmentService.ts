@@ -10,7 +10,7 @@ import { IUserProvider } from "../../Providers/UserProvider";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
 import { DepartmentNotFoundException } from "../../../Domains/Exceptions/Department/DepartmentNotFoundException";
 import { Department } from "../../../Infrastructures/Entities/Master/Department";
-import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadRequstException";
+import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadReqeustException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { Role } from "../../../Shared/Enums/Role";
 

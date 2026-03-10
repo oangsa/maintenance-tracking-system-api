@@ -1,6 +1,6 @@
 import { Search } from "../../../Domains/RequestFeatures/Core/Search";
 import { SearchTerm } from "../../../Domains/RequestFeatures/Core/SearchTerm";
-import { QueryBuilderBadRequestException } from "../../../Domains/Exceptions/QueryBuilderBadRequestExeption";
+import { QueryBuilderBadRequestException } from "../../../Domains/Exceptions/QueryBuilderBadRequestException";
 import { SQL, sql } from "drizzle-orm";
 
 type WhereCondition = Record<string, unknown>;
