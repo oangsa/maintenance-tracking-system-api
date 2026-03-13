@@ -1,0 +1,220 @@
+{
+  "id": "2bc853b4-08b4-438f-9e58-94dc91f553ed",
+  "prevIds": [
+    "7b652163-f0ad-4dea-a13d-5b819a540aef"
+  ],
+  "version": "8",
+  "dialect": "postgres",
+  "ddl": [
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "department_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "inventory_move_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "inventory_move_item_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "part_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "product_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "product_type_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "refresh_token_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "repair_request_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "repair_request_item_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "repair_request_item_status_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "repair_request_status_log_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "repair_status_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "users_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "work_order_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "work_order_part_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "2147483647",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "work_task_id_seq",
+      "schema": "public",
+      "entityType": "sequences"
+    },
+    {
+      "values": [
+        "buy",
+        "use",
+        "lost",
+        "found",
+        "adjust"
+      ],
+      "name": "inventory_move_reason",
+      "schema": "public",
+      "entityType": "enums"
+    },
+    {
+      "values": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "name": "repair_priority",
+      "schema": "public",
+      "entityType": "enums"
+    },
+    {
+      "values": [
+        "admin",
+        "manager",
+        "employee"
+      ],
+      "name": "roles_enum",
+      "schema": "public",
+      "entityType": "enums"
+    }
+  ],
+  "renames": []
+}

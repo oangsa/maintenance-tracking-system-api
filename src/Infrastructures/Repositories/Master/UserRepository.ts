@@ -72,8 +72,7 @@ export class UserRepository implements IUserRepository
 
     async GetUserById(id: number): Promise<User | null>
     {
-
-        const result = await this._db.db.execute<UserRow>(sql`
+      const result = await this._db.db.execute<UserRow>(sql`
             SELECT
                 users.id,
                 users.email,
@@ -110,36 +109,36 @@ export class UserRepository implements IUserRepository
 
     async GetUserByEmail(email: string, includeDeleted: boolean = false): Promise<User | null>
     {
+        console.log(email, includeDeleted);
         const deletedFilter = includeDeleted ? sql`` : sql`AND users.deleted = false`;
 
         const result = await this._db.db.execute<UserRow>(sql`
-            SELECT
-                users.id,
-                users.email,
-                users.password_hash,
-                users.name,
-                users.avatar_url,
-                users.created_at,
-                users.updated_at,
-                users.created_by,
-                users.updated_by,
-                users.deleted,
-                users.role,
-                users.token_version,
-                d.id AS department_id,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${users}
-            LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
-            LEFT JOIN ${department} d ON ud.department_id = d.id
-            WHERE users.email = ${email}
-            ${deletedFilter}
-            LIMIT 1
+          SELECT
+              users.id,
+              users.email,
+              users.password_hash,
+              users.name,
+              users.avatar_url,
+              users.created_at,
+              users.updated_at,
+              users.created_by,
+              users.updated_by,
+              users.deleted,
+              users.role,
+              users.token_version,
+              d.id AS department_id,
+              d.name AS department_name,
+              d.code AS department_code,
+              d.created_at AS department_created_at,
+              d.updated_at AS department_updated_at,
+              d.created_by AS department_created_by,
+              d.updated_by AS department_updated_by,
+              d.deleted AS department_deleted
+          FROM ${users}
+          LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
+          LEFT JOIN ${department} d ON ud.department_id = d.id
+          WHERE users.email = ${email} ${deletedFilter}
+          LIMIT 1
         `);
 
         if (!result || result.length === 0) return null;

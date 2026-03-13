@@ -1,166 +1,129 @@
-import { relations } from "drizzle-orm/relations";
-import { inventoryMove, inventoryMoveItem, part, productType, users, refreshToken, department, product, repairRequest, workOrder, repairStatus, repairRequestItem, workTask, repairRequestStatusLog, workOrderPart, userDepartment } from "./schema";
+import { defineRelations } from "drizzle-orm";
+import * as schema from "./schema";
 
-export const inventoryMoveItemRelations = relations(inventoryMoveItem, ({one}) => ({
-	inventoryMove: one(inventoryMove, {
-		fields: [inventoryMoveItem.inventoryMoveId],
-		references: [inventoryMove.id]
-	}),
-	part: one(part, {
-		fields: [inventoryMoveItem.partId],
-		references: [part.id]
-	}),
-}));
-
-export const inventoryMoveRelations = relations(inventoryMove, ({many}) => ({
-	inventoryMoveItems: many(inventoryMoveItem),
-}));
-
-export const partRelations = relations(part, ({one, many}) => ({
-	inventoryMoveItems: many(inventoryMoveItem),
-	productType: one(productType, {
-		fields: [part.productTypeId],
-		references: [productType.id]
-	}),
-	workOrderParts: many(workOrderPart),
-}));
-
-export const productTypeRelations = relations(productType, ({one, many}) => ({
-	parts: many(part),
-	department: one(department, {
-		fields: [productType.departmentId],
-		references: [department.id]
-	}),
-	products: many(product),
-}));
-
-export const refreshTokenRelations = relations(refreshToken, ({one}) => ({
-	user: one(users, {
-		fields: [refreshToken.userId],
-		references: [users.id]
-	}),
-}));
-
-export const usersRelations = relations(users, ({many}) => ({
-	refreshTokens: many(refreshToken),
-	repairRequests: many(repairRequest),
-	repairRequestStatusLogs: many(repairRequestStatusLog),
-	userDepartments: many(userDepartment),
-}));
-
-export const departmentRelations = relations(department, ({many}) => ({
-	productTypes: many(productType),
-	repairRequests: many(repairRequest),
-	userDepartments: many(userDepartment),
-}));
-
-export const productRelations = relations(product, ({one, many}) => ({
-	productType: one(productType, {
-		fields: [product.productTypeId],
-		references: [productType.id]
-	}),
-	repairRequestItems: many(repairRequestItem),
-}));
-
-export const workOrderRelations = relations(workOrder, ({one, many}) => ({
-	repairRequest: one(repairRequest, {
-		fields: [workOrder.repairRequestId],
-		references: [repairRequest.id]
-	}),
-	repairStatus: one(repairStatus, {
-		fields: [workOrder.statusId],
-		references: [repairStatus.id]
-	}),
-	workTasks: many(workTask),
-	workOrderParts: many(workOrderPart),
-}));
-
-export const repairRequestRelations = relations(repairRequest, ({one, many}) => ({
-	workOrders: many(workOrder),
-	repairStatus: one(repairStatus, {
-		fields: [repairRequest.currentStatusId],
-		references: [repairStatus.id]
-	}),
-	department: one(department, {
-		fields: [repairRequest.departmentId],
-		references: [department.id]
-	}),
-	user: one(users, {
-		fields: [repairRequest.requesterId],
-		references: [users.id]
-	}),
-	repairRequestItems: many(repairRequestItem),
-	repairRequestStatusLogs: many(repairRequestStatusLog),
-}));
-
-export const repairStatusRelations = relations(repairStatus, ({many}) => ({
-	workOrders: many(workOrder),
-	repairRequests: many(repairRequest),
-	repairRequestStatusLogs_newStatusId: many(repairRequestStatusLog, {
-		relationName: "repairRequestStatusLog_newStatusId_repairStatus_id"
-	}),
-	repairRequestStatusLogs_oldStatusId: many(repairRequestStatusLog, {
-		relationName: "repairRequestStatusLog_oldStatusId_repairStatus_id"
-	}),
-}));
-
-export const repairRequestItemRelations = relations(repairRequestItem, ({one}) => ({
-	product: one(product, {
-		fields: [repairRequestItem.productId],
-		references: [product.id]
-	}),
-	repairRequest: one(repairRequest, {
-		fields: [repairRequestItem.repairRequestId],
-		references: [repairRequest.id]
-	}),
-}));
-
-export const workTaskRelations = relations(workTask, ({one}) => ({
-	workOrder: one(workOrder, {
-		fields: [workTask.workOrderId],
-		references: [workOrder.id]
-	}),
-}));
-
-export const repairRequestStatusLogRelations = relations(repairRequestStatusLog, ({one}) => ({
-	user: one(users, {
-		fields: [repairRequestStatusLog.changedBy],
-		references: [users.id]
-	}),
-	repairStatus_newStatusId: one(repairStatus, {
-		fields: [repairRequestStatusLog.newStatusId],
-		references: [repairStatus.id],
-		relationName: "repairRequestStatusLog_newStatusId_repairStatus_id"
-	}),
-	repairStatus_oldStatusId: one(repairStatus, {
-		fields: [repairRequestStatusLog.oldStatusId],
-		references: [repairStatus.id],
-		relationName: "repairRequestStatusLog_oldStatusId_repairStatus_id"
-	}),
-	repairRequest: one(repairRequest, {
-		fields: [repairRequestStatusLog.repairRequestId],
-		references: [repairRequest.id]
-	}),
-}));
-
-export const workOrderPartRelations = relations(workOrderPart, ({one}) => ({
-	part: one(part, {
-		fields: [workOrderPart.partId],
-		references: [part.id]
-	}),
-	workOrder: one(workOrder, {
-		fields: [workOrderPart.workOrderId],
-		references: [workOrder.id]
-	}),
-}));
-
-export const userDepartmentRelations = relations(userDepartment, ({one}) => ({
-	department: one(department, {
-		fields: [userDepartment.departmentId],
-		references: [department.id]
-	}),
-	user: one(users, {
-		fields: [userDepartment.userId],
-		references: [users.id]
-	}),
-}));
+export const relations = defineRelations(schema, (r) => ({
+	inventoryMove: {
+		parts: r.many.part({
+			from: r.inventoryMove.id.through(r.inventoryMoveItem.inventoryMoveId),
+			to: r.part.id.through(r.inventoryMoveItem.partId)
+		}),
+	},
+	part: {
+		inventoryMoves: r.many.inventoryMove(),
+		productType: r.one.productType({
+			from: r.part.productTypeId,
+			to: r.productType.id
+		}),
+		workOrders: r.many.workOrder({
+			from: r.part.id.through(r.workOrderPart.partId),
+			to: r.workOrder.id.through(r.workOrderPart.workOrderId)
+		}),
+	},
+	productType: {
+		parts: r.many.part(),
+		products: r.many.product(),
+		department: r.one.department({
+			from: r.productType.departmentId,
+			to: r.department.id
+		}),
+	},
+	product: {
+		productType: r.one.productType({
+			from: r.product.productTypeId,
+			to: r.productType.id
+		}),
+		repairRequestItems: r.many.repairRequestItem(),
+	},
+	department: {
+		productTypes: r.many.productType(),
+		repairRequestItems: r.many.repairRequestItem(),
+		users: r.many.users({
+			from: r.department.id.through(r.userDepartment.departmentId),
+			to: r.users.id.through(r.userDepartment.userId)
+		}),
+	},
+	refreshToken: {
+		user: r.one.users({
+			from: r.refreshToken.userId,
+			to: r.users.id
+		}),
+	},
+	users: {
+		refreshTokens: r.many.refreshToken(),
+		repairStatuses: r.many.repairStatus(),
+		repairRequestStatusLogs: r.many.repairRequestStatusLog(),
+		departments: r.many.department(),
+	},
+	repairStatus: {
+		users: r.many.users({
+			from: r.repairStatus.id.through(r.repairRequest.currentStatusId),
+			to: r.users.id.through(r.repairRequest.requesterId)
+		}),
+		repairRequestStatusLogsNewStatusId: r.many.repairRequestStatusLog({
+			alias: "repairRequestStatusLog_newStatusId_repairStatus_id"
+		}),
+		repairRequestStatusLogsOldStatusId: r.many.repairRequestStatusLog({
+			alias: "repairRequestStatusLog_oldStatusId_repairStatus_id"
+		}),
+		repairRequests: r.many.repairRequest(),
+	},
+	repairRequestItem: {
+		repairRequestItemStatus: r.one.repairRequestItemStatus({
+			from: r.repairRequestItem.repairStatusId,
+			to: r.repairRequestItemStatus.id
+		}),
+		department: r.one.department({
+			from: r.repairRequestItem.departmentId,
+			to: r.department.id
+		}),
+		product: r.one.product({
+			from: r.repairRequestItem.productId,
+			to: r.product.id
+		}),
+		repairRequest: r.one.repairRequest({
+			from: r.repairRequestItem.repairRequestId,
+			to: r.repairRequest.id
+		}),
+	},
+	repairRequestItemStatus: {
+		repairRequestItems: r.many.repairRequestItem(),
+	},
+	repairRequest: {
+		repairRequestItems: r.many.repairRequestItem(),
+		repairRequestStatusLogs: r.many.repairRequestStatusLog(),
+		repairStatuses: r.many.repairStatus({
+			from: r.repairRequest.id.through(r.workOrder.repairRequestId),
+			to: r.repairStatus.id.through(r.workOrder.statusId)
+		}),
+	},
+	repairRequestStatusLog: {
+		user: r.one.users({
+			from: r.repairRequestStatusLog.changedBy,
+			to: r.users.id
+		}),
+		repairStatusNewStatusId: r.one.repairStatus({
+			from: r.repairRequestStatusLog.newStatusId,
+			to: r.repairStatus.id,
+			alias: "repairRequestStatusLog_newStatusId_repairStatus_id"
+		}),
+		repairStatusOldStatusId: r.one.repairStatus({
+			from: r.repairRequestStatusLog.oldStatusId,
+			to: r.repairStatus.id,
+			alias: "repairRequestStatusLog_oldStatusId_repairStatus_id"
+		}),
+		repairRequest: r.one.repairRequest({
+			from: r.repairRequestStatusLog.repairRequestId,
+			to: r.repairRequest.id
+		}),
+	},
+	workOrder: {
+		parts: r.many.part(),
+		workTasks: r.many.workTask(),
+	},
+	workTask: {
+		workOrder: r.one.workOrder({
+			from: r.workTask.workOrderId,
+			to: r.workOrder.id
+		}),
+	},
+}))

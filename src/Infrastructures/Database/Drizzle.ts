@@ -12,8 +12,8 @@ export class DrizzleDB<TSchema extends Record<string, unknown> = Record<string, 
         this.sql = postgres(connectionString, { prepare: false });
 
         this.db = schemaObj
-            ? drizzle(this.sql, { schema: schemaObj })
-            : (drizzle(this.sql) as PostgresJsDatabase<TSchema>);
+            ? drizzle({ client: this.sql, schema: schemaObj })
+            : (drizzle({ client: this.sql }) as PostgresJsDatabase<TSchema>);
     }
 
     async disconnect(): Promise<void>
