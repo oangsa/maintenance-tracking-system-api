@@ -1,0 +1,182 @@
+# File Structures
+
+Project structure for maintainance-tracking-system-api.
+
+Generated: 2026-03-19
+
+Excluded directories: .git, node_modules, dist, build
+
+```text
+.
+- .env.local
+- .gitignore
+- FILESTRUCTURES.md
+- README.md
+- bun.lock
+- drizzle.config.ts
+- package.json
+- src/
+  - Applications/
+    - DataTransferObjects/
+      - Auth/
+        - AuthDto.ts
+        - CurrentUserDto.ts
+        - LoginResultDto.ts
+        - RefreshResultDto.ts
+      - Department/
+        - DepartmentDto.ts
+        - DepartmentForCreateDto.ts
+        - DepartmentForUpdateDto.ts
+      - User/
+        - UserDto.ts
+        - UserForCreateDto.ts
+        - UserForUpdateDto.ts
+      - index.ts
+    - Mappers/
+      - Core/
+        - MapperManager.ts
+      - DepartmentMapper.ts
+      - UserMapper.ts
+    - Providers/
+      - UserProvider.ts
+    - Services/
+      - Core/
+        - IServiceManager.ts
+      - IAuthService.ts
+      - IDepartmentService.ts
+      - IUserService.ts
+    - UseCases/
+      - Auth/
+        - AuthService.ts
+      - Core/
+        - ServiceManager.ts
+        - ServiceManagerFactory.ts
+      - CoreAdapterManager.ts
+      - Master/
+        - DepartmentService.ts
+        - UserService.ts
+  - Domains/
+    - Exceptions/
+      - Auth/
+        - InvalidCredentialsException.ts
+      - BadRequestException.ts
+      - CustomException.ts
+      - Database/
+        - DatabaseCustomException.ts
+      - Department/
+        - DepartmentCustomException.ts
+        - DepartmentDuplicateBadReqeustException.ts
+        - DepartmentNotFoundException.ts
+      - ForbiddenException.ts
+      - NotFoundException.ts
+      - QueryBuilderBadRequestException.ts
+      - User/
+        - UserCustomException.ts
+        - UserDuplicateBadRequestException.ts
+        - UserNotFoundException.ts
+      - ValidationException.ts
+      - index.ts
+    - Repositories/
+      - Core/
+        - IRepositoryManager.ts
+      - IDepartmentRepository.ts
+      - IRefreshTokenRepository.ts
+      - IRepairRequestRepository.ts
+      - IUserRepository.ts
+    - RequestFeatures/
+      - Core/
+        - MetaData.ts
+        - PageResult.ts
+        - RequestParameters.ts
+        - Search.ts
+        - SearchTerm.ts
+      - DepartmentParameter.ts
+      - RepairRequestParameter.ts
+      - UserParameter.ts
+    - Value-Objects/
+  - Infrastructures/
+    - Core/
+      - ConfigurationManager.ts
+    - Database/
+      - Drizzle/
+        - 20260227134459_cuddly_giant_girl/
+          - migration.sql
+          - snapshot.json
+        - 20260310165818_add_token_version_and_refresh_token/
+          - migration.sql
+          - snapshot.json
+        - 20260313022244_shocking_micromacro/
+          - migration.sql
+          - snapshot.json
+        - 20260313035303_heavy_silverclaw/
+          - migration.sql
+          - snapshot.json
+        - relations.ts
+        - schema.ts
+      - Drizzle.ts
+      - index.ts
+    - Entities/
+      - Auth/
+        - RefreshToken.ts
+      - Features/
+        - RepairRequest/
+          - RepairRequest.ts
+          - RepairRequestItem.ts
+      - Master/
+        - Department.ts
+        - Product.ts
+        - RepairRequestItemStatus.ts
+        - RepairStatus.ts
+        - User.ts
+    - Repositories/
+      - Auth/
+        - RefreshTokenRepository.ts
+      - Core/
+        - RepositoryManager.ts
+      - Extensions/
+        - QueryBuilder.ts
+      - Features/
+        - RepairRequest/
+          - RepairRequestRepository.ts
+      - Master/
+        - DepartmentRepository.ts
+        - UserRepository.ts
+  - Presentations/
+    - Application.ts
+    - Controllers/
+      - Auth/
+        - AuthenticationController.ts
+      - Core/
+        - ControllerManager.ts
+      - Master/
+        - DepartmentController.ts
+        - UserController.ts
+    - Plugins/
+      - ErrorHandlerPlugin.ts
+      - JwtPlugin.ts
+    - Validators/
+      - AuthSchemaValidation.ts
+      - Core/
+        - OrderSchema.ts
+        - PaginationSchema.ts
+        - SearchSchema.ts
+      - DepartmentSchemaValidation.ts
+      - UserSchemaValidation.ts
+  - Shared/
+    - Constants/
+      - ErrorMessage.ts
+      - RoleRank.ts
+    - Enums/
+      - RepairPriority.ts
+      - Role.ts
+    - Utilities/
+      - Authentication/
+        - PasswordUtils.ts
+        - RoleAuthorizationGuard.ts
+      - RequestFeatures/
+        - CreateMetaData.ts
+        - CreatePageResult.ts
+        - NormalizedRequestParameters.ts
+  - index.ts
+- tsconfig.json
+```

@@ -17,7 +17,7 @@ export class ControllerManager
         this.departmentController = new DepartmentController(serviceManager);
     }
 
-    public RegisterRoutes(app: Elysia): void
+    public RegisterRoutes(app: Elysia<any>): void
     {
         this.authenticationController.RegisterRoutes(app);
         this.userController.RegisterRoutes(app);

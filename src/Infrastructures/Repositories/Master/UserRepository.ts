@@ -58,14 +58,14 @@ export class UserRepository implements IUserRepository
             tokenVersion: row.token_version,
             departmentId: row.department_id,
             department: row.department_id ? {
-                id: row.department_id,
-                name: row.department_name ?? '',
-                code: row.department_code ?? '',
-                createdAt: row.department_created_at ?? '',
-                updatedAt: row.department_updated_at ?? '',
-                createdBy: row.department_created_by ?? null,
-                updatedBy: row.department_updated_by ?? null,
-                deleted: row.department_deleted ?? false,
+              id: row.department_id,
+              name: row.department_name ?? '',
+              code: row.department_code ?? '',
+              createdAt: row.department_created_at ?? '',
+              updatedAt: row.department_updated_at ?? '',
+              createdBy: row.department_created_by ?? null,
+              updatedBy: row.department_updated_by ?? null,
+              deleted: row.department_deleted ?? false,
             } : undefined,
         };
     }

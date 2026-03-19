@@ -65,10 +65,7 @@ export class UserService implements IUserService
     {
         const currentUser = this._userProvider.getCurrentUser();
 
-        RoleAuthorizationGuard.assertCanCreate(
-            currentUser!.role,
-            userForCreateDto.role.toLowerCase(),
-        );
+        RoleAuthorizationGuard.assertCanCreate(currentUser!.role, userForCreateDto.role.toLowerCase());
 
         const existingUser = await this._repositoryManager.userRepository.GetUserByEmail(userForCreateDto.email, true);
 

@@ -12,21 +12,29 @@ interface JwtConfiguration
     refreshExpiresIn: string;
 }
 
+interface ServerConfiguration
+{
+    port: number;
+}
+
 export interface IConfigurationManager
 {
     database: DatabaseConfiguration;
     jwt: JwtConfiguration;
+    server: ServerConfiguration;
 }
 
 export class ConfigurationManager implements IConfigurationManager
 {
     private readonly _database: DatabaseConfiguration;
     private readonly _jwt: JwtConfiguration;
+    private readonly _server: ServerConfiguration;
 
     constructor()
     {
         this._database = this.LoadDatabaseConfiguration();
         this._jwt = this.LoadJWTConfiguration();
+        this._server = this.LoadServerConfiguration();
     }
 
     get database(): DatabaseConfiguration
@@ -37,6 +45,11 @@ export class ConfigurationManager implements IConfigurationManager
     get jwt(): JwtConfiguration
     {
         return this._jwt;
+    }
+
+    get server(): ServerConfiguration
+    {
+        return this._server;
     }
 
     private LoadDatabaseConfiguration(): DatabaseConfiguration
@@ -71,5 +84,20 @@ export class ConfigurationManager implements IConfigurationManager
         }
 
         return { secret, expiresIn, refreshExpiresIn };
+    }
+
+    private LoadServerConfiguration(): ServerConfiguration
+    {
+        const raw = process.env.PORT;
+        const port = raw !== undefined ? parseInt(raw, 10) : 3000;
+
+        if (isNaN(port) || port < 1 || port > 65535)
+        {
+            throw new Error(
+                `Invalid PORT value: "${raw}". Must be a valid integer between 1 and 65535.`
+            );
+        }
+
+        return { port };
     }
 }

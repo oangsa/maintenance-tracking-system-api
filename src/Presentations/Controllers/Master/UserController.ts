@@ -20,11 +20,10 @@ export class UserController
     {
         const { secret } = this._service.configurationManager.jwt;
 
-        app.group("/user", (app) =>
+        app.group("/users", (app) =>
             app
                 .use(JwtPlugin(secret, this._service.authService))
-                .post(
-                    "/search",
+                .post("/search",
                     async ({ body, currentUser, set }) =>
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
@@ -55,7 +54,7 @@ export class UserController
                     },
                     {
                         body: UserParameterSchema,
-                        detail: { summary: "Search users", tags: ["Users"] },
+                        detail: { summary: "Search users", tags: ["users"] },
                     },
                 )
                 .get(
@@ -80,7 +79,7 @@ export class UserController
                     },
                     {
                         params: UserIdParamSchema,
-                        detail: { summary: "Get user by ID", tags: ["Users"] },
+                        detail: { summary: "Get user by ID", tags: ["users"] },
                     },
                 )
                 .post(
@@ -93,7 +92,7 @@ export class UserController
                             {
                                 const createdUser = await this._service.userService.CreateUser(body);
                                 set.status = 201;
-                                set.headers["Location"] = `/user/${createdUser.id}`;
+                                set.headers["Location"] = `/users/${createdUser.id}`;
 
                                 return createdUser;
                             }
@@ -105,7 +104,7 @@ export class UserController
                     },
                     {
                         body: UserForCreateSchema,
-                        detail: { summary: "Create user", tags: ["Users"] },
+                        detail: { summary: "Create user", tags: ["users"] },
                     },
                 )
 
@@ -132,7 +131,7 @@ export class UserController
                     {
                         params: UserIdParamSchema,
                         body: UserForUpdateSchema,
-                        detail: { summary: "Update user", tags: ["Users"] },
+                        detail: { summary: "Update user", tags: ["users"] },
                     },
                 )
 
@@ -157,7 +156,7 @@ export class UserController
                     },
                     {
                         params: UserIdParamSchema,
-                        detail: { summary: "Delete user", tags: ["Users"] },
+                        detail: { summary: "Delete user", tags: ["users"] },
                     },
                 )
 
@@ -185,7 +184,7 @@ export class UserController
                         body: DeleteCollectionSchema,
                         detail: {
                             summary: "Delete user collection",
-                            tags: ["Users"],
+                            tags: ["users"],
                         },
                     },
                 ),
