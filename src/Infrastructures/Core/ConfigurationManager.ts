@@ -1,28 +1,5 @@
 import { DatabaseConnectionException } from "../../Domains/Exceptions/Database/DatabaseCustomException";
-
-interface DatabaseConfiguration
-{
-    connectionString: string;
-}
-
-interface JwtConfiguration
-{
-    secret: string;
-    expiresIn: string;
-    refreshExpiresIn: string;
-}
-
-interface ServerConfiguration
-{
-    port: number;
-}
-
-export interface IConfigurationManager
-{
-    database: DatabaseConfiguration;
-    jwt: JwtConfiguration;
-    server: ServerConfiguration;
-}
+import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager } from "../../Applications/Services/Core/IConfigurationManager";
 
 export class ConfigurationManager implements IConfigurationManager
 {

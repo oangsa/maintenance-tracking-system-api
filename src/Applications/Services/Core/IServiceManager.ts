@@ -1,6 +1,6 @@
 import { IUserService } from "../IUserService";
 import { IAuthService } from "../IAuthService";
-import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
+import { IConfigurationManager } from "./IConfigurationManager";
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../IDepartmentService";
 
