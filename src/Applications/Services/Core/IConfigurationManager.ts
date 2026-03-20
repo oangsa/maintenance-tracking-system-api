@@ -1,3 +1,5 @@
+import type { LoggerOptions } from "winston";
+
 export interface DatabaseConfiguration
 {
     connectionString: string;
@@ -15,9 +17,15 @@ export interface ServerConfiguration
     port: number;
 }
 
+export interface WinstonConfiguration
+{
+    options: LoggerOptions;
+}
+
 export interface IConfigurationManager
 {
     database: DatabaseConfiguration;
     jwt: JwtConfiguration;
     server: ServerConfiguration;
+    winston: WinstonConfiguration;
 }

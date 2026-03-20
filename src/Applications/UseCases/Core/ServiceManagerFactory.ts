@@ -1,7 +1,9 @@
 import { ServiceManager } from "./ServiceManager";
 import { CoreAdapterManager } from "../CoreAdapterManager";
 import { IServiceManager } from "../../Services/Core/IServiceManager";
-import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
+import { IConfigurationManager } from "../../../Applications/Services/Core/IConfigurationManager";
+import { createWinstonLogger } from "../../../Infrastructures/Logger/WinstonLogger";
+import { LoggerService } from "../../../Infrastructures/Logger/LoggerService";
 
 let serviceManagerInstance: IServiceManager | null = null;
 
@@ -11,7 +13,8 @@ export class ServiceManagerFactory
     {
         if (!serviceManagerInstance)
         {
-            const coreAdapterManager = new CoreAdapterManager(configurationManager);
+            const logger = new LoggerService(createWinstonLogger(configurationManager.winston.options));
+            const coreAdapterManager = new CoreAdapterManager(configurationManager, logger);
             serviceManagerInstance = new ServiceManager(coreAdapterManager);
         }
 
