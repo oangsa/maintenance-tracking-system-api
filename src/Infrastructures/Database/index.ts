@@ -1,5 +1,5 @@
 import { DrizzleDB, AppDrizzleDB } from "./Drizzle";
-import { IConfigurationManager } from "../Core/ConfigurationManager";
+import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
 import * as schema from "./Drizzle/schema";
 
 export type { AppDrizzleDB };

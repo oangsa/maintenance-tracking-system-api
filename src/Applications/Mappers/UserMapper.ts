@@ -1,5 +1,5 @@
 import { UserDto } from "../DataTransferObjects/User/UserDto";
-import { User } from "../../Infrastructures/Entities/Master/User";
+import { User } from "@/Infrastructures/Entities/Master/User";
 
 export interface IUserMapper
 {

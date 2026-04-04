@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { IRefreshTokenRepository, CreateRefreshTokenData } from "../../../Domains/Repositories/IRefreshTokenRepository";
+import { IRefreshTokenRepository, CreateRefreshTokenData } from "@/Domains/Repositories/IRefreshTokenRepository";
 import { RefreshToken } from "../../Entities/Auth/RefreshToken";
 import { AppDrizzleDB } from "../../Database/Drizzle";
 import { refreshToken } from "../../Database/Drizzle/schema";
@@ -30,11 +30,11 @@ export class RefreshTokenRepository implements IRefreshTokenRepository
             id: row.id,
             userId: row.user_id,
             tokenHash: row.token_hash,
-            expiresAt: row.expires_at,
+            expiresAt: new Date(row.expires_at),
             revoked: row.revoked,
             userAgent: row.user_agent,
             ipAddress: row.ip_address,
-            createdAt: row.created_at,
+            createdAt: new Date(row.created_at),
         };
     }
 
@@ -50,7 +50,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository
 
         if (!result || result.length === 0) return null;
 
-        return this.mapRowToRefreshToken(result[0]);
+        return this.mapRowToRefreshToken(result[0]!);
     }
 
     async Create(data: CreateRefreshTokenData): Promise<RefreshToken>
@@ -67,7 +67,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository
             RETURNING id, user_id, token_hash, expires_at, revoked, user_agent, ip_address, created_at
         `);
 
-        return this.mapRowToRefreshToken(result[0]);
+        return this.mapRowToRefreshToken(result[0]!);
     }
 
     async DeleteById(id: number): Promise<void>

@@ -1,4 +1,5 @@
-export interface SearchTerm {
-  name?: string
-  value?: string
+export interface SearchTerm
+{
+    name?: string
+    value?: string
 }

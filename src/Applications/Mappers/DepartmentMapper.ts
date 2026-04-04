@@ -1,5 +1,5 @@
 import { DepartmentDto } from "../DataTransferObjects/Department/DepartmentDto";
-import { Department } from "../../Infrastructures/Entities/Master/Department";
+import { Department } from "@/Infrastructures/Entities/Master/Department";
 
 export interface IDepartmentMapper
 {

@@ -1,11 +1,11 @@
-import { ErrorMessages } from "../../Shared/Constants/ErrorMessage";
+import { ErrorMessages } from "@/Shared/Constants/ErrorMessage";
 
 export abstract class CustomException extends Error
 {
     public readonly statusCode: number;
     public readonly responseCode: string;
-    public readonly message: string;
     public readonly responseData: object[];
+    public override message: string;
 
     protected constructor( statusCode: number, responseCode: string, errorMessage: string, ...responseData: object[])
     {

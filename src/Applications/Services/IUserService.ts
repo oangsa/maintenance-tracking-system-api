@@ -2,7 +2,7 @@ import { UserDto } from "../DataTransferObjects/User/UserDto";
 import { UserForCreateDto } from "../DataTransferObjects/User/UserForCreateDto";
 import { UserForUpdateDto } from "../DataTransferObjects/User/UserForUpdateDto";
 import { UserParameter } from "../../Domains/RequestFeatures/UserParameter";
-import { PagedResult } from "../../Domains/RequestFeatures/Core/PageResult";
+import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 
 export interface IUserService
 {

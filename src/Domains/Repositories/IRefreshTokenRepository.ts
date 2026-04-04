@@ -1,4 +1,4 @@
-import { RefreshToken } from "../../Infrastructures/Entities/Auth/RefreshToken";
+import { RefreshToken } from "@/Infrastructures/Entities/Auth/RefreshToken";
 
 export interface CreateRefreshTokenData
 {

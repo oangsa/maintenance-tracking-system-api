@@ -1,16 +1,16 @@
 import { sql, SQL } from "drizzle-orm";
-import { IRepairRequestRepository } from "../../../../Domains/Repositories/IRepairRequestRepository";
-import { User } from "../../../Entities/Master/User";
-import { PagedResult } from "../../../../Domains/RequestFeatures/Core/PageResult";
-import { RepairRequestParameter } from "../../../../Domains/RequestFeatures/RepairRequestParameter";
-import { AppDrizzleDB } from "../../../Database/Drizzle";
-import { rolesEnum, repairPriority, users, department, repairRequest, repairRequestItem, repairStatus } from "../../../Database/Drizzle/schema";
-import { QueryBuilder } from "../../Extensions/QueryBuilder";
-import { createPagedResult } from "../../../../Shared/Utilities/RequestFeatures/CreatePageResult";
-import { normalizeRequestParameters } from "../../../../Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
-import { RepairRequest } from "../../../Entities/Features/RepairRequest/RepairRequest";
-import { RepairPriority } from "../../../../Shared/Enums/RepairPriority";
-import { RepairRequestItem } from "../../../Entities/Features/RepairRequest/RepairRequestItem";
+import { IRepairRequestRepository } from "@/Domains/Repositories/IRepairRequestRepository";
+import { User } from "@/Infrastructures/Entities/Master/User";
+import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
+import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
+import { AppDrizzleDB } from "@/Infrastructures/Database/Drizzle";
+import { rolesEnum, repairPriority, users, department, repairRequest, repairRequestItem, repairStatus } from "@/Infrastructures/Database/Drizzle/schema";
+import { QueryBuilder } from "@/Infrastructures/Repositories/Extensions/QueryBuilder";
+import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePageResult";
+import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
+import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
+import { RepairPriority } from "@/Shared/Enums/RepairPriority";
+import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 
 type RepairRequestRow = {
     id: number;

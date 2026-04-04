@@ -1,6 +1,6 @@
-import { IRepositoryManager } from "../../Domains/Repositories/Core/IRepositoryManager";
-import { RepositoryManager } from "../../Infrastructures/Repositories/Core/RepositoryManager";
-import { IConfigurationManager } from "../../Applications/Services/Core/IConfigurationManager";
+import { IRepositoryManager } from "@/Domains/Repositories/Core/IRepositoryManager";
+import { RepositoryManager } from "@/Infrastructures/Repositories/Core/RepositoryManager";
+import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
 
 export interface ICoreAdapterManager
 {

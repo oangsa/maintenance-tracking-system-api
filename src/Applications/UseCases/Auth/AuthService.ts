@@ -2,10 +2,10 @@ import { IAuthService } from "../../Services/IAuthService";
 import { LoginResultDto } from "../../DataTransferObjects/Auth/LoginResultDto";
 import { RefreshResultDto } from "../../DataTransferObjects/Auth/RefreshResultDto";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
-import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
+import { IRepositoryManager } from "@/Domains/Repositories/Core/IRepositoryManager";
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
-import { InvalidCredentialsException } from "../../../Domains/Exceptions/Auth/InvalidCredentialsException";
-import { verifyPassword } from "../../../Shared/Utilities/Authentication/PasswordUtils";
+import { InvalidCredentialsException } from "@/Domains/Exceptions/Auth/InvalidCredentialsException";
+import { verifyPassword } from "@/Shared/Utilities/Authentication/PasswordUtils";
 
 export class AuthService implements IAuthService
 {

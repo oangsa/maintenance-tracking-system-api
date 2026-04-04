@@ -6,7 +6,7 @@ import { MapperManager } from "../../Mappers/Core/MapperManager";
 import { AuthService } from "../Auth/AuthService";
 import { UserService } from "../Master/UserService";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
-import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
+import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";

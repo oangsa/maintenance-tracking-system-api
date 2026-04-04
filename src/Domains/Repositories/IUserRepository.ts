@@ -1,4 +1,4 @@
-import { User } from "../../Infrastructures/Entities/Master/User";
+import { User } from "@/Infrastructures/Entities/Master/User";
 import { UserParameter } from "../RequestFeatures/UserParameter";
 import { PagedResult } from "../RequestFeatures/Core/PageResult";
 

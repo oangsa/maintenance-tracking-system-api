@@ -1,10 +1,10 @@
-import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
-import { IUserRepository } from "../../../Domains/Repositories/IUserRepository";
-import { IRefreshTokenRepository } from "../../../Domains/Repositories/IRefreshTokenRepository";
+import { IRepositoryManager } from "@/Domains/Repositories/Core/IRepositoryManager";
+import { IUserRepository } from "@/Domains/Repositories/IUserRepository";
+import { IRefreshTokenRepository } from "@/Domains/Repositories/IRefreshTokenRepository";
 import { UserRepository } from "../Master/UserRepository";
 import { RefreshTokenRepository } from "../Auth/RefreshTokenRepository";
 import { DrizzleFactory } from "../../Database";
-import { IDepartmentRepository } from "../../../Domains/Repositories/IDepartmentRepository";
+import { IDepartmentRepository } from "@/Domains/Repositories/IDepartmentRepository";
 import { DepartmentRepository } from "../Master/DepartmentRepository";
 
 export class RepositoryManager implements IRepositoryManager

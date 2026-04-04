@@ -1,7 +1,7 @@
 import { ServiceManager } from "./ServiceManager";
 import { CoreAdapterManager } from "../CoreAdapterManager";
 import { IServiceManager } from "../../Services/Core/IServiceManager";
-import { IConfigurationManager } from "../../../Infrastructures/Core/ConfigurationManager";
+import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
 
 let serviceManagerInstance: IServiceManager | null = null;
 

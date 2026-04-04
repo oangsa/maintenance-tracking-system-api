@@ -1,4 +1,4 @@
-import { Department } from "../../Infrastructures/Entities/Master/Department";
+import { Department } from "@/Infrastructures/Entities/Master/Department";
 import { DepartmentParameter } from "../RequestFeatures/DepartmentParameter";
 import { PagedResult } from "../RequestFeatures/Core/PageResult";
 

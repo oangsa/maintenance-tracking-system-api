@@ -1,5 +1,5 @@
-import { DatabaseConnectionException } from "../../Domains/Exceptions/Database/DatabaseCustomException";
-import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager } from "../../Applications/Services/Core/IConfigurationManager";
+import { DatabaseConnectionException } from "@/Domains/Exceptions/Database/DatabaseCustomException";
+import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
 
 export class ConfigurationManager implements IConfigurationManager
 {
@@ -31,7 +31,7 @@ export class ConfigurationManager implements IConfigurationManager
 
     private LoadDatabaseConfiguration(): DatabaseConfiguration
     {
-        const connectionString = process.env.DATABASE_URL;
+        const connectionString = process.env["DATABASE_URL"];
 
         if (!connectionString)
         {
@@ -47,9 +47,9 @@ export class ConfigurationManager implements IConfigurationManager
 
     private LoadJWTConfiguration(): JwtConfiguration
     {
-        const secret = process.env.JWT_SECRET;
-        const expiresIn = process.env.JWT_EXPIRES_IN ?? "15m";
-        const refreshExpiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN ?? "7d";
+        const secret = process.env["JWT_SECRET"];
+        const expiresIn = process.env['JWT_EXPIRES_IN'] ?? "15m";
+        const refreshExpiresIn = process.env["REFRESH_TOKEN_EXPIRES_IN"] ?? "7d";
 
         if (!secret)
         {
@@ -65,7 +65,7 @@ export class ConfigurationManager implements IConfigurationManager
 
     private LoadServerConfiguration(): ServerConfiguration
     {
-        const raw = process.env.PORT;
+        const raw = process.env['PORT'];
         const port = raw !== undefined ? parseInt(raw, 10) : 3000;
 
         if (isNaN(port) || port < 1 || port > 65535)
