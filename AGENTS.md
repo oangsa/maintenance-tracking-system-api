@@ -311,3 +311,9 @@ export function myFunction()
 ```
 
 For the rest you may need to see the old files, how I named them and write them.
+
+## 6. Rules
+- 1. Do not touch any core files except adding new attributes such as new services or new controllers
+- 2. Do not do any progress if user did not provide any information that relate to what they told you to do so eg: user want you to add recipes endpoint but you do not know what is the database schema for recipe, you must ask them to input to you.
+- 3. Do not change anything beside new feature related files eg. when you are doing recipes feature, you must not touch customer related files, logics, and etc.
+- 4. You can format related files if the codes are not in the 'Good Example'. But do not change any logics if the codes are not meant to changed.
