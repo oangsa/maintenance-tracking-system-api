@@ -68,9 +68,7 @@ export class PartController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                console.log(id);
                                 const part = await this._service.partService.GetPart(id);
-                                console.log(part);
                                 set.status = 200;
 
                                 return part;
@@ -92,6 +90,7 @@ export class PartController
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
                         {
+                            console.log(body);
                             try
                             {
                                 const createdPart = await this._service.partService.CreatePart(body);

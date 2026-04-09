@@ -27,7 +27,7 @@ export const DepartmentForCreateSchema = t.Object({
 });
 
 export const DepartmentForUpdateSchema = t.Object({
-    code: t.Optional(t.String({ minLength: 6 })),
+    code: t.Optional(t.String({ maxLength: 150 })),
     name: t.Optional(t.String({ maxLength: 150 })),
 });
 

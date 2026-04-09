@@ -16,6 +16,8 @@ type PartRow = {
     code: string;
     name: string;
     product_type_id: number;
+    product_type_code: string | null;
+    product_type_name: string | null;
     created_at: string | null;
     updated_at: string | null;
     created_by: string | null;
@@ -39,6 +41,8 @@ export class PartRepository implements IPartRepository
             code: row.code,
             name: row.name,
             productTypeId: row.product_type_id,
+            productTypeCode: row.product_type_code ?? '',
+            productTypeName: row.product_type_name ?? '',
             createdAt: row.created_at ?? '',
             updatedAt: row.updated_at ?? '',
             createdBy: row.created_by,
@@ -50,20 +54,23 @@ export class PartRepository implements IPartRepository
     async GetPartById(id: number): Promise<Part | null>
     {
         const result = await this._db.db.execute<PartRow>(sql`
+           
             SELECT
-                id,
-                code,
-                name,
-                product_type_id,
-                product_type_code,
-                product_type_name,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by,
-                deleted
-            FROM ${partTable}
-            WHERE id = ${id}
+                p.id,
+                p.code,
+                p.name,
+                pt.id As product_type_id,
+                pt.code AS product_type_code,
+                pt.name AS product_type_name,
+                p.created_at,
+                p.updated_at,
+                p.created_by,
+                p.updated_by,
+                p.deleted
+            FROM ${partTable} p
+            Join product_type pt on pt.id = p.product_type_id
+            WHERE p.id = ${id} AND p.deleted = false
+            limit 1
         `);
 
         if (result.length === 0)
@@ -71,7 +78,7 @@ export class PartRepository implements IPartRepository
             return null;
         }
 
-        return this.mapRowToPart(result[0]);
+        return this.mapRowToPart(result[0]!);
     }
 
     async GetPartByCode(code: string, includeDeleted: boolean = false): Promise<Part | null>
@@ -79,20 +86,21 @@ export class PartRepository implements IPartRepository
         const deletedFilter = includeDeleted ? sql`` : sql`AND deleted = false`;
 
         const result = await this._db.db.execute<PartRow>(sql`
-            SELECT
-                id,
-                code,
-                name,
-                product_type_id,
-                product_type_code,
-                product_type_name,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by,
-                deleted
-            FROM ${partTable}
-            WHERE code = ${code}
+           SELECT
+                p.id,
+                p.code,
+                p.name,
+                pt.id As product_type_id,
+                pt.code AS product_type_code,
+                pt.name AS product_type_name,
+                p.created_at,
+                p.updated_at,
+                p.created_by,
+                p.updated_by,
+                p.deleted
+            FROM ${partTable} p
+            Join product_type pt on pt.id = p.product_type_id
+            WHERE p.code = ${code}
               ${deletedFilter}
             LIMIT 1
         `);
@@ -102,7 +110,7 @@ export class PartRepository implements IPartRepository
             return null;
         }
 
-        return this.mapRowToPart(result[0]);
+        return this.mapRowToPart(result[0]!);
     }
 
     async GetListPart(parameters: PartParameter): Promise<PagedResult<Part>>
@@ -131,18 +139,19 @@ export class PartRepository implements IPartRepository
         const [partResults, countResult] = await Promise.all([
             this._db.db.execute<PartRow>(sql`
                 SELECT
-                    id,
-                    code,
-                    name,
-                    product_type_id,
-                    product_type_code,
-                    product_type_name,
-                    created_at,
-                    updated_at,
-                    created_by,
-                    updated_by,
-                    deleted
-                FROM ${partTable}
+                p.id,
+                p.code,
+                p.name,
+                pt.id As product_type_id,
+                pt.code AS product_type_code,
+                pt.name AS product_type_name,
+                p.created_at,
+                p.updated_at,
+                p.created_by,
+                p.updated_by,
+                p.deleted
+            FROM ${partTable} p
+            Join product_type pt on pt.id = p.product_type_id
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -164,6 +173,7 @@ export class PartRepository implements IPartRepository
 
     async CreatePart(part: Part): Promise<Part>
     {
+        console.log(part);
         const result = await this._db.db.execute<PartRow>(sql`
             INSERT INTO ${partTable} (
                 code,
@@ -193,7 +203,7 @@ export class PartRepository implements IPartRepository
                 deleted
             `);
 
-        return this.mapRowToPart(result[0]);
+        return this.mapRowToPart(result[0]!);
     }
 
     async UpdatePart(part: Partial<Part>): Promise<Part>
@@ -220,7 +230,7 @@ export class PartRepository implements IPartRepository
                 deleted
         `);
 
-        return this.mapRowToPart(result[0])
+        return this.mapRowToPart(result[0]!)
 
     }
 

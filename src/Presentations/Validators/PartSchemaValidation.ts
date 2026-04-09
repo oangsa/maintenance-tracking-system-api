@@ -16,11 +16,14 @@ export const PartResponseSchema = t.Object({
     code: t.String(),
     name: t.String(),
     productTypeId: t.Number(),
+    productTypeCode: t.String(),
+    productTypeName: t.String(),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
     updatedBy: t.Nullable(t.String()),
 });
+
 
 export const PartForCreateSchema = t.Object({
     code: t.String({ maxLength: 150 }),
@@ -29,7 +32,7 @@ export const PartForCreateSchema = t.Object({
 });
 
 export const PartForUpdateSchema = t.Object({
-    code: t.Optional(t.String({ minLength: 6 })),
+    code: t.Optional(t.String({ maxLength: 150 })),
     name: t.Optional(t.String({ maxLength: 150 })),
     productTypeId: t.Optional(t.Number()),
 });
