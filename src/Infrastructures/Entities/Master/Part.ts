@@ -1,10 +1,11 @@
-export interface RepairRequestItemStatus
+export interface Part
 {
     id: number;
     code: string;
     name: string;
-    orderSequence: number;
-    isFinal: boolean;
+    productTypeId: number;
+    productTypeCode: string;
+    productTypeName: string;
     createdAt: string;
     updatedAt: string;
     createdBy: string | null;

@@ -6,12 +6,17 @@ import { MapperManager } from "../../Mappers/Core/MapperManager";
 import { AuthService } from "../Auth/AuthService";
 import { UserService } from "../Master/UserService";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
-import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
+import { IConfigurationManager } from "../../Services/Core/IConfigurationManager";
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";
 import { IRepairStatusService } from "../../Services/IRepairStatusService";
 import { RepairStatusService } from "../Master/RepairStatusService";
+import { IPartService } from "../../Services/IPartService";
+import { PartService } from "../Master/PartService";
+import { ILoggerService } from "../../Services/ILoggerService";
+import { IRepairRequestItemStatusService } from "../../Services/IRepairRequestItemStatusService";
+import { RepairRequestItemStatusService } from "../Master/RepairRequestItemStatusService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -21,6 +26,8 @@ export class ServiceManager implements IServiceManager
     private readonly _userService: IUserService;
     private readonly _departmentService: IDepartmentService;
     private readonly _repairStatusService: IRepairStatusService;
+    private readonly _partService: IPartService;
+    private readonly _repairRequestItemStatusService: IRepairRequestItemStatusService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -33,6 +40,8 @@ export class ServiceManager implements IServiceManager
         this._userService = new UserService(coreAdapterManager, mapperManager, this._userProvider);
         this._departmentService = new DepartmentService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairStatusService = new RepairStatusService(coreAdapterManager, mapperManager, this._userProvider);
+        this._partService = new PartService(coreAdapterManager, mapperManager, this._userProvider);
+        this._repairRequestItemStatusService = new RepairRequestItemStatusService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -43,6 +52,11 @@ export class ServiceManager implements IServiceManager
     get userProvider(): UserProvider
     {
         return this._userProvider;
+    }
+
+    get loggerService(): ILoggerService
+    {
+        return this._coreAdapterManager.loggerService;
     }
 
     get authService(): IAuthService
@@ -65,4 +79,14 @@ export class ServiceManager implements IServiceManager
         return this._repairStatusService;
     }
     
+  
+    get partService(): IPartService
+    {
+        return this._partService;
+    }
+
+    get repairRequestItemStatusService(): IRepairRequestItemStatusService
+    {
+        return this._repairRequestItemStatusService;
+    }
 }

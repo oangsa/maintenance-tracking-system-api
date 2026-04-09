@@ -1,13 +1,14 @@
 import { Elysia } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
-import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
-import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
-import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
-import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema } from "../../Validators/UserSchemaValidation";
+import { PartParameter } from "../../../Domains/RequestFeatures/PartParameter";
+import { PartForCreateSchema, PartIdParamSchema, PartParameterSchema, DeleteCollectionSchema, PartForUpdateSchema} from "../../Validators/PartSchemaValidation";
+import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
+import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadRequestException";
 
-export class UserController
+
+export class PartController
 {
     private readonly _service: IServiceManager;
 
@@ -20,26 +21,27 @@ export class UserController
     {
         const { secret } = this._service.configurationManager.jwt;
 
-        app.group("/users", (app) =>
+        app.group("/part", (app) =>
             app
                 .use(JwtPlugin(secret, this._service.authService))
-                .post("/search",
+                .post(
+                    "/search",
                     async ({ body, currentUser, set }) =>
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
                         {
                             try
                             {
-                                const params: UserParameter = {
+                                const params: PartParameter = {
                                     pageNumber: body.pageNumber ?? 1,
                                     pageSize: body.pageSize ?? 10,
-                                    orderBy: body.orderBy as UserParameter["orderBy"],
+                                    orderBy: body.orderBy as PartParameter["orderBy"],
                                     search: body.search,
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
                                 };
 
-                                const result = await this._service.userService.GetListUser(params);
+                                const result = await this._service.partService.GetListPart(params);
 
                                 set.headers["X-Pagination"] = JSON.stringify(result.meta);
                                 set.status = 200;
@@ -53,8 +55,8 @@ export class UserController
                         });
                     },
                     {
-                        body: UserParameterSchema,
-                        detail: { summary: "Search users", tags: ["Users"] },
+                        body: PartParameterSchema,
+                        detail: { summary: "Search parts", tags: ["Parts"] },
                     },
                 )
                 .get(
@@ -66,10 +68,10 @@ export class UserController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                const user = await this._service.userService.GetUser(id);
+                                const part = await this._service.partService.GetPart(id);
                                 set.status = 200;
 
-                                return user;
+                                return part;
                             }
                             catch (error: any)
                             {
@@ -78,8 +80,8 @@ export class UserController
                         });
                     },
                     {
-                        params: UserIdParamSchema,
-                        detail: { summary: "Get user by ID", tags: ["Users"] },
+                        params: PartIdParamSchema,
+                        detail: { summary: "Get part by ID", tags: ["Parts"] },
                     },
                 )
                 .post(
@@ -88,13 +90,14 @@ export class UserController
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
                         {
+                            console.log(body);
                             try
                             {
-                                const createdUser = await this._service.userService.CreateUser(body);
+                                const createdPart = await this._service.partService.CreatePart(body);
                                 set.status = 201;
-                                set.headers["Location"] = `/users/${createdUser.id}`;
+                                set.headers["Location"] = `/part/${createdPart.id}`;
 
-                                return createdUser;
+                                return createdPart;
                             }
                             catch (error: any)
                             {
@@ -103,8 +106,8 @@ export class UserController
                         });
                     },
                     {
-                        body: UserForCreateSchema,
-                        detail: { summary: "Create user", tags: ["Users"] },
+                        body: PartForCreateSchema,
+                        detail: { summary: "Create part", tags: ["Parts"] },
                     },
                 )
 
@@ -117,10 +120,10 @@ export class UserController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                const updatedUser = await this._service.userService.UpdateUser(id, body);
+                                const updatedParts = await this._service.partService.UpdatePart(id, body);
                                 set.status = 200;
 
-                                return updatedUser;
+                                return updatedParts;
                             }
                             catch (error: any)
                             {
@@ -129,9 +132,9 @@ export class UserController
                         });
                     },
                     {
-                        params: UserIdParamSchema,
-                        body: UserForUpdateSchema,
-                        detail: { summary: "Update user", tags: ["Users"] },
+                        params: PartIdParamSchema,
+                        body: PartForUpdateSchema,
+                        detail: { summary: "Update part", tags: ["Parts"] },
                     },
                 )
 
@@ -144,7 +147,7 @@ export class UserController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                await this._service.userService.DeleteUser(id);
+                                await this._service.partService.DeletePart(id);
 
                                 set.status = 204;
                             }
@@ -155,8 +158,8 @@ export class UserController
                         });
                     },
                     {
-                        params: UserIdParamSchema,
-                        detail: { summary: "Delete user", tags: ["Users"] },
+                        params:PartIdParamSchema,
+                        detail: { summary: "Delete part", tags: ["Parts"] },
                     },
                 )
 
@@ -170,7 +173,7 @@ export class UserController
                             {
                                 const ids = body.ids.map((id: string) => parseInt(id, 10));
 
-                                await this._service.userService.DeleteUserCollection(ids);
+                                await this._service.partService.DeletePartCollection(ids);
 
                                 set.status = 204;
                             }
@@ -183,8 +186,7 @@ export class UserController
                     {
                         body: DeleteCollectionSchema,
                         detail: {
-                            summary: "Delete user collection",
-                            tags: ["Users"],
+                            summary: "Delete parts collection", tags: ["Parts"],
                         },
                     },
                 ),
@@ -193,7 +195,7 @@ export class UserController
 
     private handleError(error: any, set: any)
     {
-        if (error instanceof UserNotFoundException)
+        if (error instanceof PartNotFoundException)
         {
             set.status = 404;
 
@@ -204,7 +206,7 @@ export class UserController
             };
         }
 
-        if (error instanceof UserDuplicateBadRequestException)
+        if (error instanceof PartDuplicateBadRequestException)
         {
             set.status = 400;
 

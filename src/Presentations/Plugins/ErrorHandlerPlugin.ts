@@ -1,8 +1,10 @@
 import Elysia from "elysia";
 import { ErrorMessages } from "../../Shared/Constants/ErrorMessage";
+import { ILoggerService } from "../../Applications/Services/ILoggerService";
 
 
-export const ErrorHandlerPlugin = new Elysia({ name: "error-handler" })
+export const ErrorHandlerPlugin = (logger: ILoggerService) =>
+    new Elysia({ name: "error-handler" })
     .onError({ as: "global" }, ({ code, error, set }) =>
     {
         switch (code)
@@ -14,6 +16,12 @@ export const ErrorHandlerPlugin = new Elysia({ name: "error-handler" })
                 const message = firstError?.message ?? error.message;
                 const field = path.replace("/", "") || "body";
 
+                logger.warn("Request validation failed", {
+                    code,
+                    field,
+                    message,
+                });
+
                 set.status = 422;
                 return {
                     statusCode: 422,
@@ -23,6 +31,10 @@ export const ErrorHandlerPlugin = new Elysia({ name: "error-handler" })
             }
 
             case "NOT_FOUND":
+                logger.warn("Route not found", {
+                    code,
+                    message: (error as any).message,
+                });
                 set.status = 404;
                 return {
                     statusCode: 404,
@@ -31,6 +43,10 @@ export const ErrorHandlerPlugin = new Elysia({ name: "error-handler" })
                 };
 
             case "PARSE":
+                logger.warn("Request parse failed", {
+                    code,
+                    message: "Invalid JSON body",
+                });
                 set.status = 400;
                 return {
                     statusCode: 400,
@@ -55,6 +71,12 @@ export const ErrorHandlerPlugin = new Elysia({ name: "error-handler" })
                 const cleanMessage = rawMessage.startsWith("Failed query:")
                     ? "Database operation failed."
                     : rawMessage;
+
+                logger.error("Unhandled application error", error, {
+                    code,
+                    pgCode,
+                    message: cleanMessage,
+                });
 
                 set.status = 500;
                 return {
