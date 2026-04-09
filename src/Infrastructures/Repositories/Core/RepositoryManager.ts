@@ -6,6 +6,8 @@ import { RefreshTokenRepository } from "../Auth/RefreshTokenRepository";
 import { DrizzleFactory } from "../../Database";
 import { IDepartmentRepository } from "@/Domains/Repositories/IDepartmentRepository";
 import { DepartmentRepository } from "../Master/DepartmentRepository";
+import { IRepairStatusRepository } from "@/Domains/Repositories/IRepairStatusRepository";
+import { RepairStatusRepository } from "../Master/RepairStatusRepository";
 import { IPartRepository } from "@/Domains/Repositories/IPartRepository";
 import { PartRepository } from "../Master/PartRepository";
 import { IRepairRequestItemStatusRepository } from "@/Domains/Repositories/IRepairRequestItemStatusRepository";
@@ -16,6 +18,7 @@ export class RepositoryManager implements IRepositoryManager
     private readonly _userRepository: IUserRepository;
     private readonly _refreshTokenRepository: IRefreshTokenRepository;
     private readonly _departmentRepository: IDepartmentRepository;
+    private readonly _repairStatusRepository: IRepairStatusRepository;
     private readonly _partRepository: IPartRepository;
     private readonly _repairRequestItemStatusRepository: IRepairRequestItemStatusRepository;
 
@@ -25,6 +28,7 @@ export class RepositoryManager implements IRepositoryManager
         this._userRepository = new UserRepository(drizzleDb);
         this._refreshTokenRepository = new RefreshTokenRepository(drizzleDb);
         this._departmentRepository = new DepartmentRepository(drizzleDb);
+        this._repairStatusRepository = new RepairStatusRepository(drizzleDb);
         this._partRepository = new PartRepository(drizzleDb);
         this._repairRequestItemStatusRepository = new RepairRequestItemStatusRepository(drizzleDb);
     }
@@ -44,6 +48,11 @@ export class RepositoryManager implements IRepositoryManager
         return this._departmentRepository;
     }
 
+    get repairStatusRepository(): IRepairStatusRepository
+    {
+        return this._repairStatusRepository;
+    }
+  
     get partRepository(): IPartRepository
     {
         return this._partRepository;
