@@ -8,6 +8,8 @@ import { IDepartmentRepository } from "@/Domains/Repositories/IDepartmentReposit
 import { DepartmentRepository } from "../Master/DepartmentRepository";
 import { IPartRepository } from "@/Domains/Repositories/IPartRepository";
 import { PartRepository } from "../Master/PartRepository";
+import { IRepairRequestItemStatusRepository } from "@/Domains/Repositories/IRepairRequestItemStatusRepository";
+import { RepairRequestItemStatusRepository } from "../Master/RepairRequestItemStatusRepository";
 
 export class RepositoryManager implements IRepositoryManager
 {
@@ -15,6 +17,7 @@ export class RepositoryManager implements IRepositoryManager
     private readonly _refreshTokenRepository: IRefreshTokenRepository;
     private readonly _departmentRepository: IDepartmentRepository;
     private readonly _partRepository: IPartRepository;
+    private readonly _repairRequestItemStatusRepository: IRepairRequestItemStatusRepository;
 
     constructor()
     {
@@ -23,6 +26,7 @@ export class RepositoryManager implements IRepositoryManager
         this._refreshTokenRepository = new RefreshTokenRepository(drizzleDb);
         this._departmentRepository = new DepartmentRepository(drizzleDb);
         this._partRepository = new PartRepository(drizzleDb);
+        this._repairRequestItemStatusRepository = new RepairRequestItemStatusRepository(drizzleDb);
     }
 
     get userRepository(): IUserRepository
@@ -43,5 +47,10 @@ export class RepositoryManager implements IRepositoryManager
     get partRepository(): IPartRepository
     {
         return this._partRepository;
+    }
+  
+    get repairRequestItemStatusRepository(): IRepairRequestItemStatusRepository
+    {
+        return this._repairRequestItemStatusRepository;
     }
 }

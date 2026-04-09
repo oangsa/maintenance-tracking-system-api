@@ -1,12 +1,12 @@
-import { IDepartmentRepository } from "../../../Domains/Repositories/IDepartmentRepository";
+import { IDepartmentRepository } from "@/Domains/Repositories/IDepartmentRepository";
 import { AppDrizzleDB } from "../../Database";
-import { Department } from "../../Entities/Master/Department";
-import { department as departmentTable } from "../../Database/Drizzle/schema";
+import { Department } from "@/Infrastructures/Entities/Master/Department";
+import { department as departmentTable } from "@/Infrastructures/Database/Drizzle/schema";
 import { sql, SQL } from "drizzle-orm";
-import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
-import { DepartmentParameter } from "../../../Domains/RequestFeatures/DepartmentParameter";
-import { createPagedResult } from "../../../Shared/Utilities/RequestFeatures/CreatePageResult";
-import { normalizeRequestParameters } from "../../../Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
+import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
+import { DepartmentParameter } from "@/Domains/RequestFeatures/DepartmentParameter";
+import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePageResult";
+import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 import { QueryBuilder } from "../Extensions/QueryBuilder";
 
 type DepartmentRow = {
@@ -35,11 +35,11 @@ export class DepartmentRepository implements IDepartmentRepository
             id: row.id,
             code: row.code,
             name: row.name,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
+            createdAt: row.created_at!,
+            updatedAt: row.updated_at!,
             createdBy: row.created_by,
             updatedBy: row.updated_by,
-            deleted: row.deleted,
+            deleted: row.deleted!,
         };
     }
 
@@ -64,7 +64,7 @@ export class DepartmentRepository implements IDepartmentRepository
             return null;
         }
 
-        return this.mapRowToDepartment(result[0]);
+        return this.mapRowToDepartment(result[0] as DepartmentRow);
     }
 
     async GetDepartmentByCode(code: string, includeDeleted: boolean = false): Promise<Department | null>
@@ -87,7 +87,7 @@ export class DepartmentRepository implements IDepartmentRepository
             LIMIT 1
         `);
 
-        if (result.length === 0)
+        if (result.length === 0 || !result[0])
         {
             return null;
         }
@@ -177,7 +177,7 @@ export class DepartmentRepository implements IDepartmentRepository
                 deleted
             `);
 
-        return this.mapRowToDepartment(result[0]);
+        return this.mapRowToDepartment(result[0]!);
     }
 
     async UpdateDepartment(department: Partial<Department>): Promise<Department>
@@ -202,7 +202,7 @@ export class DepartmentRepository implements IDepartmentRepository
                 deleted
         `);
 
-        return this.mapRowToDepartment(result[0])
+        return this.mapRowToDepartment(result[0]!)
 
     }
 

@@ -51,7 +51,7 @@ export class AuthenticationController
                                 tokenVersion: result.tokenVersion,
                             });
 
-                            cookie[REFRESH_COOKIE].set({
+                            cookie[REFRESH_COOKIE]!.set({
                                 value: `${result.refreshTokenId}.${result.rawRefreshToken}`,
                                 httpOnly: true,
                                 maxAge: REFRESH_COOKIE_MAX_AGE,
