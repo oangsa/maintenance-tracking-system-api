@@ -12,4 +12,5 @@ export interface IServiceManager
     authService: IAuthService;
     userService: IUserService;
     departmentService: IDepartmentService;
+    partService: IPartService;
 }
