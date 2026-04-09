@@ -11,4 +11,5 @@ export interface IRepairStatusService
     CreateRepairStatus(repairStatusForCreateDto: RepairStatusForCreateDto): Promise<RepairStatusDto>;
     UpdateRepairStatus(id: number, repairStatusForUpdateDto: RepairStatusForUpdateDto): Promise<RepairStatusDto>;
     DeleteRepairStatus(id: number): Promise<void>;
+    DeleteRepairStatusCollection(ids: number[]): Promise<void>;
 }

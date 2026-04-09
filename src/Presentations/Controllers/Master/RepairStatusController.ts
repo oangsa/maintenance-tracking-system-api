@@ -3,14 +3,10 @@ import { IServiceManager } from "../../../Applications/Services/Core/IServiceMan
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { RepairStatusParameter } from "../../../Domains/RequestFeatures/RepairStatusParameter";
-import { 
-    RepairStatusForCreateSchema, 
-    RepairStatusIdParamSchema, 
-    RepairStatusParameterSchema, 
-    RepairStatusForUpdateSchema 
-} from "../../Validators/RepairStatusSchemaValidation";
+import { RepairStatusForCreateSchema, RepairStatusIdParamSchema, RepairStatusParameterSchema, RepairStatusForUpdateSchema } from "../../Validators/RepairStatusSchemaValidation";
 import { RepairStatusNotFoundException } from "../../../Domains/Exceptions/RepairStatus/RepairStatusNotFoundException";
 import { RepairStatusDuplicateBadRequestException } from "../../../Domains/Exceptions/RepairStatus/RepairStatusDuplicateBadRequestException";
+import { DeleteCollectionSchema } from "@/Presentations/Validators/UserSchemaValidation";
 
 export class RepairStatusController
 {
@@ -162,7 +158,36 @@ export class RepairStatusController
                         params: RepairStatusIdParamSchema,
                         detail: { summary: "Delete repair status", tags: ["Repair Status"] },
                     },
-                ),
+                )
+                .delete(
+                        "/collection",
+                        async ({ body, currentUser, set }) =>
+                        {
+                            return this._service.userProvider.run(currentUser!, async () =>
+                            {
+                                try
+                                {
+                                    const ids = body.ids.map((id: string) => parseInt(id, 10));
+                
+                                    await this._service.repairStatusService.DeleteRepairStatusCollection(ids);
+                
+                                    set.status = 204;
+                                }
+                                catch (error: any)
+                                {
+                                    return this.handleError(error, set);
+                                }
+                            });
+                        },
+                        {
+                            body: DeleteCollectionSchema,
+                            detail: {
+                                summary: "Delete repair status collection",
+                                tags: ["Repair Status"],
+                            },
+                        },
+                    )
+                
         );
     }
 

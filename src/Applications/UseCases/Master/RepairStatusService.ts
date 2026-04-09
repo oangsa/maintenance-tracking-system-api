@@ -171,4 +171,12 @@ export class RepairStatusService implements IRepairStatusService
         await this.GetRepairStatusAndCheckIfItExists(id);
         await this._repositoryManager.repairStatusRepository.DeleteRepairStatus(id);
     }
+
+    async DeleteRepairStatusCollection(ids: number[]): Promise<void>
+    {
+        for (const id of ids)
+        {
+            await this.DeleteRepairStatus(id);
+        }
+    }
 }
