@@ -41,7 +41,9 @@ export class PartService implements IPartService
 
     private async GetPartAndCheckIfItExists(id: number): Promise<Part>
     {
+        console.log(id);
         const partEntity = await this._repositoryManager.partRepository.GetPartById(id);
+        console.log(partEntity);
 
         if (!partEntity)
         {
@@ -65,7 +67,9 @@ export class PartService implements IPartService
 
     async GetPart(id: number): Promise<PartDto>
     {
+        console.log("Hello");
         const partEntity = await this.GetPartAndCheckIfItExists(id);
+        console.log(partEntity);
 
         return this._mapperManager.partMapper.PartToDto(partEntity);
     }

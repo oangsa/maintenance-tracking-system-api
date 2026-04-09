@@ -5,7 +5,7 @@ import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenExcepti
 import { PartParameter } from "../../../Domains/RequestFeatures/PartParameter";
 import { PartForCreateSchema, PartIdParamSchema, PartParameterSchema, DeleteCollectionSchema, PartForUpdateSchema} from "../../Validators/PartSchemaValidation";
 import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
-import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadReqeustException";
+import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadRequestException";
 
 
 export class PartController
@@ -68,7 +68,9 @@ export class PartController
                             try
                             {
                                 const id = parseInt(params.id, 10);
+                                console.log(id);
                                 const part = await this._service.partService.GetPart(id);
+                                console.log(part);
                                 set.status = 200;
 
                                 return part;

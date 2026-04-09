@@ -10,6 +10,8 @@ import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurati
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";
+import { IPartService } from "../../Services/IPartService";
+import { PartService } from "../Master/PartService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -18,6 +20,7 @@ export class ServiceManager implements IServiceManager
     private readonly _authService: IAuthService;
     private readonly _userService: IUserService;
     private readonly _departmentService: IDepartmentService;
+    private readonly _partService: IPartService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -29,6 +32,7 @@ export class ServiceManager implements IServiceManager
         this._authService = new AuthService(coreAdapterManager, mapperManager);
         this._userService = new UserService(coreAdapterManager, mapperManager, this._userProvider);
         this._departmentService = new DepartmentService(coreAdapterManager, mapperManager, this._userProvider);
+        this._partService = new PartService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -54,5 +58,9 @@ export class ServiceManager implements IServiceManager
     get departmentService(): IDepartmentService
     {
         return this._departmentService;
+    }
+    get partService(): IPartService
+    {
+        return this._partService;
     }
 }
