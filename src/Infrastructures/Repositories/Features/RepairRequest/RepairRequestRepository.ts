@@ -175,7 +175,11 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         if (!result || result.length === 0) return null;
 
-        return this.mapRowToUser(result[0]);
+        const repairRequest = this.mapRowToRepairRequest(result[0]);
+
+
+
+        return this.map(result[0]);
     }
 
     async GetRepairRequestByRequestNo(requestNo: string, includeDeleted: boolean = false): Promise<User | null>

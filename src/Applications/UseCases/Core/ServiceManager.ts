@@ -6,10 +6,11 @@ import { MapperManager } from "../../Mappers/Core/MapperManager";
 import { AuthService } from "../Auth/AuthService";
 import { UserService } from "../Master/UserService";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
-import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
+import { IConfigurationManager } from "../../Services/Core/IConfigurationManager";
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";
+import { ILoggerService } from "../../Services/ILoggerService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -39,6 +40,11 @@ export class ServiceManager implements IServiceManager
     get userProvider(): UserProvider
     {
         return this._userProvider;
+    }
+
+    get loggerService(): ILoggerService
+    {
+        return this._coreAdapterManager.loggerService;
     }
 
     get authService(): IAuthService

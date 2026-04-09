@@ -1,17 +1,19 @@
 import { DatabaseConnectionException } from "@/Domains/Exceptions/Database/DatabaseCustomException";
-import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
+import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager, WinstonConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
 
 export class ConfigurationManager implements IConfigurationManager
 {
     private readonly _database: DatabaseConfiguration;
     private readonly _jwt: JwtConfiguration;
     private readonly _server: ServerConfiguration;
+    private readonly _winston: WinstonConfiguration;
 
     constructor()
     {
         this._database = this.LoadDatabaseConfiguration();
         this._jwt = this.LoadJWTConfiguration();
         this._server = this.LoadServerConfiguration();
+        this._winston = this.LoadWinstonConfiguration();
     }
 
     get database(): DatabaseConfiguration
@@ -27,6 +29,11 @@ export class ConfigurationManager implements IConfigurationManager
     get server(): ServerConfiguration
     {
         return this._server;
+    }
+
+    get winston(): WinstonConfiguration
+    {
+        return this._winston;
     }
 
     private LoadDatabaseConfiguration(): DatabaseConfiguration
@@ -76,5 +83,44 @@ export class ConfigurationManager implements IConfigurationManager
         }
 
         return { port };
+    }
+
+    private LoadWinstonConfiguration(): WinstonConfiguration
+    {
+        const isProduction = process.env.NODE_ENV === "production";
+        const level = process.env.LOG_LEVEL ?? (isProduction ? "info" : "debug");
+        const service = process.env.SERVICE_NAME ?? "maintenance-tracking-system-api";
+
+        const developmentFormat = combine(
+            colorize(),
+            timestamp(),
+            errors({ stack: true }),
+            printf(({ level, message, timestamp: ts, service, ...meta }) =>
+            {
+                const metadata = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
+                const serviceName = typeof service === "string" ? `[${service}]` : "";
+                return `${ts} ${level} ${serviceName} ${message}${metadata}`.trim();
+            })
+        );
+
+        const productionFormat = combine(
+            timestamp(),
+            errors({ stack: true }),
+            json()
+        );
+
+        return {
+            options: {
+                level,
+                defaultMeta: { service },
+                format: isProduction ? productionFormat : developmentFormat,
+                transports: [
+                    new winston.transports.Console({
+                        handleExceptions: true,
+                    }),
+                ],
+                exitOnError: false,
+            },
+        };
     }
 }
