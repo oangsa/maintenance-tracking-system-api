@@ -3,6 +3,7 @@ import { AuthenticationController } from "../Auth/AuthenticationController";
 import { UserController } from "../Master/UserController";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { DepartmentController } from "../Master/DepartmentController";
+import { PartController } from "../Master/PartController";
 import { RepairRequestItemStatusController } from "../Master/RepairRequestItemStatusController";
 
 export class ControllerManager
@@ -10,6 +11,7 @@ export class ControllerManager
     private readonly authenticationController: AuthenticationController;
     private readonly userController: UserController;
     private readonly departmentController: DepartmentController;
+    private readonly partController: PartController;
     private readonly repairRequestItemStatusController: RepairRequestItemStatusController;
 
     constructor(serviceManager: IServiceManager)
@@ -17,6 +19,7 @@ export class ControllerManager
         this.authenticationController = new AuthenticationController(serviceManager);
         this.userController = new UserController(serviceManager);
         this.departmentController = new DepartmentController(serviceManager);
+        this.partController = new PartController(serviceManager);
         this.repairRequestItemStatusController = new RepairRequestItemStatusController(serviceManager);
     }
 
@@ -25,6 +28,7 @@ export class ControllerManager
         this.authenticationController.RegisterRoutes(app);
         this.userController.RegisterRoutes(app);
         this.departmentController.RegisterRoutes(app);
+        this.partController.RegisterRoutes(app);
         this.repairRequestItemStatusController.RegisterRoutes(app);
     }
 }
