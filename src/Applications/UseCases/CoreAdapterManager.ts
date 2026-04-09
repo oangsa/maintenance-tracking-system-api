@@ -12,6 +12,7 @@ export class CoreAdapterManager implements ICoreAdapterManager
 {
     private readonly _configurationManager: IConfigurationManager;
     private readonly _repositoryManager: IRepositoryManager;
+    
 
     constructor(configurationManager: IConfigurationManager)
     {
@@ -28,4 +29,5 @@ export class CoreAdapterManager implements ICoreAdapterManager
     {
         return this._repositoryManager;
     }
+
 }

@@ -10,6 +10,8 @@ import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurati
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";
+import { IRepairStatusService } from "../../Services/IRepairStatusService";
+import { RepairStatusService } from "../Master/RepairStatusService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -18,6 +20,7 @@ export class ServiceManager implements IServiceManager
     private readonly _authService: IAuthService;
     private readonly _userService: IUserService;
     private readonly _departmentService: IDepartmentService;
+    private readonly _repairStatusService: IRepairStatusService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -29,6 +32,7 @@ export class ServiceManager implements IServiceManager
         this._authService = new AuthService(coreAdapterManager, mapperManager);
         this._userService = new UserService(coreAdapterManager, mapperManager, this._userProvider);
         this._departmentService = new DepartmentService(coreAdapterManager, mapperManager, this._userProvider);
+        this._repairStatusService = new RepairStatusService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -55,4 +59,10 @@ export class ServiceManager implements IServiceManager
     {
         return this._departmentService;
     }
+
+    get repairStatusService(): IRepairStatusService
+    {
+        return this._repairStatusService;
+    }
+    
 }
