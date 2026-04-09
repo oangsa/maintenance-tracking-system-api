@@ -4,16 +4,17 @@ import { IServiceManager } from "../../Services/Core/IServiceManager";
 import { IConfigurationManager } from "../../../Applications/Services/Core/IConfigurationManager";
 import { createWinstonLogger } from "../../../Infrastructures/Logger/WinstonLogger";
 import { LoggerService } from "../../../Infrastructures/Logger/LoggerService";
+import { ILoggerService } from "../../Services/ILoggerService";
 
 let serviceManagerInstance: IServiceManager | null = null;
 
 export class ServiceManagerFactory
 {
-    static initialize(configurationManager: IConfigurationManager): IServiceManager
+    static initialize(configurationManager: IConfigurationManager, loggerService?: ILoggerService): IServiceManager
     {
         if (!serviceManagerInstance)
         {
-            const logger = new LoggerService(createWinstonLogger(configurationManager.winston.options));
+            const logger = loggerService ?? new LoggerService(createWinstonLogger(configurationManager.winston.options));
             const coreAdapterManager = new CoreAdapterManager(configurationManager, logger);
             serviceManagerInstance = new ServiceManager(coreAdapterManager);
         }

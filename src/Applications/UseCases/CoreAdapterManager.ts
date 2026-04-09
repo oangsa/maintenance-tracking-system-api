@@ -20,7 +20,7 @@ export class CoreAdapterManager implements ICoreAdapterManager
     {
         this._configurationManager = configurationManager;
         this._loggerService = loggerService;
-        this._repositoryManager = new RepositoryManager();
+        this._repositoryManager = new RepositoryManager(loggerService);
     }
 
     get configurationManager(): IConfigurationManager

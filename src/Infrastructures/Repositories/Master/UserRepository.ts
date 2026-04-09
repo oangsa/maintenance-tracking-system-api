@@ -6,8 +6,8 @@ import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
 import { AppDrizzleDB } from "../../Database/Drizzle";
 import { rolesEnum, users, department, userDepartment } from "../../Database/Drizzle/schema";
 import { QueryBuilder } from "../Extensions/QueryBuilder";
-import { createPagedResult } from "../../../Shared/Utilities/RequestFeatures/CreatePageResult";
-import { normalizeRequestParameters } from "../../../Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
+import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePageResult";
+import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 
 type UserRow = {
     id: number;
@@ -104,12 +104,12 @@ export class UserRepository implements IUserRepository
 
         if (!result || result.length === 0) return null;
 
-        return this.mapRowToUser(result[0]);
+        return this.mapRowToUser(result[0] as UserRow);
     }
 
     async GetUserByEmail(email: string, includeDeleted: boolean = false): Promise<User | null>
     {
-        console.log(email, includeDeleted);
+
         const deletedFilter = includeDeleted ? sql`` : sql`AND users.deleted = false`;
 
         const result = await this._db.db.execute<UserRow>(sql`
@@ -143,7 +143,7 @@ export class UserRepository implements IUserRepository
 
         if (!result || result.length === 0) return null;
 
-        return this.mapRowToUser(result[0]);
+        return this.mapRowToUser(result[0] as UserRow);
     }
 
     async GetListUser(parameters: UserParameter): Promise<PagedResult<User>>
@@ -264,6 +264,11 @@ export class UserRepository implements IUserRepository
                 RETURNING id
             `);
 
+            if (!insertResult || insertResult.length === 0 || !insertResult[0])
+            {
+                throw new Error("Failed to create user");
+            }
+
             const userId = insertResult[0].id;
 
             if (user.departmentId)
@@ -311,7 +316,7 @@ export class UserRepository implements IUserRepository
             return result[0];
         });
 
-        return this.mapRowToUser(row);
+        return this.mapRowToUser(row as UserRow);
     }
 
     async UpdateUser(user: Partial<User>): Promise<User>
@@ -388,7 +393,7 @@ export class UserRepository implements IUserRepository
             return result[0];
         });
 
-        return this.mapRowToUser(row);
+        return this.mapRowToUser(row as UserRow);
     }
 
     async DeleteUser(id: number): Promise<void>

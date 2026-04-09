@@ -1,9 +1,10 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
-import { IConfigurationManager } from "../Infrastructures/Core/ConfigurationManager";
-import { IServiceManager } from "../Applications/Services/Core/IServiceManager";
+import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
+import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { ControllerManager } from "./Controllers/Core/ControllerManager";
 import { ErrorHandlerPlugin } from "./Plugins/ErrorHandlerPlugin";
+import { RequestLoggerPlugin } from "./Plugins/RequestLoggerPlugin";
 
 export class Application
 {
@@ -18,6 +19,7 @@ export class Application
         this._serviceManager = serviceManager;
 
         this._app = new Elysia()
+            .use(RequestLoggerPlugin(this._serviceManager.loggerService))
             .use(ErrorHandlerPlugin(this._serviceManager.loggerService))
             .use(
                 swagger({
