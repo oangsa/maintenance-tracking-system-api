@@ -1,7 +1,7 @@
-import { PartDto } from "../DataTransferObjects/Part/ParttDto";
+import { PartDto } from "../DataTransferObjects/Part/PartDto";
 import { PartForCreateDto } from "../DataTransferObjects/Part/PartForCreateDto";
 import { PartForUpdateDto } from "../DataTransferObjects/Part/PartForUpdateDto";
-import { PartParameter } from "../../Domains/RequestFeatures/PartmentParameter";
+import { PartParameter } from "../../Domains/RequestFeatures/PartParameter";
 import { PagedResult } from "../../Domains/RequestFeatures/Core/PageResult";
 
 export interface IPartService

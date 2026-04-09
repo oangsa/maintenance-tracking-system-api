@@ -8,9 +8,9 @@ import { IRepositoryManager } from "../../../Domains/Repositories/Core/IReposito
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { IUserProvider } from "../../Providers/UserProvider";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
-import { DepartmentNotFoundException } from "../../../Domains/Exceptions/Department/DepartmentNotFoundException";
+import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
 import { Part } from "../../../Infrastructures/Entities/Master/Part";
-import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadReqeustException";
+import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { Role } from "../../../Shared/Enums/Role";
 
@@ -45,7 +45,7 @@ export class PartService implements IPartService
 
         if (!partEntity)
         {
-            throw new DepartmentNotFoundException(id);
+            throw new PartNotFoundException(id);
         }
 
         return partEntity;
@@ -87,6 +87,7 @@ export class PartService implements IPartService
             id: 0,
             code: partForCreateDto.code,
             name: partForCreateDto.name,
+            productTypeId: partForCreateDto.productTypeId,
             createdAt: dateNow,
             updatedAt: dateNow,
             createdBy: this.getCalledBy(),
@@ -143,6 +144,7 @@ export class PartService implements IPartService
             ...partEntity,
             code: partForUpdateDto.code ?? partEntity.code,
             name: partForUpdateDto.name ?? partEntity.name,
+            productTypeId: partForUpdateDto.productTypeId ?? partEntity.productTypeId,
             updatedAt: new Date().toISOString(),
             updatedBy: this.getCalledBy(),
         };

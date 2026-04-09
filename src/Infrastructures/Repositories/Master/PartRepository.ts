@@ -1,7 +1,7 @@
 import { IPartRepository } from "../../../Domains/Repositories/IPartRepository";
 import { AppDrizzleDB } from "../../Database";
 import { Part } from "../../Entities/Master/Part";
-import { part, part as partTable } from "../../Database/Drizzle/schema";
+import { part as partTable } from "../../Database/Drizzle/schema";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
 import { PartParameter } from "../../../Domains/RequestFeatures/PartParameter";
@@ -39,11 +39,11 @@ export class PartRepository implements IPartRepository
             code: row.code,
             name: row.name,
             productTypeId: row.product_type_id,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at,
+            createdAt: row.created_at ?? '',
+            updatedAt: row.updated_at ?? '',
             createdBy: row.created_by,
             updatedBy: row.updated_by,
-            deleted: row.deleted,
+            deleted: row.deleted ?? false,
         };
     }
 

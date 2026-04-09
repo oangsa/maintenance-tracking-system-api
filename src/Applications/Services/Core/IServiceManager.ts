@@ -3,6 +3,7 @@ import { IAuthService } from "../IAuthService";
 import { IConfigurationManager } from "./IConfigurationManager";
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../IDepartmentService";
+import { IPartService } from "../IPartService";
 
 export interface IServiceManager
 {
