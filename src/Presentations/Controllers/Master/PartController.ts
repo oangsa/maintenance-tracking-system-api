@@ -5,7 +5,7 @@ import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenExcepti
 import { PartParameter } from "../../../Domains/RequestFeatures/PartParameter";
 import { PartForCreateSchema, PartIdParamSchema, PartParameterSchema, DeleteCollectionSchema, PartForUpdateSchema} from "../../Validators/PartSchemaValidation";
 import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
-import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadReqeustException";
+import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadRequestException";
 
 
 export class PartController
@@ -90,6 +90,7 @@ export class PartController
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
                         {
+                            console.log(body);
                             try
                             {
                                 const createdPart = await this._service.partService.CreatePart(body);

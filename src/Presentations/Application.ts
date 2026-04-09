@@ -33,6 +33,7 @@ export class Application
                             { name: "Authentications", description: "Authentication endpoints" },
                             { name: "Users", description: "User management endpoints" },
                             { name: "Departments", description: "Department management endpoints" },
+                            { name: "Repair Request Item Statuses", description: "Repair request item status management endpoints" },
                         ],
                     },
                     path: "/swagger",

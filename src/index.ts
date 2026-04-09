@@ -8,7 +8,7 @@ import { LoggerService } from "./Infrastructures/Logger/LoggerService";
 const configurationManager = new ConfigurationManager();
 const loggerService = new LoggerService(createWinstonLogger(configurationManager.winston.options));
 
-DrizzleFactory.initialize(configurationManager, loggerService);
+DrizzleFactory.initialize(configurationManager);
 const serviceManager = ServiceManagerFactory.initialize(configurationManager, loggerService);
 
 const app = new Application(configurationManager, serviceManager);

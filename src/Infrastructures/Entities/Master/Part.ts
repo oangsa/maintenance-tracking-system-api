@@ -4,6 +4,8 @@ export interface Part
     code: string;
     name: string;
     productTypeId: number;
+    productTypeCode: string;
+    productTypeName: string;
     createdAt: string;
     updatedAt: string;
     createdBy: string | null;

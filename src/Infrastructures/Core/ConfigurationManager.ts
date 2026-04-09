@@ -1,5 +1,9 @@
 import { DatabaseConnectionException } from "@/Domains/Exceptions/Database/DatabaseCustomException";
 import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager, WinstonConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
+import winston, { format } from "winston";
+
+const { combine, colorize, timestamp, errors, printf, json } = format;
+
 
 export class ConfigurationManager implements IConfigurationManager
 {
@@ -88,8 +92,8 @@ export class ConfigurationManager implements IConfigurationManager
     private LoadWinstonConfiguration(): WinstonConfiguration
     {
         const isProduction = process.env.NODE_ENV === "production";
-        const level = process.env.LOG_LEVEL ?? (isProduction ? "info" : "debug");
-        const service = process.env.SERVICE_NAME ?? "maintenance-tracking-system-api";
+        const level = process.env["LOG_LEVEL"] ?? (isProduction ? "info" : "debug");
+        const service = process.env["SERVICE_NAME"] ?? "maintenance-tracking-system-api";
 
         const developmentFormat = combine(
             colorize(),
