@@ -1,13 +1,19 @@
 import { Elysia } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
-import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
-import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
-import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
-import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema } from "../../Validators/UserSchemaValidation";
+import { RepairRequestItemStatusParameter } from "../../../Domains/RequestFeatures/RepairRequestItemStatusParameter";
+import {
+    DeleteRepairRequestItemStatusCollectionSchema,
+    RepairRequestItemStatusForCreateSchema,
+    RepairRequestItemStatusForUpdateSchema,
+    RepairRequestItemStatusIdParamSchema,
+    RepairRequestItemStatusParameterSchema,
+} from "../../Validators/RepairRequestItemStatusSchemaValidation";
+import { RepairRequestItemStatusNotFoundException } from "../../../Domains/Exceptions/RepairRequest/RepairRequestItemStatusNotFoundException";
+import { RepairRequestItemStatusDuplicateBadRequestException } from "../../../Domains/Exceptions/RepairRequest/RepairRequestItemStatusDuplicateBadRequestException";
 
-export class UserController
+export class RepairRequestItemStatusController
 {
     private readonly _service: IServiceManager;
 
@@ -16,30 +22,31 @@ export class UserController
         this._service = service;
     }
 
-    public RegisterRoutes( app: Elysia<any>): void
+    public RegisterRoutes(app: Elysia<any>): void
     {
         const { secret } = this._service.configurationManager.jwt;
 
-        app.group("/users", (app) =>
+        app.group("/repair-request-item-status", (app) =>
             app
                 .use(JwtPlugin(secret, this._service.authService))
-                .post("/search",
+                .post(
+                    "/search",
                     async ({ body, currentUser, set }) =>
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
                         {
                             try
                             {
-                                const params: UserParameter = {
+                                const params: RepairRequestItemStatusParameter = {
                                     pageNumber: body.pageNumber ?? 1,
                                     pageSize: body.pageSize ?? 10,
-                                    orderBy: body.orderBy as UserParameter["orderBy"],
+                                    orderBy: body.orderBy as RepairRequestItemStatusParameter["orderBy"],
                                     search: body.search,
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
                                 };
 
-                                const result = await this._service.userService.GetListUser(params);
+                                const result = await this._service.repairRequestItemStatusService.GetListRepairRequestItemStatus(params);
 
                                 set.headers["X-Pagination"] = JSON.stringify(result.meta);
                                 set.status = 200;
@@ -53,8 +60,8 @@ export class UserController
                         });
                     },
                     {
-                        body: UserParameterSchema,
-                        detail: { summary: "Search users", tags: ["Users"] },
+                        body: RepairRequestItemStatusParameterSchema,
+                        detail: { summary: "Search repair request item statuses", tags: ["Repair Request Item Statuses"] },
                     },
                 )
                 .get(
@@ -66,10 +73,10 @@ export class UserController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                const user = await this._service.userService.GetUser(id);
+                                const repairRequestItemStatus = await this._service.repairRequestItemStatusService.GetRepairRequestItemStatus(id);
                                 set.status = 200;
 
-                                return user;
+                                return repairRequestItemStatus;
                             }
                             catch (error: any)
                             {
@@ -78,8 +85,8 @@ export class UserController
                         });
                     },
                     {
-                        params: UserIdParamSchema,
-                        detail: { summary: "Get user by ID", tags: ["Users"] },
+                        params: RepairRequestItemStatusIdParamSchema,
+                        detail: { summary: "Get repair request item status by ID", tags: ["Repair Request Item Statuses"] },
                     },
                 )
                 .post(
@@ -90,11 +97,11 @@ export class UserController
                         {
                             try
                             {
-                                const createdUser = await this._service.userService.CreateUser(body);
+                                const createdRepairRequestItemStatus = await this._service.repairRequestItemStatusService.CreateRepairRequestItemStatus(body);
                                 set.status = 201;
-                                set.headers["Location"] = `/users/${createdUser.id}`;
+                                set.headers["Location"] = `/repair-request-item-status/${createdRepairRequestItemStatus.id}`;
 
-                                return createdUser;
+                                return createdRepairRequestItemStatus;
                             }
                             catch (error: any)
                             {
@@ -103,11 +110,10 @@ export class UserController
                         });
                     },
                     {
-                        body: UserForCreateSchema,
-                        detail: { summary: "Create user", tags: ["Users"] },
+                        body: RepairRequestItemStatusForCreateSchema,
+                        detail: { summary: "Create repair request item status", tags: ["Repair Request Item Statuses"] },
                     },
                 )
-
                 .put(
                     "/:id",
                     async ({ params, body, currentUser, set }) =>
@@ -117,10 +123,10 @@ export class UserController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                const updatedUser = await this._service.userService.UpdateUser(id, body);
+                                const updatedRepairRequestItemStatus = await this._service.repairRequestItemStatusService.UpdateRepairRequestItemStatus(id, body);
                                 set.status = 200;
 
-                                return updatedUser;
+                                return updatedRepairRequestItemStatus;
                             }
                             catch (error: any)
                             {
@@ -129,12 +135,11 @@ export class UserController
                         });
                     },
                     {
-                        params: UserIdParamSchema,
-                        body: UserForUpdateSchema,
-                        detail: { summary: "Update user", tags: ["Users"] },
+                        params: RepairRequestItemStatusIdParamSchema,
+                        body: RepairRequestItemStatusForUpdateSchema,
+                        detail: { summary: "Update repair request item status", tags: ["Repair Request Item Statuses"] },
                     },
                 )
-
                 .delete(
                     "/:id",
                     async ({ params, currentUser, set }) =>
@@ -144,7 +149,7 @@ export class UserController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                await this._service.userService.DeleteUser(id);
+                                await this._service.repairRequestItemStatusService.DeleteRepairRequestItemStatus(id);
 
                                 set.status = 204;
                             }
@@ -155,11 +160,10 @@ export class UserController
                         });
                     },
                     {
-                        params: UserIdParamSchema,
-                        detail: { summary: "Delete user", tags: ["Users"] },
+                        params: RepairRequestItemStatusIdParamSchema,
+                        detail: { summary: "Delete repair request item status", tags: ["Repair Request Item Statuses"] },
                     },
                 )
-
                 .delete(
                     "/collection",
                     async ({ body, currentUser, set }) =>
@@ -170,7 +174,7 @@ export class UserController
                             {
                                 const ids = body.ids.map((id: string) => parseInt(id, 10));
 
-                                await this._service.userService.DeleteUserCollection(ids);
+                                await this._service.repairRequestItemStatusService.DeleteRepairRequestItemStatusCollection(ids);
 
                                 set.status = 204;
                             }
@@ -181,10 +185,10 @@ export class UserController
                         });
                     },
                     {
-                        body: DeleteCollectionSchema,
+                        body: DeleteRepairRequestItemStatusCollectionSchema,
                         detail: {
-                            summary: "Delete user collection",
-                            tags: ["Users"],
+                            summary: "Delete repair request item status collection",
+                            tags: ["Repair Request Item Statuses"],
                         },
                     },
                 ),
@@ -193,7 +197,7 @@ export class UserController
 
     private handleError(error: any, set: any)
     {
-        if (error instanceof UserNotFoundException)
+        if (error instanceof RepairRequestItemStatusNotFoundException)
         {
             set.status = 404;
 
@@ -204,7 +208,7 @@ export class UserController
             };
         }
 
-        if (error instanceof UserDuplicateBadRequestException)
+        if (error instanceof RepairRequestItemStatusDuplicateBadRequestException)
         {
             set.status = 400;
 

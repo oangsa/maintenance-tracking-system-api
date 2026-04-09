@@ -11,6 +11,8 @@ import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";
 import { ILoggerService } from "../../Services/ILoggerService";
+import { IRepairRequestItemStatusService } from "../../Services/IRepairRequestItemStatusService";
+import { RepairRequestItemStatusService } from "../Master/RepairRequestItemStatusService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -19,6 +21,7 @@ export class ServiceManager implements IServiceManager
     private readonly _authService: IAuthService;
     private readonly _userService: IUserService;
     private readonly _departmentService: IDepartmentService;
+    private readonly _repairRequestItemStatusService: IRepairRequestItemStatusService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -30,6 +33,7 @@ export class ServiceManager implements IServiceManager
         this._authService = new AuthService(coreAdapterManager, mapperManager);
         this._userService = new UserService(coreAdapterManager, mapperManager, this._userProvider);
         this._departmentService = new DepartmentService(coreAdapterManager, mapperManager, this._userProvider);
+        this._repairRequestItemStatusService = new RepairRequestItemStatusService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -60,5 +64,10 @@ export class ServiceManager implements IServiceManager
     get departmentService(): IDepartmentService
     {
         return this._departmentService;
+    }
+
+    get repairRequestItemStatusService(): IRepairRequestItemStatusService
+    {
+        return this._repairRequestItemStatusService;
     }
 }
