@@ -318,3 +318,4 @@ For the rest you may need to see the old files, how I named them and write them.
 - 3. Do not change anything beside new feature related files eg. when you are doing recipes feature, you must not touch customer related files, logics, and etc.
 - 4. You can format related files if the codes are not in the 'Good Example'. But do not change any logics if the codes are not meant to changed.
 - 5. You must understand all the related files before adding new features or changing anything, eg: when you want to create a new repository for recipes, you must understand `QueryBuilder.ts` to make sure you are making less mistake as possible.
+- 6. You can go to `docs/databaseSchema.md` to see what's inside our database schemas.

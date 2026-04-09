@@ -1,5 +1,5 @@
 import { DatabaseConnectionException } from "@/Domains/Exceptions/Database/DatabaseCustomException";
-import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
+import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager, WinstonConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
 
 export class ConfigurationManager implements IConfigurationManager
 {
