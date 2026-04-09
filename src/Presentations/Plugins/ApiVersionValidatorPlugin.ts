@@ -6,6 +6,12 @@ export const ApiVersionValidatorPlugin = (apiConfiguration: ApiConfiguration) =>
         .onRequest(({ request, set }) =>
         {
             const requestPath = new URL(request.url).pathname;
+
+            if (IsVersionDiscoveryPath(requestPath))
+            {
+                return;
+            }
+
             const requestedVersion = ExtractVersionFromPath(requestPath);
 
             if (!requestedVersion)
@@ -27,6 +33,11 @@ export const ApiVersionValidatorPlugin = (apiConfiguration: ApiConfiguration) =>
                 supportedVersions: apiConfiguration.supportedVersions.map((version) => `v${version}`),
             };
         });
+
+function IsVersionDiscoveryPath(pathname: string): boolean
+{
+    return pathname === "/api/versions" || pathname === "/api/versions/";
+}
 
 function ExtractVersionFromPath(pathname: string): string | null
 {
