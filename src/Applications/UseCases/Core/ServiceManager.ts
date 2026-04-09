@@ -10,6 +10,8 @@ import { IConfigurationManager } from "../../Services/Core/IConfigurationManager
 import { UserProvider } from "../../Providers/UserProvider";
 import { IDepartmentService } from "../../Services/IDepartmentService";
 import { DepartmentService } from "../Master/DepartmentService";
+import { IRepairStatusService } from "../../Services/IRepairStatusService";
+import { RepairStatusService } from "../Master/RepairStatusService";
 import { IPartService } from "../../Services/IPartService";
 import { PartService } from "../Master/PartService";
 import { ILoggerService } from "../../Services/ILoggerService";
@@ -23,6 +25,7 @@ export class ServiceManager implements IServiceManager
     private readonly _authService: IAuthService;
     private readonly _userService: IUserService;
     private readonly _departmentService: IDepartmentService;
+    private readonly _repairStatusService: IRepairStatusService;
     private readonly _partService: IPartService;
     private readonly _repairRequestItemStatusService: IRepairRequestItemStatusService;
 
@@ -36,6 +39,7 @@ export class ServiceManager implements IServiceManager
         this._authService = new AuthService(coreAdapterManager, mapperManager);
         this._userService = new UserService(coreAdapterManager, mapperManager, this._userProvider);
         this._departmentService = new DepartmentService(coreAdapterManager, mapperManager, this._userProvider);
+        this._repairStatusService = new RepairStatusService(coreAdapterManager, mapperManager, this._userProvider);
         this._partService = new PartService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestItemStatusService = new RepairRequestItemStatusService(coreAdapterManager, mapperManager, this._userProvider);
     }
@@ -69,6 +73,12 @@ export class ServiceManager implements IServiceManager
     {
         return this._departmentService;
     }
+
+    get repairStatusService(): IRepairStatusService
+    {
+        return this._repairStatusService;
+    }
+    
   
     get partService(): IPartService
     {

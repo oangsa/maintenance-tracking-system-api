@@ -14,6 +14,7 @@ export class CoreAdapterManager implements ICoreAdapterManager
 {
     private readonly _configurationManager: IConfigurationManager;
     private readonly _repositoryManager: IRepositoryManager;
+    
     private readonly _loggerService: ILoggerService;
 
     constructor(configurationManager: IConfigurationManager, loggerService: ILoggerService)

@@ -9,4 +9,5 @@ export interface RepairStatus
     updatedAt: string
     createdBy: string
     updatedBy: string
+    deleted: boolean;
 }
