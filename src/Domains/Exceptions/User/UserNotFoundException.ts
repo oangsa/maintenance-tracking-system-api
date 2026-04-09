@@ -1,4 +1,4 @@
-import { NotFoundException } from "../index";
+import { NotFoundException } from "../NotFoundException";
 
 export class UserNotFoundException extends NotFoundException
 {
