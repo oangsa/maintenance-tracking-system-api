@@ -1,7 +1,1 @@
-export enum RepairPriority
-{
-  low = "low",
-  medium = "medium",
-  high = "high",
-  urgent = "urgent",
-}
+export type RepairPriority = "low" | "medium" | "high" | "urgent";
