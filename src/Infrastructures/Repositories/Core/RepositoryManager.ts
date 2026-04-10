@@ -14,7 +14,6 @@ import { IRepairRequestItemStatusRepository } from "@/Domains/Repositories/IRepa
 import { RepairRequestItemStatusRepository } from "../Master/RepairRequestItemStatusRepository";
 import { IRepairRequestRepository } from "@/Domains/Repositories/IRepairRequestRepository";
 import { RepairRequestRepository } from "../Features/RepairRequest/RepairRequestRepository";
-import { ILoggerService } from "@/Applications/Services/ILoggerService";
 
 export class RepositoryManager implements IRepositoryManager
 {
@@ -26,7 +25,7 @@ export class RepositoryManager implements IRepositoryManager
     private readonly _repairRequestItemStatusRepository: IRepairRequestItemStatusRepository;
     private readonly _repairRequestRepository: IRepairRequestRepository;
 
-    constructor(loggerService?: ILoggerService)
+    constructor()
     {
         const drizzleDb = DrizzleFactory.getInstance();
         this._userRepository = new UserRepository(drizzleDb);
@@ -57,12 +56,12 @@ export class RepositoryManager implements IRepositoryManager
     {
         return this._repairStatusRepository;
     }
-  
+
     get partRepository(): IPartRepository
     {
         return this._partRepository;
     }
-  
+
     get repairRequestItemStatusRepository(): IRepairRequestItemStatusRepository
     {
         return this._repairRequestItemStatusRepository;

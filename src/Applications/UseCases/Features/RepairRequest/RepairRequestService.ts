@@ -150,4 +150,19 @@ export class RepairRequestService implements IRepairRequestService
         await this.GetRepairRequestAndCheckIfItExists(id);
         await this._repositoryManager.repairRequestRepository.DeleteRepairRequest(id);
     }
+
+    async DeleteRepairRequestCollection(ids: number[]): Promise<void>
+    {
+        const role = this._userProvider.getCurrentUser()?.role?.toLowerCase();
+
+        if (role !== "admin")
+        {
+            throw new ForbiddenException(`A '${role}' is not allowed to perform this action.`);
+        }
+
+        for (const id of ids)
+        {
+            await this.DeleteRepairRequest(id);
+        }
+    }
 }

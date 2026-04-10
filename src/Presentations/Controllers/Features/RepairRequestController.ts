@@ -1,16 +1,10 @@
 import { Elysia } from "elysia";
-import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
+import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
-import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
-import { RepairRequestParameter } from "../../../Domains/RequestFeatures/RepairRequestParameter";
-import {
-    RepairRequestForCreateSchema,
-    RepairRequestForUpdateSchema,
-    RepairRequestIdParamSchema,
-    RepairRequestParameterSchema,
-    DeleteRepairRequestCollectionSchema,
-} from "../../Validators/RepairRequestSchemaValidation";
-import { RepairRequestNotFoundException } from "../../../Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
+import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
+import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 
 export class RepairRequestController
 {
@@ -162,7 +156,28 @@ export class RepairRequestController
                         params: RepairRequestIdParamSchema,
                         detail: { summary: "Delete repair request", tags: ["Repair Requests"] },
                     },
-                ),
+            )
+            .delete("collection", async ({ currentUser, set, params }) =>
+            {
+                return this._service.userProvider.run(currentUser!, async () =>
+                {
+                    try
+                    {
+                        const ids = params.ids.map((id: string) => parseInt(id, 10));
+                        await this._service.repairRequestService.DeleteRepairRequestCollection(ids);
+
+                        set.status = 204;
+                    }
+                    catch (error: any)
+                    {
+                        return this.handleError(error, set);
+                    }
+                });
+            },
+            {
+                params: DeleteRepairRequestCollectionSchema,
+                detail: { summary: "Delete repair request collection", tags: ["Repair Requests"] },
+            })
         );
     }
 

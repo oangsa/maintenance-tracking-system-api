@@ -11,4 +11,5 @@ export interface IRepairRequestService
     CreateRepairRequest(repairRequestForCreateDto: RepairRequestForCreateDto): Promise<RepairRequestDto>;
     UpdateRepairRequest(id: number, repairRequestForUpdateDto: RepairRequestForUpdateDto): Promise<RepairRequestDto>;
     DeleteRepairRequest(id: number): Promise<void>;
+    DeleteRepairRequestCollection(ids: number[]): Promise<void>;
 }
