@@ -14,14 +14,14 @@ export class CoreAdapterManager implements ICoreAdapterManager
 {
     private readonly _configurationManager: IConfigurationManager;
     private readonly _repositoryManager: IRepositoryManager;
-    
+
     private readonly _loggerService: ILoggerService;
 
     constructor(configurationManager: IConfigurationManager, loggerService: ILoggerService)
     {
         this._configurationManager = configurationManager;
+        this._repositoryManager = new RepositoryManager();
         this._loggerService = loggerService;
-        this._repositoryManager = new RepositoryManager(loggerService);
     }
 
     get configurationManager(): IConfigurationManager

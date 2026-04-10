@@ -106,7 +106,7 @@ export class AuthenticationController
                                 tokenVersion: result.tokenVersion,
                             });
 
-                            cookie[REFRESH_COOKIE].set({
+                            cookie[REFRESH_COOKIE]!.set({
                                 value: `${result.refreshTokenId}.${result.rawRefreshToken}`,
                                 httpOnly: true,
                                 maxAge: REFRESH_COOKIE_MAX_AGE,
@@ -138,7 +138,7 @@ export class AuthenticationController
                                     if (tokenId) await this._service.authService.Logout(tokenId);
                                 }
 
-                                cookie[REFRESH_COOKIE].remove();
+                                cookie[REFRESH_COOKIE]!.remove();
 
                                 return { message: "Logged out successfully" };
                             },
@@ -150,7 +150,7 @@ export class AuthenticationController
                             {
                                 const userId = currentUser!.userId;
                                 await this._service.authService.LogoutAll(userId);
-                                cookie[REFRESH_COOKIE].remove();
+                                cookie[REFRESH_COOKIE]!.remove();
                                 return { message: "Logged out from all devices" };
                             },
                             { detail: { summary: "Logout all devices", tags: ["Authentications"] } },

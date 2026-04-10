@@ -7,6 +7,7 @@ import { IRepairStatusService } from "../../Services/IRepairStatusService";
 import { IPartService } from "../IPartService";
 import { ILoggerService } from "../ILoggerService";
 import { IRepairRequestItemStatusService } from "../IRepairRequestItemStatusService";
+import { IRepairRequestService } from "../IRepairRequestService";
 
 export interface IServiceManager
 {
@@ -20,4 +21,5 @@ export interface IServiceManager
     repairStatusService: IRepairStatusService;
     partService: IPartService;
     repairRequestItemStatusService: IRepairRequestItemStatusService;
+    repairRequestService: IRepairRequestService;
 }

@@ -15,13 +15,13 @@ export const JwtPlugin = (secret: string, authService: IAuthService) =>
 
             const payload = await jwt.verify(token);
 
-            if (!payload || payload.type !== "access")
+            if (!payload || payload["type"] !== "access")
             {
                 return { currentUser: null };
             }
 
             const userId = parseInt(payload.sub as string);
-            const tokenVersion = payload.tokenVersion as number;
+            const tokenVersion = payload["tokenVersion"] as number;
 
             const isValid = await authService.ValidateTokenVersion(userId, tokenVersion);
 
@@ -33,8 +33,8 @@ export const JwtPlugin = (secret: string, authService: IAuthService) =>
             return {
                 currentUser: {
                     userId,
-                    name: payload.name as (string | null),
-                    role: payload.role as string,
+                    name: payload["name"] as (string | null),
+                    role: payload["role"] as string,
                     tokenVersion,
                 },
             };

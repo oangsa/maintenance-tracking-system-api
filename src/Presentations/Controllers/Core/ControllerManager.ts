@@ -6,6 +6,7 @@ import { DepartmentController } from "../Master/DepartmentController";
 import { RepairStatusController } from "../Master/RepairStatusController";
 import { PartController } from "../Master/PartController";
 import { RepairRequestItemStatusController } from "../Master/RepairRequestItemStatusController";
+import { RepairRequestController } from "../Features/RepairRequestController";
 import { ApiConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
 
 export class ControllerManager
@@ -16,6 +17,7 @@ export class ControllerManager
     private readonly repairStatusController: RepairStatusController;
     private readonly partController: PartController;
     private readonly repairRequestItemStatusController: RepairRequestItemStatusController;
+    private readonly repairRequestController: RepairRequestController;
     private readonly apiVersioningConfiguration: ApiConfiguration;
 
     constructor(serviceManager: IServiceManager)
@@ -26,6 +28,7 @@ export class ControllerManager
         this.repairStatusController = new RepairStatusController(serviceManager);
         this.partController = new PartController(serviceManager);
         this.repairRequestItemStatusController = new RepairRequestItemStatusController(serviceManager);
+        this.repairRequestController = new RepairRequestController(serviceManager);
         this.apiVersioningConfiguration = serviceManager.configurationManager.api;
     }
 
@@ -96,5 +99,6 @@ export class ControllerManager
         this.repairStatusController.RegisterRoutes(app);
         this.partController.RegisterRoutes(app);
         this.repairRequestItemStatusController.RegisterRoutes(app);
+        this.repairRequestController.RegisterRoutes(app);
     }
 }
