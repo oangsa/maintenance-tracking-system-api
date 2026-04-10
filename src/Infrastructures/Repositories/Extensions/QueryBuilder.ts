@@ -1,11 +1,7 @@
-import { Search } from "../../../Domains/RequestFeatures/Core/Search";
-import { SearchTerm } from "../../../Domains/RequestFeatures/Core/SearchTerm";
-import { QueryBuilderBadRequestException } from "../../../Domains/Exceptions/QueryBuilderBadRequestException";
+import { Search } from "@/Domains/RequestFeatures/Core/Search";
+import { SearchTerm } from "@/Domains/RequestFeatures/Core/SearchTerm";
+import { QueryBuilderBadRequestException } from "@/Domains/Exceptions/QueryBuilderBadRequestException";
 import { SQL, sql } from "drizzle-orm";
-
-
-type WhereCondition = Record<string, unknown>;
-type OrderByCondition = Record<string, unknown>;
 
 export class QueryBuilder {
   /**
@@ -119,9 +115,9 @@ export class QueryBuilder {
 
       if (parts.length === 0) continue;
 
-      const fieldPath = parts[0].toLowerCase();
+      const fieldPath = parts[0]!.toLowerCase();
       const direction = parts.length > 1 &&
-        (parts[1].toLowerCase() === 'desc' || parts[1].toLowerCase() === 'descending')
+        (parts[1]!.toLowerCase() === 'desc' || parts[1]!.toLowerCase() === 'descending')
         ? 'DESC'
         : 'ASC';
 
@@ -155,7 +151,7 @@ export class QueryBuilder {
     const parts = fieldName.split('.');
 
     if (parts.length === 1) {
-      return sql`${sql.identifier(parts[0])}`;
+      return sql`${sql.identifier(parts[0]!)}`;
     }
 
     return sql.join(parts.map(p => sql.identifier(p)), sql.raw('.'));
