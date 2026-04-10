@@ -205,8 +205,8 @@ User search request (`POST /users/search`):
 ### How to add a new feature (recommended pattern)
 
 1. Define or update domain contract and exceptions in `Domains`.
-2. Add DTOs and use-case logic in `Applications`.
-3. Implement repository/technical details in `Infrastructures`.
+2. Implement repository/technical details in `Infrastructures`.
+3. Add DTOs and use-case logic in `Applications`.
 4. Expose endpoint, validation, and plugin integration in `Presentations`.
 5. Register service/controller via existing manager factories.
 
