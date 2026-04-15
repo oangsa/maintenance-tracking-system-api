@@ -157,7 +157,7 @@ export class RepairRequestController
                         detail: { summary: "Delete repair request", tags: ["Repair Requests"] },
                     },
             )
-            .delete("collection", async ({ currentUser, set, params }) =>
+            .delete("/collection", async ({ currentUser, set, params }) =>
             {
                 return this._service.userProvider.run(currentUser!, async () =>
                 {
