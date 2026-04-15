@@ -5,6 +5,6 @@ export function createPagedResult<T>( items: T[], totalCount: number, pageNumber
 {
   return {
     items,
-    meta: createMetaData(pageNumber, totalCount, pageSize)
+    meta: createMetaData(pageNumber, pageSize, totalCount)
   }
 }
