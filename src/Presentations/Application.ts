@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
+import { cors } from "@elysiajs/cors";
 import { IConfigurationManager } from "@/Applications/Services/Core/IConfigurationManager";
 import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { ControllerManager } from "./Controllers/Core/ControllerManager";
@@ -20,6 +21,7 @@ export class Application
         this._serviceManager = serviceManager;
 
         this._app = new Elysia()
+            .use(cors({ origin: "https://localhost:5173" }))
             .use(RequestLoggerPlugin(this._serviceManager.loggerService))
             .use(ErrorHandlerPlugin(this._serviceManager.loggerService))
             .use(ApiVersionValidatorPlugin(this._configurationManager.api))
