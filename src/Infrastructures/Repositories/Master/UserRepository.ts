@@ -152,7 +152,7 @@ export class UserRepository implements IUserRepository
         const offset = (params.pageNumber - 1) * params.pageSize;
         const limit = params.pageSize;
 
-        const whereConditions: SQL[] = [sql`users.deleted = ${params.deleted ?? false}`];
+        const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
 
         if (params.search && params.search.length > 0)
         {
@@ -169,45 +169,49 @@ export class UserRepository implements IUserRepository
         const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
         const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
 
+        const innerQuery = sql`
+            SELECT
+                users.id,
+                users.email,
+                users.password_hash,
+                users.name,
+                users.avatar_url,
+                users.created_at,
+                users.updated_at,
+                users.created_by,
+                users.updated_by,
+                users.deleted,
+                users.role,
+                users.token_version,
+                d.id   AS department_id,
+                d.name AS department_name,
+                d.code AS department_code,
+                d.created_at AS department_created_at,
+                d.updated_at AS department_updated_at,
+                d.created_by AS department_created_by,
+                d.updated_by AS department_updated_by,
+                d.deleted AS department_deleted
+            FROM ${users}
+            LEFT JOIN LATERAL (
+                SELECT
+                    dept.id,
+                    dept.name,
+                    dept.code,
+                    dept.created_at,
+                    dept.updated_at,
+                    dept.created_by,
+                    dept.updated_by,
+                    dept.deleted
+                FROM ${userDepartment} ud
+                JOIN ${department} dept ON ud.department_id = dept.id
+                WHERE ud.user_id = users.id
+                LIMIT 1
+            ) d ON true
+        `;
+
         const [userResults, countResult] = await Promise.all([
             this._db.db.execute<UserRow>(sql`
-                SELECT
-                    users.id,
-                    users.email,
-                    users.password_hash,
-                    users.name,
-                    users.avatar_url,
-                    users.created_at,
-                    users.updated_at,
-                    users.created_by,
-                    users.updated_by,
-                    users.deleted,
-                    users.role,
-                    users.token_version,
-                    department.id AS department_id,
-                    department.name AS department_name,
-                    department.code AS department_code,
-                    department.created_at AS department_created_at,
-                    department.updated_at AS department_updated_at,
-                    department.created_by AS department_created_by,
-                    department.updated_by AS department_updated_by,
-                    department.deleted AS department_deleted
-                FROM ${users}
-                LEFT JOIN LATERAL (
-                    SELECT
-                        dept.id,
-                        dept.name,
-                        dept.code,
-                        dept.created_at,
-                        dept.updated_at,
-                        dept.created_by,
-                        dept.updated_by,
-                        dept.deleted
-                    FROM ${userDepartment} ud
-                    JOIN ${department} dept ON ud.department_id = dept.id
-                    WHERE ud.user_id = users.id
-                    LIMIT 1
-                ) department ON true
+                SELECT * FROM (${innerQuery}) base
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -215,17 +219,7 @@ export class UserRepository implements IUserRepository
             `),
             this._db.db.execute<{ count: number }>(sql`
                 SELECT COUNT(*)::int AS count
-                FROM ${users}
-                LEFT JOIN LATERAL (
-                    SELECT
-                        dept.id,
-                        dept.name,
-                        dept.code
-                    FROM ${userDepartment} ud
-                    JOIN ${department} dept ON ud.department_id = dept.id
-                    WHERE ud.user_id = users.id
-                    LIMIT 1
-                ) department ON true
+                FROM (${innerQuery}) base
                 ${whereClause}
             `),
         ]);
