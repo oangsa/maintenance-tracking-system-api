@@ -15,13 +15,15 @@ export class Application
     private readonly _controllerManager: ControllerManager;
     private readonly _serviceManager: IServiceManager;
 
+    private readonly _corsOrigin: string = process.env["ORIGIN"] ?? "http://localhost:5173";
+
     constructor(configurationManager: IConfigurationManager, serviceManager: IServiceManager)
     {
         this._configurationManager = configurationManager;
         this._serviceManager = serviceManager;
 
         this._app = new Elysia()
-            .use(cors({ origin: "https://localhost:5173" }))
+            .use(cors({ origin: this._corsOrigin }))
             .use(RequestLoggerPlugin(this._serviceManager.loggerService))
             .use(ErrorHandlerPlugin(this._serviceManager.loggerService))
             .use(ApiVersionValidatorPlugin(this._configurationManager.api))
