@@ -60,6 +60,7 @@ export class UserController
                                     search: body.search,
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
+                                    excludeId: currentUser!.userId,
                                 };
 
                                 const result = await this._service.userService.GetListUser(params);
