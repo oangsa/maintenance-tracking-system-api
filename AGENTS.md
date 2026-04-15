@@ -321,3 +321,4 @@ For the rest you may need to see the old files, how I named them and write them.
 - 6. You can go to `docs/databaseSchema.md` to see what's inside our database schemas.
 - 7. You must understand what resources we have before implementing a new one, use what we have first unless it does not support what you want to do.
 - 8. Please follow the same pattern as the old implementations especially `user` and `department` but the rest are fine too.
+- 9. If there's any new route, please consider add to `openapi.yaml`
