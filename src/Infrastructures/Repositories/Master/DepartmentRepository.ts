@@ -118,18 +118,22 @@ export class DepartmentRepository implements IDepartmentRepository
         const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
         const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
 
+        const innerQuery = sql`
+            SELECT
+                id,
+                code,
+                name,
+                created_at,
+                updated_at,
+                created_by,
+                updated_by,
+                deleted
+            FROM ${departmentTable}
+        `;
+
         const [departmentResults, countResult] = await Promise.all([
             this._db.db.execute<DepartmentRow>(sql`
-                SELECT
-                    id,
-                    code,
-                    name,
-                    created_at,
-                    updated_at,
-                    created_by,
-                    updated_by,
-                    deleted
-                FROM ${departmentTable}
+                SELECT * FROM (${innerQuery}) base
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -137,7 +141,7 @@ export class DepartmentRepository implements IDepartmentRepository
             `),
             this._db.db.execute<{ count: number }>(sql`
                 SELECT COUNT(*)::int AS count
-                FROM ${departmentTable}
+                FROM (${innerQuery}) base
                 ${whereClause}
             `),
         ]);
