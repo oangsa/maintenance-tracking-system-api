@@ -154,6 +154,11 @@ export class UserRepository implements IUserRepository
 
         const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
 
+        if (params.excludeId)
+        {
+            whereConditions.push(sql`users.id != ${params.excludeId}`);
+        }
+
         if (params.search && params.search.length > 0)
         {
             const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(params.search);
