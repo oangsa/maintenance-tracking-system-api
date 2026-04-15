@@ -19,6 +19,8 @@ import { IRepairRequestItemStatusService } from "../../Services/IRepairRequestIt
 import { RepairRequestItemStatusService } from "../Master/RepairRequestItemStatusService";
 import { IRepairRequestService } from "../../Services/IRepairRequestService";
 import { RepairRequestService } from "../Features/RepairRequest/RepairRequestService";
+import { IProductTypeService } from "../../Services/IProductTypeService";
+import { ProductTypeService } from "../Master/ProductTypeService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -31,6 +33,7 @@ export class ServiceManager implements IServiceManager
     private readonly _partService: IPartService;
     private readonly _repairRequestItemStatusService: IRepairRequestItemStatusService;
     private readonly _repairRequestService: IRepairRequestService;
+    private readonly _productTypeService: IProductTypeService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -46,6 +49,7 @@ export class ServiceManager implements IServiceManager
         this._partService = new PartService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestItemStatusService = new RepairRequestItemStatusService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestService = new RepairRequestService(coreAdapterManager, mapperManager, this._userProvider);
+        this._productTypeService = new ProductTypeService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -97,5 +101,10 @@ export class ServiceManager implements IServiceManager
     get repairRequestService(): IRepairRequestService
     {
         return this._repairRequestService;
+    }
+
+    get productTypeService(): IProductTypeService
+    {
+        return this._productTypeService;
     }
 }

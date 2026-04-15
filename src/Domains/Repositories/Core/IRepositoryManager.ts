@@ -5,6 +5,7 @@ import { IRepairStatusRepository } from "../IRepairStatusRepository";
 import { IPartRepository } from "../IPartRepository";
 import { IRepairRequestItemStatusRepository } from "../IRepairRequestItemStatusRepository";
 import { IRepairRequestRepository } from "../IRepairRequestRepository";
+import { IProductTypeRepository } from "../IProductTypeRepository";
 
 export interface IRepositoryManager
 {
@@ -15,4 +16,5 @@ export interface IRepositoryManager
     repairRequestItemStatusRepository: IRepairRequestItemStatusRepository;
     refreshTokenRepository: IRefreshTokenRepository;
     repairRequestRepository: IRepairRequestRepository;
+    productTypeRepository: IProductTypeRepository;
 }

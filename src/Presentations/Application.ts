@@ -43,6 +43,7 @@ export class Application
                             { name: "Repair Status", description: "Repair status management endpoints" },
                             { name: "Repair Request Item Statuses", description: "Repair request item status management endpoints" },
                             { name: "Repair Requests", description: "Repair request management endpoints" },
+                            { name: "Product Types", description: "Product type management endpoints" },
                             { name: "Versioning", description: "API version discovery endpoints" },
                         ],
                     },
