@@ -8,6 +8,7 @@ import { PartController } from "../Master/PartController";
 import { RepairRequestItemStatusController } from "../Master/RepairRequestItemStatusController";
 import { RepairRequestController } from "../Features/RepairRequestController";
 import { ProductTypeController } from "../Master/ProductTypeController";
+import { ProductController } from "../Master/ProductController";
 import { ApiConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
 
 export class ControllerManager
@@ -20,6 +21,7 @@ export class ControllerManager
     private readonly repairRequestItemStatusController: RepairRequestItemStatusController;
     private readonly repairRequestController: RepairRequestController;
     private readonly productTypeController: ProductTypeController;
+    private readonly productController: ProductController;
     private readonly apiVersioningConfiguration: ApiConfiguration;
 
     constructor(serviceManager: IServiceManager)
@@ -32,6 +34,7 @@ export class ControllerManager
         this.repairRequestItemStatusController = new RepairRequestItemStatusController(serviceManager);
         this.repairRequestController = new RepairRequestController(serviceManager);
         this.productTypeController = new ProductTypeController(serviceManager);
+        this.productController = new ProductController(serviceManager);
         this.apiVersioningConfiguration = serviceManager.configurationManager.api;
     }
 
@@ -104,5 +107,6 @@ export class ControllerManager
         this.repairRequestItemStatusController.RegisterRoutes(app);
         this.repairRequestController.RegisterRoutes(app);
         this.productTypeController.RegisterRoutes(app);
+        this.productController.RegisterRoutes(app);
     }
 }

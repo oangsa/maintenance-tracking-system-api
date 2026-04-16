@@ -9,6 +9,7 @@ import { ILoggerService } from "../ILoggerService";
 import { IRepairRequestItemStatusService } from "../IRepairRequestItemStatusService";
 import { IRepairRequestService } from "../IRepairRequestService";
 import { IProductTypeService } from "../IProductTypeService";
+import { IProductService } from "../IProductService";
 
 export interface IServiceManager
 {
@@ -24,4 +25,5 @@ export interface IServiceManager
     repairRequestItemStatusService: IRepairRequestItemStatusService;
     repairRequestService: IRepairRequestService;
     productTypeService: IProductTypeService;
+    productService: IProductService;
 }
