@@ -1,4 +1,6 @@
-import { RepairRequest } from "../Infrastructure/Entities/Features/RepairRequest/RepairRequest";
+import { RepairRequest } from "../../Infrastructures/Entities/Features/RepairRequest/RepairRequest";
+import { RepairRequestParameter } from "../../Domains/RequestFeatures/RepairRequestParameter"; 
+import { PagedResult } from "../RequestFeatures/Core/PageResult";
 
 export interface IRepairRequestRepository
 {

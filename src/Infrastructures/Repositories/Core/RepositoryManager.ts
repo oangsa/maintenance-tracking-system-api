@@ -12,6 +12,8 @@ import { IPartRepository } from "@/Domains/Repositories/IPartRepository";
 import { PartRepository } from "../Master/PartRepository";
 import { IRepairRequestItemStatusRepository } from "@/Domains/Repositories/IRepairRequestItemStatusRepository";
 import { RepairRequestItemStatusRepository } from "../Master/RepairRequestItemStatusRepository";
+import { IInventoryMoveRepository } from "@/Domains/Repositories/IInventoryMoveRepository";
+import { InventoryMoveRepository } from "../Master/InventoryMoveRepository";
 
 export class RepositoryManager implements IRepositoryManager
 {
@@ -21,6 +23,7 @@ export class RepositoryManager implements IRepositoryManager
     private readonly _repairStatusRepository: IRepairStatusRepository;
     private readonly _partRepository: IPartRepository;
     private readonly _repairRequestItemStatusRepository: IRepairRequestItemStatusRepository;
+    private readonly _inventoryMoveRepository: IInventoryMoveRepository;
 
     constructor()
     {
@@ -31,6 +34,7 @@ export class RepositoryManager implements IRepositoryManager
         this._repairStatusRepository = new RepairStatusRepository(drizzleDb);
         this._partRepository = new PartRepository(drizzleDb);
         this._repairRequestItemStatusRepository = new RepairRequestItemStatusRepository(drizzleDb);
+        this._inventoryMoveRepository = new InventoryMoveRepository(drizzleDb);
     }
 
     get userRepository(): IUserRepository
@@ -62,4 +66,10 @@ export class RepositoryManager implements IRepositoryManager
     {
         return this._repairRequestItemStatusRepository;
     }
+
+    get inventoryMoveRepository(): IInventoryMoveRepository
+    {
+        return this._inventoryMoveRepository;
+    }
+
 }

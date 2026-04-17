@@ -3,6 +3,7 @@ import { DepartmentMapper, IDepartmentMapper } from "../DepartmentMapper";
 import { IRepairStatusMapper, RepairStatusMapper } from "../RepairStatusMapper";
 import { PartMapper, IPartMapper } from "../PartMapper";
 import { IRepairRequestItemStatusMapper, RepairRequestItemStatusMapper } from "../RepairRequestItemStatusMapper";
+import { IInventoryMoveMapper, InventoryMoveMapper } from "../InventoryMoveMapper"
 
 export interface IMapperManager
 {
@@ -11,6 +12,7 @@ export interface IMapperManager
     departmentMapper: IDepartmentMapper;
     repairStatusMapper: IRepairStatusMapper;
     repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
+    inventoryMoveMapper: IInventoryMoveMapper
 
 }
 
@@ -21,6 +23,7 @@ export class MapperManager implements IMapperManager
     private readonly _repairStatusMapper: IRepairStatusMapper;
     private readonly _partMapper: IPartMapper;
     private readonly _repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
+    private readonly _inventoryMoveMapper: IInventoryMoveMapper;
 
     constructor()
     {
@@ -29,6 +32,7 @@ export class MapperManager implements IMapperManager
         this._repairStatusMapper = new RepairStatusMapper();
         this._partMapper = new PartMapper();
         this._repairRequestItemStatusMapper = new RepairRequestItemStatusMapper();
+        this._inventoryMoveMapper = new InventoryMoveMapper();
     }
 
     get userMapper(): IUserMapper
@@ -55,4 +59,10 @@ export class MapperManager implements IMapperManager
     {
         return this._repairRequestItemStatusMapper;
     }
+
+    get inventoryMoveMapper(): IInventoryMoveMapper
+    {
+        return this._inventoryMoveMapper;
+    }
+
 }

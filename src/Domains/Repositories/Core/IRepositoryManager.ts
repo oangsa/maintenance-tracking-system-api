@@ -4,6 +4,7 @@ import { IDepartmentRepository } from "../IDepartmentRepository";
 import { IRepairStatusRepository } from "../IRepairStatusRepository";
 import { IPartRepository } from "../IPartRepository";
 import { IRepairRequestItemStatusRepository } from "../IRepairRequestItemStatusRepository";
+import { IInventoryMoveRepository } from "../IInventoryMoveRepository";
 
 export interface IRepositoryManager
 {
@@ -13,5 +14,6 @@ export interface IRepositoryManager
     repairStatusRepository: IRepairStatusRepository;
     repairRequestItemStatusRepository: IRepairRequestItemStatusRepository;
     refreshTokenRepository: IRefreshTokenRepository;
+    inventoryMoveRepository: IInventoryMoveRepository;
     
 }

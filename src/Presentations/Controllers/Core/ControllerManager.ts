@@ -6,6 +6,7 @@ import { DepartmentController } from "../Master/DepartmentController";
 import { RepairStatusController } from "../Master/RepairStatusController";
 import { PartController } from "../Master/PartController";
 import { RepairRequestItemStatusController } from "../Master/RepairRequestItemStatusController";
+import { InventoryMoveController } from "../Master/InventoryMoveController";
 
 export class ControllerManager
 {
@@ -15,6 +16,7 @@ export class ControllerManager
     private readonly repairStatusController: RepairStatusController;
     private readonly partController: PartController;
     private readonly repairRequestItemStatusController: RepairRequestItemStatusController;
+    private readonly inventoryMoveController: InventoryMoveController;
 
     constructor(serviceManager: IServiceManager)
     {
@@ -24,6 +26,7 @@ export class ControllerManager
         this.repairStatusController = new RepairStatusController(serviceManager);
         this.partController = new PartController(serviceManager);
         this.repairRequestItemStatusController = new RepairRequestItemStatusController(serviceManager);
+        this.inventoryMoveController = new InventoryMoveController(serviceManager);
     }
 
     public RegisterRoutes(app: Elysia<any>): void
@@ -34,5 +37,6 @@ export class ControllerManager
         this.repairStatusController.RegisterRoutes(app);
         this.partController.RegisterRoutes(app);
         this.repairRequestItemStatusController.RegisterRoutes(app);
+        this.inventoryMoveController.RegisterRoutes(app);
     }
 }
