@@ -434,4 +434,69 @@ export class RepairRequestRepository implements IRepairRequestRepository
             WHERE id = ${id}
         `);
     }
+
+    async CreateRepairRequestItems(repairRequestId:number, items: RepairRequestItem[]): Promise<RepairRequestItem[]>
+    {
+        if (items.length === 0) return [];
+
+        const valuesSQL = sql.join(items.map(item => sql`
+            (
+                ${repairRequestId},
+                ${item.productId},
+                ${item.description},
+                ${item.quantity},
+                ${item.repairStatusId ?? 1},
+                ${item.departmentId},
+                ${item.createdBy},
+                ${item.updatedBy}
+            )
+        `), sql`, `);
+
+        const insertedRows = await this._db.db.execute<{ id: number }>(sql`
+            INSERT INTO ${repairRequestItemTable} (
+                repair_request_id,
+                product_id,
+                description,
+                quantity,
+                repair_status_id,
+                department_id,
+                created_by,
+                updated_by
+            )
+            VALUES ${valuesSQL}
+            RETURNING id
+        `);
+
+        const insertedIds = insertedRows.map(row => row.id);
+        const idsSQL = sql.join(insertedIds.map(id => sql`${id}`), sql`, `);
+
+        const createdItemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
+            SELECT
+                ri.id,
+                ri.repair_request_id,
+                ri.product_id,
+                ri.description,
+                ri.quantity,
+                ri.repair_status_id,
+                ri.department_id,
+                ri.created_at,
+                ri.updated_at,
+                ri.created_by,
+                ri.updated_by,
+                p.code AS product_code,
+                p.name AS product_name,
+                p.product_type_id AS product_type_id,
+                rris.code AS item_status_code,
+                rris.name AS item_status_name,
+                rris.order_sequence AS item_status_order_sequence,
+                rris.is_final AS item_status_is_final
+            FROM ${repairRequestItemTable} ri
+            LEFT JOIN ${productTable} p ON p.id = ri.product_id
+            LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
+            WHERE ri.id IN (${idsSQL})
+            ORDER BY ri.id ASC
+        `);
+
+        return createdItemRows.map(row => this.mapRowToRepairRequestItem(row as RepairRequestItemRow));
+    }
 }

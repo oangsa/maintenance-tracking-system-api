@@ -3,7 +3,7 @@ import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 
@@ -158,6 +158,34 @@ export class RepairRequestController
                     {
                         body: RepairRequestForCreateSchema,
                         detail: { summary: "Create repair request", tags: ["Repair Requests"] },
+                    },
+                )
+
+                // TODO: ADD endpoint for creating line items in bulk
+                .post(
+                    "/:id/items",
+                    async ({ params, body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const created = await this._service.repairRequestService.CreateRepairRequestItems(parseInt(params.id, 10), body);
+                                set.status = 201;
+                                set.headers["Location"] = `/repair-request/${params.id}/items`;
+
+                                return created;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        body: t.Array(RepairRequestItemForCreateSchema, { minItems: 1 }),
+                        params: RepairRequestIdParamSchema,
+                        detail: { summary: "Create line items for repair request", tags: ["Repair Requests"] },
                     },
                 )
                 .put(

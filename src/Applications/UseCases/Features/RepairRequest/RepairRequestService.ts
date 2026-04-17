@@ -1,5 +1,5 @@
 import { RepairRequestDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestDto";
-import { RepairRequestItemDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestItemDto";
+import { RepairRequestItemDto } from "../../../DataTransferObjects/RepairRequestItem/RepairRequestItemDto";
 import { RepairRequestForCreateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForCreateDto";
 import { RepairRequestForUpdateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForUpdateDto";
 import { RepairRequestStatusLogDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestStatusLogDto";
@@ -14,6 +14,8 @@ import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairReque
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
+import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
+
 
 export class RepairRequestService implements IRepairRequestService
 {
@@ -134,6 +136,27 @@ export class RepairRequestService implements IRepairRequestService
 
         const created = await this._repositoryManager.repairRequestRepository.CreateRepairRequest(newRepairRequest);
         return this._mapperManager.repairRequestMapper.RepairRequestToDto(created);
+    }
+
+    async CreateRepairRequestItems(repairRequestId: number, dtos: RepairRequestItemForCreateDto[]): Promise<RepairRequestItemDto[]>
+    {
+        await this.GetRepairRequestAndCheckIfItExists(repairRequestId);
+
+        const dateNow = new Date().toISOString();
+
+        const items: RepairRequestItem[] = dtos.map(dto => this._mapperManager.repairRequestMapper.RepairRequestItemForCreateDtoToRepairRequestItem(dto));
+
+        items.forEach(item => {
+            item.repairRequestId = repairRequestId;
+            item.repairStatusId = 1;
+            item.createdAt = dateNow;
+            item.updatedAt = dateNow;
+            item.createdBy = this.getCalledBy();
+            item.updatedBy = this.getCalledBy();
+        });
+
+        const createdItems = await this._repositoryManager.repairRequestRepository.CreateRepairRequestItems(repairRequestId, items);
+        return this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(createdItems);
     }
 
     async UpdateRepairRequest(id: number, dto: RepairRequestForUpdateDto): Promise<RepairRequestDto>
