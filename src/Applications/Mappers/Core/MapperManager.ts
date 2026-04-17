@@ -5,6 +5,8 @@ import { PartMapper, IPartMapper } from "../PartMapper";
 import { IRepairRequestItemStatusMapper, RepairRequestItemStatusMapper } from "../RepairRequestItemStatusMapper";
 import { IRepairRequestMapper, RepairRequestMapper } from "../RepairRequestMapper";
 import { ProductTypeMapper, IProductTypeMapper } from "../ProductTypeMapper";
+import { WorkOrderMapper , IWorkOrderMapper } from "../WorkOrderMapper";
+
 
 export interface IMapperManager
 {
@@ -15,6 +17,7 @@ export interface IMapperManager
     repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
     repairRequestMapper: IRepairRequestMapper;
     productTypeMapper: IProductTypeMapper;
+    workOrderMapper: IWorkOrderMapper;
 }
 
 export class MapperManager implements IMapperManager
@@ -26,6 +29,7 @@ export class MapperManager implements IMapperManager
     private readonly _repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
     private readonly _repairRequestMapper: IRepairRequestMapper;
     private readonly _productTypeMapper: IProductTypeMapper;
+    private readonly _workOrderMapper: IWorkOrderMapper;
 
     constructor()
     {
@@ -36,6 +40,7 @@ export class MapperManager implements IMapperManager
         this._repairRequestItemStatusMapper = new RepairRequestItemStatusMapper();
         this._repairRequestMapper = new RepairRequestMapper();
         this._productTypeMapper = new ProductTypeMapper();
+        this._workOrderMapper = new WorkOrderMapper();
     }
 
     get userMapper(): IUserMapper
@@ -72,4 +77,12 @@ export class MapperManager implements IMapperManager
     {
         return this._productTypeMapper;
     }
+
+    get workOrderMapper(): IWorkOrderMapper
+    {
+        return this._workOrderMapper;
+    }
+
+    
 }
+
