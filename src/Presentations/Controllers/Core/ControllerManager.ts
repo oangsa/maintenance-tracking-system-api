@@ -10,6 +10,8 @@ import { RepairRequestController } from "../Features/RepairRequestController";
 import { ProductTypeController } from "../Master/ProductTypeController";
 import { ProductController } from "../Master/ProductController";
 import { ApiConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
+import { WorkOrderController } from "../Master/WorkOrderController";
+
 
 export class ControllerManager
 {
@@ -23,6 +25,7 @@ export class ControllerManager
     private readonly productTypeController: ProductTypeController;
     private readonly productController: ProductController;
     private readonly apiVersioningConfiguration: ApiConfiguration;
+    private readonly workorderController: WorkOrderController;
 
     constructor(serviceManager: IServiceManager)
     {
@@ -36,6 +39,7 @@ export class ControllerManager
         this.productTypeController = new ProductTypeController(serviceManager);
         this.productController = new ProductController(serviceManager);
         this.apiVersioningConfiguration = serviceManager.configurationManager.api;
+        this.workorderController = new WorkOrderController(serviceManager);
     }
 
     public RegisterRoutes(app: Elysia<any>): void
@@ -108,5 +112,6 @@ export class ControllerManager
         this.repairRequestController.RegisterRoutes(app);
         this.productTypeController.RegisterRoutes(app);
         this.productController.RegisterRoutes(app);
+        this.workorderController.RegisterRoutes(app);
     }
 }
