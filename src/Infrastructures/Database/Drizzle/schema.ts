@@ -199,7 +199,6 @@ export const users = pgTable("users", {
 
 export const workOrder = pgTable("work_order", {
 	id: serial().primaryKey(),
-	repairRequestId: integer("repair_request_id").notNull().references(() => repairRequest.id),
 	scheduledStart: timestamp("scheduled_start", { withTimezone: true }),
 	scheduledEnd: timestamp("scheduled_end", { withTimezone: true }),
 	orderSequence: integer("order_sequence").notNull(),
@@ -209,8 +208,8 @@ export const workOrder = pgTable("work_order", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 150 }),
 	updatedBy: varchar("updated_by", { length: 150 }),
-}, (table) => [
-	unique("work_order_repair_request_id_order_sequence_key").on(table.repairRequestId, table.orderSequence),]);
+	repairRequestItemId: integer("repair_request_item_id").notNull().references(() => repairRequestItem.id),
+});
 
 export const workOrderPart = pgTable("work_order_part", {
 	id: serial().primaryKey(),
@@ -222,6 +221,7 @@ export const workOrderPart = pgTable("work_order_part", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 150 }),
 	updatedBy: varchar("updated_by", { length: 150 }),
+	inventoryMoveItemId: integer("inventory_move_item_id").references(() => inventoryMoveItem.id),
 });
 
 export const workTask = pgTable("work_task", {

@@ -22,10 +22,17 @@ export interface WinstonConfiguration
     options: LoggerOptions;
 }
 
+export interface ApiConfiguration
+{
+    supportedVersions: string[];
+    defaultVersion: string;
+}
+
 export interface IConfigurationManager
 {
     database: DatabaseConfiguration;
     jwt: JwtConfiguration;
     server: ServerConfiguration;
     winston: WinstonConfiguration;
+    api: ApiConfiguration;
 }

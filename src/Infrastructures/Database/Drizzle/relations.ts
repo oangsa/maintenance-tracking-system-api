@@ -14,10 +14,7 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.part.productTypeId,
 			to: r.productType.id
 		}),
-		workOrders: r.many.workOrder({
-			from: r.part.id.through(r.workOrderPart.partId),
-			to: r.workOrder.id.through(r.workOrderPart.workOrderId)
-		}),
+		workOrderParts: r.many.workOrderPart(),
 	},
 	productType: {
 		parts: r.many.part(),
@@ -65,7 +62,7 @@ export const relations = defineRelations(schema, (r) => ({
 		repairRequestStatusLogsOldStatusId: r.many.repairRequestStatusLog({
 			alias: "repairRequestStatusLog_oldStatusId_repairStatus_id"
 		}),
-		repairRequests: r.many.repairRequest(),
+		repairRequestItems: r.many.repairRequestItem(),
 	},
 	repairRequestItem: {
 		repairRequestItemStatus: r.one.repairRequestItemStatus({
@@ -84,6 +81,10 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.repairRequestItem.repairRequestId,
 			to: r.repairRequest.id
 		}),
+		repairStatuses: r.many.repairStatus({
+			from: r.repairRequestItem.id.through(r.workOrder.repairRequestItemId),
+			to: r.repairStatus.id.through(r.workOrder.statusId)
+		}),
 	},
 	repairRequestItemStatus: {
 		repairRequestItems: r.many.repairRequestItem(),
@@ -91,10 +92,6 @@ export const relations = defineRelations(schema, (r) => ({
 	repairRequest: {
 		repairRequestItems: r.many.repairRequestItem(),
 		repairRequestStatusLogs: r.many.repairRequestStatusLog(),
-		repairStatuses: r.many.repairStatus({
-			from: r.repairRequest.id.through(r.workOrder.repairRequestId),
-			to: r.repairStatus.id.through(r.workOrder.statusId)
-		}),
 	},
 	repairRequestStatusLog: {
 		user: r.one.users({
@@ -116,8 +113,25 @@ export const relations = defineRelations(schema, (r) => ({
 			to: r.repairRequest.id
 		}),
 	},
+	workOrderPart: {
+		inventoryMoveItem: r.one.inventoryMoveItem({
+			from: r.workOrderPart.inventoryMoveItemId,
+			to: r.inventoryMoveItem.id
+		}),
+		part: r.one.part({
+			from: r.workOrderPart.partId,
+			to: r.part.id
+		}),
+		workOrder: r.one.workOrder({
+			from: r.workOrderPart.workOrderId,
+			to: r.workOrder.id
+		}),
+	},
+	inventoryMoveItem: {
+		workOrderParts: r.many.workOrderPart(),
+	},
 	workOrder: {
-		parts: r.many.part(),
+		workOrderParts: r.many.workOrderPart(),
 		workTasks: r.many.workTask(),
 	},
 	workTask: {

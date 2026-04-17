@@ -8,9 +8,9 @@ import { IRepositoryManager } from "../../../Domains/Repositories/Core/IReposito
 import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { IUserProvider } from "../../Providers/UserProvider";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
-import { RepairRequestItemStatusNotFoundException } from "../../../Domains/Exceptions/RepairRequest/RepairRequestItemStatusNotFoundException";
+import { RepairRequestItemStatusNotFoundException } from "../../../Domains/Exceptions/RepairRequestItemStatus/RepairRequestItemStatusNotFoundException";
 import { RepairRequestItemStatus } from "../../../Infrastructures/Entities/Master/RepairRequestItemStatus";
-import { RepairRequestItemStatusDuplicateBadRequestException } from "../../../Domains/Exceptions/RepairRequest/RepairRequestItemStatusDuplicateBadRequestException";
+import { RepairRequestItemStatusDuplicateBadRequestException } from "../../../Domains/Exceptions/RepairRequestItemStatus/RepairRequestItemStatusDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { Role } from "../../../Shared/Enums/Role";
 

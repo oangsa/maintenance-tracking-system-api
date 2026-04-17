@@ -1,6 +1,7 @@
 import { MetaData } from "../../../Domains/RequestFeatures/Core/MetaData";
 
-export function createMetaData(currentPage: number, pageSize: number, totalCount: number): MetaData {
+export function createMetaData(currentPage: number, pageSize: number, totalCount: number): MetaData
+{
     const totalPages = Math.ceil(totalCount / pageSize);
 
     return {
