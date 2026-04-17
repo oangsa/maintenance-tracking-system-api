@@ -23,6 +23,8 @@ import { IProductTypeService } from "../../Services/IProductTypeService";
 import { ProductTypeService } from "../Master/ProductTypeService";
 import { IProductService } from "../../Services/IProductService";
 import { ProductService } from "../Master/ProductService";
+import { IWorkOrderService } from "../../Services/IWorkOrderService";
+import { WorkOrderService } from "../Master/WorkOrderService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -37,6 +39,7 @@ export class ServiceManager implements IServiceManager
     private readonly _repairRequestService: IRepairRequestService;
     private readonly _productTypeService: IProductTypeService;
     private readonly _productService: IProductService;
+    private readonly _workOrderService: IWorkOrderService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -54,6 +57,7 @@ export class ServiceManager implements IServiceManager
         this._repairRequestService = new RepairRequestService(coreAdapterManager, mapperManager, this._userProvider);
         this._productTypeService = new ProductTypeService(coreAdapterManager, mapperManager, this._userProvider);
         this._productService = new ProductService(coreAdapterManager, mapperManager, this._userProvider);
+        this._workOrderService = new WorkOrderService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -115,5 +119,11 @@ export class ServiceManager implements IServiceManager
     get productService(): IProductService
     {
         return this._productService;
+
+    }
+    
+    get workOrderService(): IWorkOrderService
+    {
+        return this._workOrderService;
     }
 }

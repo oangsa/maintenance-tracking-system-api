@@ -1,0 +1,189 @@
+import { WorkOrderDto } from "../../DataTransferObjects/WorkOrder/WorkOrderDto";
+import { WorkOrderForCreateDto } from "../../DataTransferObjects/WorkOrder/WorkOrderForCreateDto";
+import { WorkOrderForUpdateDto } from "../../DataTransferObjects/WorkOrder/WorkOrderForUpdateDto";
+import { WorkOrderParameter } from "../../../Domains/RequestFeatures/WorkOrderParameter";
+import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
+import { IWorkOrderService } from "@/Applications/Services/IWorkOrderService";
+import { IRepositoryManager } from "../../../Domains/Repositories/Core/IRepositoryManager";
+import { IMapperManager } from "../../Mappers/Core/MapperManager";
+import { IUserProvider } from "../../Providers/UserProvider";
+import { ICoreAdapterManager } from "../CoreAdapterManager";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
+import { WorkOrder } from "../../../Infrastructures/Entities/Master/WorkOrder";
+import { WorkOrderSequenceDuplicateException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderSequenceDuplicateException";
+import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
+import { Role } from "../../../Shared/Enums/Role";
+
+
+export class WorkOrderService implements IWorkOrderService
+{
+    private readonly _repositoryManager: IRepositoryManager;
+    private readonly _mapperManager: IMapperManager;
+    private readonly _userProvider: IUserProvider;
+
+    constructor(coreAdapterManager: ICoreAdapterManager, mapperManager: IMapperManager, userProvider: IUserProvider)
+    {
+        this._repositoryManager = coreAdapterManager.repositoryManager;
+        this._mapperManager = mapperManager;
+        this._userProvider = userProvider;
+    }
+
+    private ExpectRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
+    private getCalledBy(): string
+    {
+        const current = this._userProvider.getCurrentUser();
+        return current?.name ?? "System";
+    }
+
+    private async GetWorkOrderAndCheckIfItExists(id: number): Promise<WorkOrder>
+    {
+        const WorkOrderEntity = await this._repositoryManager.workOrderRepository.GetWorkOrderById(id);
+
+        if (!WorkOrderEntity)
+        {
+            throw new WorkOrderNotFoundException(id);
+        }
+
+        return WorkOrderEntity;
+    }
+
+    async GetListWorkOrder(parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>
+    {
+        this.ExpectRole('admin');
+
+        const pagedWorkOrders = await this._repositoryManager.workOrderRepository.GetListWorkOrder(parameters);
+
+        return {
+            items: pagedWorkOrders.items.map(WorkOrder => this._mapperManager.workOrderMapper.WorkOrderToDto(WorkOrder)),
+            meta: pagedWorkOrders.meta,
+        };
+    }
+
+    async GetWorkOrder(id: number): Promise<WorkOrderDto>
+    {
+        const WorkOrderEntity = await this.GetWorkOrderAndCheckIfItExists(id);
+
+        return this._mapperManager.workOrderMapper.WorkOrderToDto(WorkOrderEntity);
+    }
+
+    //////Might be problem เกี่ยวกับ soft / hard delete
+    async CreateWorkOrder(WorkOrderForCreateDto: WorkOrderForCreateDto): Promise<WorkOrderDto>
+    {
+        this.ExpectRole('admin');
+
+        const existingWorkOrder = await this._repositoryManager.workOrderRepository.GetWorkOrderBySequence(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+
+        if (existingWorkOrder && !existingWorkOrder)
+        {
+            throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+        }
+
+        const dateNow = new Date().toISOString();
+
+        const newWorkOrder: WorkOrder = {
+            id: 0,
+            repairRequestId: WorkOrderForCreateDto.repairRequestId,
+            scheduledStart: WorkOrderForCreateDto.scheduledStart ?? "",
+            scheduledEnd: WorkOrderForCreateDto.scheduledEnd ?? "",
+            orderSequence: WorkOrderForCreateDto.orderSequence,
+            isFinal: WorkOrderForCreateDto.isFinal ?? false,
+            statusId: WorkOrderForCreateDto.statusId,
+            createdAt: dateNow,
+            updatedAt: dateNow,
+            createdBy: this.getCalledBy(),
+            updatedBy: this.getCalledBy(),
+
+        };
+
+        try
+        {
+            if (existingWorkOrder && existingWorkOrder)
+            {
+                const restoredWorkOrder = await this._repositoryManager.workOrderRepository.UpdateWorkOrder({
+                    ...existingWorkOrder,
+                    ...newWorkOrder,
+                    id: existingWorkOrder.id,
+
+                });
+
+                return this._mapperManager.workOrderMapper.WorkOrderToDto(restoredWorkOrder);
+            }
+
+            const createdWorkOrder = await this._repositoryManager.workOrderRepository.CreateWorkOrder(newWorkOrder);
+            return this._mapperManager.workOrderMapper.WorkOrderToDto(createdWorkOrder);
+        }
+        catch (error: any)
+        {
+            if (error.code === "23505")
+            {
+                throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+            }
+
+            throw error;
+        }
+
+    }
+
+    async UpdateWorkOrder(id: number, WorkOrderForUpdateDto: WorkOrderForUpdateDto): Promise<WorkOrderDto>
+    {
+        this.ExpectRole('admin');
+
+        const WorkOrderEntity = await this.GetWorkOrderAndCheckIfItExists(id);
+
+        if (WorkOrderForUpdateDto.orderSequence !== undefined || WorkOrderForUpdateDto.repairRequestId !== undefined)
+        {
+            const existingWorkOrderWithCode = await this._repositoryManager.workOrderRepository.GetWorkOrderBySequence(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+
+            if (existingWorkOrderWithCode && existingWorkOrderWithCode.id !== id && !existingWorkOrderWithCode)
+            {
+                throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+            }
+        }
+
+        const updatedWorkOrder: WorkOrder = {
+            ...WorkOrderEntity,
+            repairRequestId: WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId,
+            scheduledEnd: WorkOrderForUpdateDto.scheduledEnd ?? WorkOrderEntity.scheduledEnd,
+            orderSequence: WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence,
+            isFinal: WorkOrderForUpdateDto.isFinal ?? WorkOrderEntity.isFinal,
+            statusId: WorkOrderForUpdateDto.statusId ?? WorkOrderEntity.statusId,
+            updatedAt: new Date().toISOString(),
+            updatedBy: this.getCalledBy(),
+        };
+
+        try
+        {
+            const result = await this._repositoryManager.workOrderRepository.UpdateWorkOrder(updatedWorkOrder);
+            return this._mapperManager.workOrderMapper.WorkOrderToDto(result);
+        }
+        catch (error: any)
+        {
+            if (error.code === "23505")
+            {
+                throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+            }
+
+            throw error;
+        }
+    }
+
+    async DeleteWorkOrder(id: number): Promise<void>
+    {
+        this.ExpectRole('admin');
+
+        await this.GetWorkOrderAndCheckIfItExists(id);
+        await this._repositoryManager.workOrderRepository.DeleteWorkOrder(id);
+    }
+
+    async DeleteWorkOrderCollection(ids: number[]): Promise<void>
+    {
+        for (const id of ids)
+        {
+            await this.DeleteWorkOrder(id);
+        }
+    }
+}

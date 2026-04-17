@@ -10,6 +10,7 @@ import { IRepairRequestItemStatusService } from "../IRepairRequestItemStatusServ
 import { IRepairRequestService } from "../IRepairRequestService";
 import { IProductTypeService } from "../IProductTypeService";
 import { IProductService } from "../IProductService";
+import { IWorkOrderService } from "../IWorkOrderService";
 
 export interface IServiceManager
 {
@@ -26,4 +27,5 @@ export interface IServiceManager
     repairRequestService: IRepairRequestService;
     productTypeService: IProductTypeService;
     productService: IProductService;
+    workOrderService: IWorkOrderService;
 }
