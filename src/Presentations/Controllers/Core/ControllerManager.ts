@@ -6,6 +6,7 @@ import { DepartmentController } from "../Master/DepartmentController";
 import { RepairStatusController } from "../Master/RepairStatusController";
 import { PartController } from "../Master/PartController";
 import { RepairRequestItemStatusController } from "../Master/RepairRequestItemStatusController";
+import { InventoryMoveController } from "../Master/InventoryMoveController";
 import { RepairRequestController } from "../Features/RepairRequestController";
 import { ProductTypeController } from "../Master/ProductTypeController";
 import { ProductController } from "../Master/ProductController";
@@ -19,6 +20,7 @@ export class ControllerManager
     private readonly repairStatusController: RepairStatusController;
     private readonly partController: PartController;
     private readonly repairRequestItemStatusController: RepairRequestItemStatusController;
+    private readonly inventoryMoveController: InventoryMoveController;
     private readonly repairRequestController: RepairRequestController;
     private readonly productTypeController: ProductTypeController;
     private readonly productController: ProductController;
@@ -32,6 +34,7 @@ export class ControllerManager
         this.repairStatusController = new RepairStatusController(serviceManager);
         this.partController = new PartController(serviceManager);
         this.repairRequestItemStatusController = new RepairRequestItemStatusController(serviceManager);
+        this.inventoryMoveController = new InventoryMoveController(serviceManager);
         this.repairRequestController = new RepairRequestController(serviceManager);
         this.productTypeController = new ProductTypeController(serviceManager);
         this.productController = new ProductController(serviceManager);
@@ -105,8 +108,10 @@ export class ControllerManager
         this.repairStatusController.RegisterRoutes(app);
         this.partController.RegisterRoutes(app);
         this.repairRequestItemStatusController.RegisterRoutes(app);
+        this.inventoryMoveController.RegisterRoutes(app);
         this.repairRequestController.RegisterRoutes(app);
         this.productTypeController.RegisterRoutes(app);
         this.productController.RegisterRoutes(app);
+        this.inventoryMoveController.RegisterRoutes(app);
     }
 }

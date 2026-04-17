@@ -17,6 +17,8 @@ import { PartService } from "../Master/PartService";
 import { ILoggerService } from "../../Services/ILoggerService";
 import { IRepairRequestItemStatusService } from "../../Services/IRepairRequestItemStatusService";
 import { RepairRequestItemStatusService } from "../Master/RepairRequestItemStatusService";
+import { IInventoryMoveService } from "../../Services/IInventoryMoveService";
+import { InventoryMoveService } from "../Master/InventoryMoveService";
 import { IRepairRequestService } from "../../Services/IRepairRequestService";
 import { RepairRequestService } from "../Features/RepairRequest/RepairRequestService";
 import { IProductTypeService } from "../../Services/IProductTypeService";
@@ -34,6 +36,7 @@ export class ServiceManager implements IServiceManager
     private readonly _repairStatusService: IRepairStatusService;
     private readonly _partService: IPartService;
     private readonly _repairRequestItemStatusService: IRepairRequestItemStatusService;
+    private readonly _inventoryMoveService: IInventoryMoveService;
     private readonly _repairRequestService: IRepairRequestService;
     private readonly _productTypeService: IProductTypeService;
     private readonly _productService: IProductService;
@@ -51,6 +54,7 @@ export class ServiceManager implements IServiceManager
         this._repairStatusService = new RepairStatusService(coreAdapterManager, mapperManager, this._userProvider);
         this._partService = new PartService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestItemStatusService = new RepairRequestItemStatusService(coreAdapterManager, mapperManager, this._userProvider);
+        this._inventoryMoveService = new InventoryMoveService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestService = new RepairRequestService(coreAdapterManager, mapperManager, this._userProvider);
         this._productTypeService = new ProductTypeService(coreAdapterManager, mapperManager, this._userProvider);
         this._productService = new ProductService(coreAdapterManager, mapperManager, this._userProvider);
@@ -102,6 +106,10 @@ export class ServiceManager implements IServiceManager
         return this._repairRequestItemStatusService;
     }
 
+    get inventoryMoveService(): IInventoryMoveService
+    {
+        return this._inventoryMoveService;
+    }
     get repairRequestService(): IRepairRequestService
     {
         return this._repairRequestService;
