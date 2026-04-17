@@ -79,21 +79,16 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return this.mapRowToWorkOrder(result[0]);
     }
 
-    async GetWorkOrderBySequence(repairRequestId: number, orderSequence: number): Promise<WorkOrder | null>
+    async CheckOrderSequenceExists(repairRequestId: number, orderSequence: number): Promise<boolean>
     {
-        const result = await this._db.db.execute<WorkOrderRow>(sql`
-            SELECT * 
+        const result = await this._db.db.execute<{ count: number }>(sql`
+            SELECT COUNT(*)::int AS count
             FROM ${WorkOrderTable}
             WHERE repair_request_id = ${repairRequestId} AND order_sequence = ${orderSequence}
             LIMIT 1
         `);
 
-       if (result.length === 0 || !result[0])
-        {
-            return null;
-        }
-
-        return this.mapRowToWorkOrder(result[0]);
+        return result[0]!.count > 0;
     }
 
 
@@ -103,7 +98,7 @@ export class WorkOrderRepository implements IWorkOrderRepository
         const offset = (params.pageNumber - 1) * params.pageSize;
         const limit = params.pageSize;
 
-        const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
+        const whereConditions: SQL[] = [];
 
         if (params.search && params.search.length > 0)
         {
@@ -231,12 +226,33 @@ export class WorkOrderRepository implements IWorkOrderRepository
 
     async DeleteWorkOrder(id: number): Promise<void>
     {
-        await this._db.db.execute(sql`
-            UPDATE ${WorkOrderTable}
-            SET
-                deleted = true,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${id}
-        `);
+        await this._db.db.transaction(async (tx) => 
+        {
+            const targetResult = await tx.execute(sql`
+                SELECT repair_request_id, order_sequence 
+                FROM ${WorkOrderTable} 
+                WHERE id = ${id} 
+            `);
+
+            if (targetResult.length === 0 || !targetResult[0])
+            {
+                throw new Error(`WorkOrder with id ${id} not found`);
+            }
+
+            const target = targetResult[0] as { repair_request_id: number; order_sequence: number };
+            
+            await tx.execute(sql`
+                DELETE FROM ${WorkOrderTable} 
+                WHERE id = ${id}
+            `);
+
+            await tx.execute(sql`
+                UPDATE ${WorkOrderTable}
+                SET order_sequence = order_sequence - 1, updated_at = CURRENT_TIMESTAMP
+                WHERE repair_request_id = ${target.repair_request_id} AND order_sequence > ${target.order_sequence}
+
+            `);
+        });
     }
+
 }

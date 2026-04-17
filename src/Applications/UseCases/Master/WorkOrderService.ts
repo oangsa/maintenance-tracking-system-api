@@ -70,17 +70,17 @@ export class WorkOrderService implements IWorkOrderService
         return this._mapperManager.workOrderMapper.WorkOrderToDto(WorkOrderEntity);
     }
 
-    //////Might be problem เกี่ยวกับ soft / hard delete
     async CreateWorkOrder(WorkOrderForCreateDto: WorkOrderForCreateDto): Promise<WorkOrderDto>
     {
         this.ExpectRole('admin');
 
-        const existingWorkOrder = await this._repositoryManager.workOrderRepository.GetWorkOrderBySequence(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+        const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
 
-        if (existingWorkOrder && !existingWorkOrder)
+        if (isDuplicateSequence)
         {
             throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
         }
+
 
         const dateNow = new Date().toISOString();
 
@@ -101,17 +101,6 @@ export class WorkOrderService implements IWorkOrderService
 
         try
         {
-            if (existingWorkOrder && existingWorkOrder)
-            {
-                const restoredWorkOrder = await this._repositoryManager.workOrderRepository.UpdateWorkOrder({
-                    ...existingWorkOrder,
-                    ...newWorkOrder,
-                    id: existingWorkOrder.id,
-
-                });
-
-                return this._mapperManager.workOrderMapper.WorkOrderToDto(restoredWorkOrder);
-            }
 
             const createdWorkOrder = await this._repositoryManager.workOrderRepository.CreateWorkOrder(newWorkOrder);
             return this._mapperManager.workOrderMapper.WorkOrderToDto(createdWorkOrder);
@@ -134,11 +123,11 @@ export class WorkOrderService implements IWorkOrderService
 
         const WorkOrderEntity = await this.GetWorkOrderAndCheckIfItExists(id);
 
-        if (WorkOrderForUpdateDto.orderSequence !== undefined || WorkOrderForUpdateDto.repairRequestId !== undefined)
+        if (WorkOrderForUpdateDto.orderSequence !== undefined && WorkOrderForUpdateDto.orderSequence !== WorkOrderEntity.orderSequence)
         {
-            const existingWorkOrderWithCode = await this._repositoryManager.workOrderRepository.GetWorkOrderBySequence(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+            const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
 
-            if (existingWorkOrderWithCode && existingWorkOrderWithCode.id !== id && !existingWorkOrderWithCode)
+            if (isDuplicateSequence)
             {
                 throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
             }
