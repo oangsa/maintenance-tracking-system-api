@@ -418,6 +418,12 @@ export class RepairRequestRepository implements IRepairRequestRepository
         return updated!;
     }
 
+    async GetRepairRequestItemsByRequestId(repairRequestId: number): Promise<RepairRequestItem[]>
+    {
+        const itemMap = await this.loadItemsForRepairRequestIds([repairRequestId]);
+        return itemMap.get(repairRequestId) ?? [];
+    }
+
     async DeleteRepairRequest(id: number): Promise<void>
     {
         await this._db.db.execute(sql`

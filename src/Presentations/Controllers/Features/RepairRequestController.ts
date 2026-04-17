@@ -3,8 +3,9 @@ import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
+import { t } from "elysia";
 
 export class RepairRequestController
 {
@@ -80,6 +81,32 @@ export class RepairRequestController
                     {
                         params: RepairRequestIdParamSchema,
                         detail: { summary: "Get repair request by ID", tags: ["Repair Requests"] },
+                    },
+                )
+                .get(
+                    "/:id/items",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const result = await this._service.repairRequestService.GetRepairRequestItems(id);
+                                set.status = 200;
+
+                                return result;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: RepairRequestIdParamSchema,
+                        response: t.Array(RepairRequestItemResponseSchema),
+                        detail: { summary: "Get line items for repair request", tags: ["Repair Requests"] },
                     },
                 )
                 .post(

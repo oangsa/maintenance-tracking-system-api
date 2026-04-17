@@ -1,13 +1,33 @@
 import { RepairRequestDto } from "../DataTransferObjects/RepairRequest/RepairRequestDto";
+import { RepairRequestItemDto } from "../DataTransferObjects/RepairRequest/RepairRequestItemDto";
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
+import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 
 export interface IRepairRequestMapper
 {
     RepairRequestToDto(repairRequest: RepairRequest): RepairRequestDto;
+    RepairRequestItemsToDto(items: RepairRequestItem[]): RepairRequestItemDto[];
 }
 
 export class RepairRequestMapper implements IRepairRequestMapper
 {
+    private mapItem(item: RepairRequestItem): RepairRequestItemDto
+    {
+        return {
+            id: item.id,
+            repairRequestId: item.repairRequestId,
+            productId: item.productId,
+            productCode: item.product?.code ?? "",
+            productName: item.product?.name ?? "",
+            description: item.description,
+            quantity: item.quantity,
+            repairStatusId: item.repairStatusId ?? null,
+            repairStatusCode: item.repairStatus?.code ?? null,
+            repairStatusName: item.repairStatus?.name ?? null,
+            departmentId: item.departmentId,
+        };
+    }
+
     RepairRequestToDto(repairRequest: RepairRequest): RepairRequestDto
     {
         return {
@@ -25,19 +45,12 @@ export class RepairRequestMapper implements IRepairRequestMapper
             updatedAt: repairRequest.updatedAt,
             createdBy: repairRequest.createdBy,
             updatedBy: repairRequest.updatedBy,
-            items: repairRequest.requestedItems.map(item => ({
-                id: item.id,
-                repairRequestId: item.repairRequestId,
-                productId: item.productId,
-                productCode: item.product?.code ?? "",
-                productName: item.product?.name ?? "",
-                description: item.description,
-                quantity: item.quantity,
-                repairStatusId: item.repairStatusId ?? null,
-                repairStatusCode: item.repairStatus?.code ?? null,
-                repairStatusName: item.repairStatus?.name ?? null,
-                departmentId: item.departmentId,
-            })),
+            items: repairRequest.requestedItems.map(item => this.mapItem(item)),
         };
+    }
+
+    RepairRequestItemsToDto(items: RepairRequestItem[]): RepairRequestItemDto[]
+    {
+        return items.map(item => this.mapItem(item));
     }
 }

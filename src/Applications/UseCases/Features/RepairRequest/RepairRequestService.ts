@@ -1,4 +1,5 @@
 import { RepairRequestDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestDto";
+import { RepairRequestItemDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestItemDto";
 import { RepairRequestForCreateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForCreateDto";
 import { RepairRequestForUpdateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForUpdateDto";
 import { RepairRequestParameter } from "../../../../Domains/RequestFeatures/RepairRequestParameter";
@@ -77,6 +78,13 @@ export class RepairRequestService implements IRepairRequestService
     {
         const entity = await this.GetRepairRequestAndCheckIfItExists(id);
         return this._mapperManager.repairRequestMapper.RepairRequestToDto(entity);
+    }
+
+    async GetRepairRequestItems(id: number): Promise<RepairRequestItemDto[]>
+    {
+        await this.GetRepairRequestAndCheckIfItExists(id);
+        const items = await this._repositoryManager.repairRequestRepository.GetRepairRequestItemsByRequestId(id);
+        return this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(items);
     }
 
     async CreateRepairRequest(dto: RepairRequestForCreateDto): Promise<RepairRequestDto>
