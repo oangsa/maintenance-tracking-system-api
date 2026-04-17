@@ -23,6 +23,29 @@ export class UserController
         app.group("/users", (app) =>
             app
                 .use(JwtPlugin(secret, this._service.authService))
+                .get(
+                    "/me",
+                    async ({ currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const user = await this._service.userService.GetUser(currentUser!.userId);
+                                set.status = 200;
+
+                                return user;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        detail: { summary: "Get current user profile", tags: ["Users"] },
+                    },
+                )
                 .post("/search",
                     async ({ body, currentUser, set }) =>
                     {
@@ -37,6 +60,7 @@ export class UserController
                                     search: body.search,
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
+                                    excludeId: currentUser!.userId,
                                 };
 
                                 const result = await this._service.userService.GetListUser(params);

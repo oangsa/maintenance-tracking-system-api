@@ -113,14 +113,18 @@ export class RepairStatusRepository implements IRepairStatusRepository
         }
 
         const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
-        const orderByClause = params.orderBy 
+        const orderByClause = params.orderBy
             ? QueryBuilder.BuildRawSQLOrderQuery(params.orderBy)
             : sql`ORDER BY order_sequence ASC`;
 
+        const innerQuery = sql`
+            SELECT id, code, name, order_sequence, is_final, created_at, updated_at, created_by, updated_by, deleted
+            FROM ${repairStatusTable}
+        `;
+
         const [results, countResult] = await Promise.all([
             this._db.db.execute<RepairStatusRow>(sql`
-                SELECT id, code, name, order_sequence, is_final, created_at, updated_at, created_by, updated_by, deleted
-                FROM ${repairStatusTable}
+                SELECT * FROM (${innerQuery}) base
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -128,7 +132,7 @@ export class RepairStatusRepository implements IRepairStatusRepository
             `),
             this._db.db.execute<{ count: number }>(sql`
                 SELECT COUNT(*)::int AS count
-                FROM ${repairStatusTable}
+                FROM (${innerQuery}) base
                 ${whereClause}
             `),
         ]);

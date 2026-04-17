@@ -1,0 +1,1978 @@
+openapi: 3.0.3
+info:
+  title: Maintenance Tracking System API
+  version: 1.0.0
+  description: REST API built with Elysia and Drizzle ORM.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+  - url: /
+    description: Relative URL server
+tags:
+  - name: Authentications
+    description: Authentication endpoints
+  - name: Users
+    description: User management endpoints
+  - name: Departments
+    description: Department management endpoints
+  - name: Parts
+    description: Part management endpoints
+  - name: Repair Status
+    description: Repair status management endpoints
+  - name: Repair Request Item Statuses
+    description: Repair request item status management endpoints
+  - name: Repair Requests
+    description: Repair request management endpoints
+  - name: Versioning
+    description: API version discovery endpoints
+paths:
+  /api/versions:
+    get:
+      tags:
+        - Versioning
+      summary: Get supported API versions
+      operationId: getApiVersions
+      responses:
+        '200':
+          description: Supported API versions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionDiscoveryResponse'
+
+  /api/v1/authentication/login:
+    post:
+      tags:
+        - Authentications
+      summary: Login user
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly refresh token cookie in format refresh_token=<tokenId.rawToken>
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/authentication/refresh:
+    post:
+      tags:
+        - Authentications
+      summary: Refresh access token
+      operationId: refreshAccessToken
+      security:
+        - refreshTokenCookie: []
+      responses:
+        '200':
+          description: Access token refreshed
+          headers:
+            Set-Cookie:
+              description: Rotated HttpOnly refresh token cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/authentication/logout:
+    post:
+      tags:
+        - Authentications
+      summary: Logout current device
+      operationId: logoutCurrentDevice
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/authentication/logout-all:
+    post:
+      tags:
+        - Authentications
+      summary: Logout all devices
+      operationId: logoutAllDevices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out from all devices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/users/search:
+    post:
+      tags:
+        - Users
+      summary: Search users
+      operationId: searchUsers
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSearchRequest'
+      responses:
+        '200':
+          description: Users list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/users:
+    post:
+      tags:
+        - Users
+      summary: Create user
+      operationId: createUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserForCreate'
+      responses:
+        '201':
+          description: User created
+          headers:
+            Location:
+              description: Versioned URL of the newly created user
+              schema:
+                type: string
+                example: /api/v1/users/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      operationId: getUserById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Users
+      summary: Update user
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserForUpdate'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      operationId: deleteUser
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: User deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/users/collection:
+    delete:
+      tags:
+        - Users
+      summary: Delete user collection
+      operationId: deleteUserCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Users deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/department/search:
+    post:
+      tags:
+        - Departments
+      summary: Search departments
+      operationId: searchDepartments
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentSearchRequest'
+      responses:
+        '200':
+          description: Departments list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/department:
+    post:
+      tags:
+        - Departments
+      summary: Create department
+      operationId: createDepartment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentForCreate'
+      responses:
+        '201':
+          description: Department created
+          headers:
+            Location:
+              description: Versioned URL of the newly created department
+              schema:
+                type: string
+                example: /api/v1/department/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/department/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Departments
+      summary: Get department by ID
+      operationId: getDepartmentById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Department found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Departments
+      summary: Update department
+      operationId: updateDepartment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentForUpdate'
+      responses:
+        '200':
+          description: Department updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Departments
+      summary: Delete department
+      operationId: deleteDepartment
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Department deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/department/collection:
+    delete:
+      tags:
+        - Departments
+      summary: Delete departments collection
+      operationId: deleteDepartmentCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Departments deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/search:
+    post:
+      tags:
+        - Parts
+      summary: Search parts
+      operationId: searchParts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartSearchRequest'
+      responses:
+        '200':
+          description: Parts list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Part'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part:
+    post:
+      tags:
+        - Parts
+      summary: Create part
+      operationId: createPart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartForCreate'
+      responses:
+        '201':
+          description: Part created
+          headers:
+            Location:
+              description: Versioned URL of the newly created part
+              schema:
+                type: string
+                example: /api/v1/part/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Parts
+      summary: Get part by ID
+      operationId: getPartById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Part found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Parts
+      summary: Update part
+      operationId: updatePart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartForUpdate'
+      responses:
+        '200':
+          description: Part updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Parts
+      summary: Delete part
+      operationId: deletePart
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Part deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/collection:
+    delete:
+      tags:
+        - Parts
+      summary: Delete parts collection
+      operationId: deletePartCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Parts deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-status/search:
+    post:
+      tags:
+        - Repair Status
+      summary: Search repair statuses
+      operationId: searchRepairStatuses
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairStatusSearchRequest'
+      responses:
+        '200':
+          description: Repair statuses list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairStatus'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-status:
+    post:
+      tags:
+        - Repair Status
+      summary: Create repair status
+      operationId: createRepairStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairStatusForCreate'
+      responses:
+        '201':
+          description: Repair status created
+          headers:
+            Location:
+              description: Versioned URL of the newly created repair status
+              schema:
+                type: string
+                example: /api/v1/repair-status/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairStatus'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-status/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Repair Status
+      summary: Get repair status by ID
+      operationId: getRepairStatusById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Repair status found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairStatus'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Repair Status
+      summary: Update repair status
+      operationId: updateRepairStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairStatusForUpdate'
+      responses:
+        '200':
+          description: Repair status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairStatus'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Repair Status
+      summary: Delete repair status
+      operationId: deleteRepairStatus
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Repair status deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-status/collection:
+    delete:
+      tags:
+        - Repair Status
+      summary: Delete repair status collection
+      operationId: deleteRepairStatusCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Repair statuses deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request-item-status/search:
+    post:
+      tags:
+        - Repair Request Item Statuses
+      summary: Search repair request item statuses
+      operationId: searchRepairRequestItemStatuses
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestItemStatusSearchRequest'
+      responses:
+        '200':
+          description: Repair request item statuses list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestItemStatus'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request-item-status:
+    post:
+      tags:
+        - Repair Request Item Statuses
+      summary: Create repair request item status
+      operationId: createRepairRequestItemStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestItemStatusForCreate'
+      responses:
+        '201':
+          description: Repair request item status created
+          headers:
+            Location:
+              description: Versioned URL of the newly created repair request item status
+              schema:
+                type: string
+                example: /api/v1/repair-request-item-status/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequestItemStatus'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request-item-status/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Repair Request Item Statuses
+      summary: Get repair request item status by ID
+      operationId: getRepairRequestItemStatusById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Repair request item status found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequestItemStatus'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Repair Request Item Statuses
+      summary: Update repair request item status
+      operationId: updateRepairRequestItemStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestItemStatusForUpdate'
+      responses:
+        '200':
+          description: Repair request item status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequestItemStatus'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Repair Request Item Statuses
+      summary: Delete repair request item status
+      operationId: deleteRepairRequestItemStatus
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Repair request item status deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request-item-status/collection:
+    delete:
+      tags:
+        - Repair Request Item Statuses
+      summary: Delete repair request item status collection
+      operationId: deleteRepairRequestItemStatusCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Repair request item statuses deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Search repair requests
+      operationId: searchRepairRequests
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+      responses:
+        '200':
+          description: Repair requests list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request:
+    post:
+      tags:
+        - Repair Requests
+      summary: Create repair request
+      operationId: createRepairRequest
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestForCreate'
+      responses:
+        '201':
+          description: Repair request created
+          headers:
+            Location:
+              description: Versioned URL of the newly created repair request
+              schema:
+                type: string
+                example: /api/v1/repair-request/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequest'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Repair Requests
+      summary: Get repair request by ID
+      operationId: getRepairRequestById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Repair request found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Repair Requests
+      summary: Update repair request
+      operationId: updateRepairRequest
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestForUpdate'
+      responses:
+        '200':
+          description: Repair request updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequest'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Repair Requests
+      summary: Delete repair request
+      operationId: deleteRepairRequest
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Repair request deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request/collection:
+    delete:
+      tags:
+        - Repair Requests
+      summary: Delete repair request collection
+      operationId: deleteRepairRequestCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Repair requests deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    refreshTokenCookie:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+
+  parameters:
+    IdPathParam:
+      name: id
+      in: path
+      required: true
+      description: Numeric identifier
+      schema:
+        type: string
+        pattern: '^[0-9]+$'
+
+  headers:
+    PaginationHeader:
+      description: JSON string containing pagination metadata
+      schema:
+        type: string
+        example: '{"currentPage":1,"totalPages":10,"pageSize":10,"totalCount":100,"hasPrevious":false,"hasNext":true}'
+
+  responses:
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    VersionDiscoveryResponse:
+      type: object
+      required:
+        - supportedVersions
+        - defaultVersion
+      properties:
+        supportedVersions:
+          type: array
+          items:
+            type: string
+          example:
+            - v1
+        defaultVersion:
+          type: string
+          example: v1
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        password:
+          type: string
+          minLength: 6
+
+    LoginResponse:
+      type: object
+      required:
+        - accessToken
+        - user
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    RefreshResponse:
+      type: object
+      required:
+        - accessToken
+      properties:
+        accessToken:
+          type: string
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - statusCode
+        - message
+        - error
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Bad Request
+        error:
+          type: string
+          example: Bad Request
+        stack:
+          type: string
+          nullable: true
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            details:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+
+    Role:
+      type: string
+      enum:
+        - admin
+        - manager
+        - employee
+
+    Priority:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+        - urgent
+
+    SearchCondition:
+      type: object
+      required:
+        - name
+        - condition
+        - value
+      properties:
+        name:
+          type: string
+          description: The name of the search condition
+        condition:
+          type: string
+          description: The condition to apply to the search
+          enum:
+            - CONTAINS
+            - STARTWITH
+            - ENDWITH
+            - GREATER
+            - LESSER
+            - GREATEROREQUAL
+            - LESSEROREQUAL
+            - EQUAL
+            - NOTEQUAL
+            - ISNULL
+            - ISNOTNULL
+        value:
+          type: string
+          description: The value to search for
+
+    SearchTerm:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+          description: The field(s) to search, supports dot notation and comma-separated values
+        value:
+          type: string
+          description: The value to search for
+
+    SearchRequestBase:
+      type: object
+      properties:
+        pageNumber:
+          type: number
+          minimum: 1
+          default: 1
+          description: The page number to retrieve
+        pageSize:
+          type: number
+          minimum: 1
+          maximum: 100
+          default: 10
+          description: The number of items per page
+        orderBy:
+          type: string
+          description: The field to order by
+        search:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchCondition'
+        searchTerm:
+          $ref: '#/components/schemas/SearchTerm'
+        deleted:
+          type: boolean
+          default: false
+
+    DeleteCollectionRequest:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            pattern: '^[0-9]+$'
+
+    UserSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    DepartmentSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    PartSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    RepairStatusSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    RepairRequestItemStatusSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    RepairRequestSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+        - departmentId
+        - departmentName
+        - departmentCode
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+          nullable: true
+        email:
+          type: string
+        role:
+          type: string
+        departmentId:
+          type: number
+          nullable: true
+        departmentName:
+          type: string
+          nullable: true
+        departmentCode:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    UserForCreate:
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        departmentId:
+          type: number
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+          maxLength: 150
+        avatarUrl:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+
+    UserForUpdate:
+      type: object
+      properties:
+        departmentId:
+          type: number
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        password:
+          type: string
+          minLength: 6
+        name:
+          type: string
+          maxLength: 150
+        avatarUrl:
+          type: string
+        role:
+          $ref: '#/components/schemas/Role'
+
+    Department:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        code:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    DepartmentForCreate:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+
+    DepartmentForUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+
+    Part:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - productTypeId
+        - productTypeCode
+        - productTypeName
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        code:
+          type: string
+        name:
+          type: string
+        productTypeId:
+          type: number
+        productTypeCode:
+          type: string
+        productTypeName:
+          type: string
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    PartForCreate:
+      type: object
+      required:
+        - code
+        - name
+        - productTypeId
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        productTypeId:
+          type: number
+
+    PartForUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        productTypeId:
+          type: number
+
+    RepairStatus:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - orderSequence
+        - isFinal
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        code:
+          type: string
+        name:
+          type: string
+        orderSequence:
+          type: number
+        isFinal:
+          type: boolean
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    RepairStatusForCreate:
+      type: object
+      required:
+        - code
+        - name
+        - orderSequence
+        - isFinal
+      properties:
+        code:
+          type: string
+          maxLength: 50
+        name:
+          type: string
+          maxLength: 150
+        orderSequence:
+          type: number
+          default: 0
+        isFinal:
+          type: boolean
+          default: false
+
+    RepairStatusForUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 50
+        name:
+          type: string
+          maxLength: 150
+        orderSequence:
+          type: number
+        isFinal:
+          type: boolean
+
+    RepairRequestItemStatus:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - orderSequence
+        - isFinal
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        code:
+          type: string
+        name:
+          type: string
+        orderSequence:
+          type: number
+        isFinal:
+          type: boolean
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    RepairRequestItemStatusForCreate:
+      type: object
+      required:
+        - code
+        - name
+        - orderSequence
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        orderSequence:
+          type: number
+          minimum: 0
+        isFinal:
+          type: boolean
+
+    RepairRequestItemStatusForUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        orderSequence:
+          type: number
+          minimum: 0
+        isFinal:
+          type: boolean
+
+    RepairRequestItem:
+      type: object
+      required:
+        - id
+        - repairRequestId
+        - productId
+        - productCode
+        - productName
+        - description
+        - quantity
+        - repairStatusId
+        - repairStatusCode
+        - repairStatusName
+        - departmentId
+      properties:
+        id:
+          type: number
+        repairRequestId:
+          type: number
+        productId:
+          type: number
+        productCode:
+          type: string
+        productName:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        repairStatusId:
+          type: number
+          nullable: true
+        repairStatusCode:
+          type: string
+          nullable: true
+        repairStatusName:
+          type: string
+          nullable: true
+        departmentId:
+          type: number
+
+    RepairRequest:
+      type: object
+      required:
+        - id
+        - requestNo
+        - requesterId
+        - requesterName
+        - requesterEmail
+        - priority
+        - requestedAt
+        - currentStatusId
+        - currentStatusCode
+        - currentStatusName
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+        - items
+      properties:
+        id:
+          type: number
+        requestNo:
+          type: string
+        requesterId:
+          type: number
+        requesterName:
+          type: string
+          nullable: true
+        requesterEmail:
+          type: string
+        priority:
+          $ref: '#/components/schemas/Priority'
+        requestedAt:
+          type: string
+          nullable: true
+        currentStatusId:
+          type: number
+        currentStatusCode:
+          type: string
+        currentStatusName:
+          type: string
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepairRequestItem'
+
+    RepairRequestItemForCreate:
+      type: object
+      required:
+        - productId
+        - description
+        - quantity
+        - departmentId
+      properties:
+        productId:
+          type: number
+        description:
+          type: string
+          minLength: 1
+        quantity:
+          type: number
+          minimum: 1
+        departmentId:
+          type: number
+
+    RepairRequestForCreate:
+      type: object
+      required:
+        - priority
+        - currentStatusId
+        - items
+      properties:
+        priority:
+          $ref: '#/components/schemas/Priority'
+        currentStatusId:
+          type: number
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/RepairRequestItemForCreate'
+
+    RepairRequestForUpdate:
+      type: object
+      properties:
+        priority:
+          $ref: '#/components/schemas/Priority'
+        currentStatusId:
+          type: number

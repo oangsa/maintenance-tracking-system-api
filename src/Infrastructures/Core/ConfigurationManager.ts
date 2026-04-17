@@ -1,5 +1,5 @@
 import { DatabaseConnectionException } from "@/Domains/Exceptions/Database/DatabaseCustomException";
-import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager, WinstonConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
+import { DatabaseConfiguration, JwtConfiguration, ServerConfiguration, IConfigurationManager, WinstonConfiguration, ApiConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
 import winston, { format } from "winston";
 
 const { combine, colorize, timestamp, errors, printf, json } = format;
@@ -11,6 +11,7 @@ export class ConfigurationManager implements IConfigurationManager
     private readonly _jwt: JwtConfiguration;
     private readonly _server: ServerConfiguration;
     private readonly _winston: WinstonConfiguration;
+    private readonly _api: ApiConfiguration;
 
     constructor()
     {
@@ -18,6 +19,7 @@ export class ConfigurationManager implements IConfigurationManager
         this._jwt = this.LoadJWTConfiguration();
         this._server = this.LoadServerConfiguration();
         this._winston = this.LoadWinstonConfiguration();
+        this._api = this.LoadApiConfiguration();
     }
 
     get database(): DatabaseConfiguration
@@ -38,6 +40,11 @@ export class ConfigurationManager implements IConfigurationManager
     get winston(): WinstonConfiguration
     {
         return this._winston;
+    }
+
+    get api(): ApiConfiguration
+    {
+        return this._api;
     }
 
     private LoadDatabaseConfiguration(): DatabaseConfiguration
@@ -126,5 +133,58 @@ export class ConfigurationManager implements IConfigurationManager
                 exitOnError: false,
             },
         };
+    }
+
+    private LoadApiConfiguration(): ApiConfiguration
+    {
+        const supportedVersions = this.ParseSupportedApiVersions();
+        const defaultVersion = this.ResolveDefaultApiVersion(supportedVersions);
+
+        return {
+            supportedVersions,
+            defaultVersion,
+        };
+    }
+
+    private ParseSupportedApiVersions(): string[]
+    {
+        const rawVersions = process.env["API_VERSIONS"] ?? "1";
+        const parsedVersions = rawVersions
+            .split(",")
+            .map((version) => this.NormalizeApiVersion(version))
+            .filter((version) => version.length > 0);
+
+        const uniqueVersions = [...new Set(parsedVersions)];
+
+        if (uniqueVersions.length === 0)
+        {
+            uniqueVersions.push("1");
+        }
+
+        return uniqueVersions;
+    }
+
+    private ResolveDefaultApiVersion(supportedVersions: string[]): string
+    {
+        const configuredDefaultVersion = this.NormalizeApiVersion(process.env["API_DEFAULT_VERSION"] ?? supportedVersions[0]!);
+
+        if (supportedVersions.includes(configuredDefaultVersion))
+        {
+            return configuredDefaultVersion;
+        }
+
+        return supportedVersions[0]!;
+    }
+
+    private NormalizeApiVersion(version: string): string
+    {
+        const trimmedVersion = version.trim().toLowerCase();
+
+        if (trimmedVersion.startsWith("v"))
+        {
+            return trimmedVersion.slice(1);
+        }
+
+        return trimmedVersion;
     }
 }

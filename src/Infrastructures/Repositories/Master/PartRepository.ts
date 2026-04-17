@@ -54,7 +54,7 @@ export class PartRepository implements IPartRepository
     async GetPartById(id: number): Promise<Part | null>
     {
         const result = await this._db.db.execute<PartRow>(sql`
-           
+
             SELECT
                 p.id,
                 p.code,
@@ -136,13 +136,12 @@ export class PartRepository implements IPartRepository
         const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
         const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
 
-        const [partResults, countResult] = await Promise.all([
-            this._db.db.execute<PartRow>(sql`
-                SELECT
+        const innerQuery = sql`
+            SELECT
                 p.id,
                 p.code,
                 p.name,
-                pt.id As product_type_id,
+                pt.id AS product_type_id,
                 pt.code AS product_type_code,
                 pt.name AS product_type_name,
                 p.created_at,
@@ -151,7 +150,12 @@ export class PartRepository implements IPartRepository
                 p.updated_by,
                 p.deleted
             FROM ${partTable} p
-            Join product_type pt on pt.id = p.product_type_id
+            JOIN product_type pt ON pt.id = p.product_type_id
+        `;
+
+        const [partResults, countResult] = await Promise.all([
+            this._db.db.execute<PartRow>(sql`
+                SELECT * FROM (${innerQuery}) base
                 ${whereClause}
                 ${orderByClause}
                 LIMIT ${limit}
@@ -159,7 +163,7 @@ export class PartRepository implements IPartRepository
             `),
             this._db.db.execute<{ count: number }>(sql`
                 SELECT COUNT(*)::int AS count
-                FROM ${partTable}
+                FROM (${innerQuery}) base
                 ${whereClause}
             `),
         ]);
@@ -245,4 +249,3 @@ export class PartRepository implements IPartRepository
         `);
     }
 }
-
