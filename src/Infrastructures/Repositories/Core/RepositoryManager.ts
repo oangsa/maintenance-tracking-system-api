@@ -18,6 +18,8 @@ import { IProductTypeRepository } from "@/Domains/Repositories/IProductTypeRepos
 import { ProductTypeRepository } from "../Master/ProductTypeRepository";
 import { IProductRepository } from "@/Domains/Repositories/IProductRepository";
 import { ProductRepository } from "../Master/ProductRepository";
+import { IRepairRequestStatusLogRepository } from "@/Domains/Repositories/IRepairRequestStatusLogRepository";
+import { RepairRequestStatusLogRepository } from "../Features/RepairRequest/RepairRequestStatusLogRepository";
 
 export class RepositoryManager implements IRepositoryManager
 {
@@ -30,6 +32,7 @@ export class RepositoryManager implements IRepositoryManager
     private readonly _repairRequestRepository: IRepairRequestRepository;
     private readonly _productTypeRepository: IProductTypeRepository;
     private readonly _productRepository: IProductRepository;
+    private readonly _repairRequestStatusLogRepository: IRepairRequestStatusLogRepository;
 
     constructor()
     {
@@ -43,6 +46,7 @@ export class RepositoryManager implements IRepositoryManager
         this._repairRequestRepository = new RepairRequestRepository(drizzleDb);
         this._productTypeRepository = new ProductTypeRepository(drizzleDb);
         this._productRepository = new ProductRepository(drizzleDb);
+        this._repairRequestStatusLogRepository = new RepairRequestStatusLogRepository(drizzleDb);
     }
 
     get userRepository(): IUserRepository
@@ -88,5 +92,10 @@ export class RepositoryManager implements IRepositoryManager
     get productRepository(): IProductRepository
     {
         return this._productRepository;
+    }
+
+    get repairRequestStatusLogRepository(): IRepairRequestStatusLogRepository
+    {
+        return this._repairRequestStatusLogRepository;
     }
 }

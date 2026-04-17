@@ -6,6 +6,7 @@ import { IRepairRequestItemStatusMapper, RepairRequestItemStatusMapper } from ".
 import { IRepairRequestMapper, RepairRequestMapper } from "../RepairRequestMapper";
 import { ProductTypeMapper, IProductTypeMapper } from "../ProductTypeMapper";
 import { ProductMapper, IProductMapper } from "../ProductMapper";
+import { IRepairRequestStatusLogMapper, RepairRequestStatusLogMapper } from "../RepairRequestStatusLogMapper";
 
 export interface IMapperManager
 {
@@ -17,6 +18,7 @@ export interface IMapperManager
     repairRequestMapper: IRepairRequestMapper;
     productTypeMapper: IProductTypeMapper;
     productMapper: IProductMapper;
+    repairRequestStatusLogMapper: IRepairRequestStatusLogMapper;
 }
 
 export class MapperManager implements IMapperManager
@@ -29,6 +31,7 @@ export class MapperManager implements IMapperManager
     private readonly _repairRequestMapper: IRepairRequestMapper;
     private readonly _productTypeMapper: IProductTypeMapper;
     private readonly _productMapper: IProductMapper;
+    private readonly _repairRequestStatusLogMapper: IRepairRequestStatusLogMapper;
 
     constructor()
     {
@@ -40,6 +43,7 @@ export class MapperManager implements IMapperManager
         this._repairRequestMapper = new RepairRequestMapper();
         this._productTypeMapper = new ProductTypeMapper();
         this._productMapper = new ProductMapper();
+        this._repairRequestStatusLogMapper = new RepairRequestStatusLogMapper();
     }
 
     get userMapper(): IUserMapper
@@ -55,13 +59,13 @@ export class MapperManager implements IMapperManager
     get repairStatusMapper(): IRepairStatusMapper
     {
         return this._repairStatusMapper;
-    }  
-      
+    }
+
     get partMapper(): IPartMapper
     {
         return this._partMapper;
     }
-  
+
     get repairRequestItemStatusMapper(): IRepairRequestItemStatusMapper
     {
         return this._repairRequestItemStatusMapper;
@@ -80,5 +84,10 @@ export class MapperManager implements IMapperManager
     get productMapper(): IProductMapper
     {
         return this._productMapper;
+    }
+
+    get repairRequestStatusLogMapper(): IRepairRequestStatusLogMapper
+    {
+        return this._repairRequestStatusLogMapper;
     }
 }

@@ -3,7 +3,7 @@ import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 
@@ -109,6 +109,32 @@ export class RepairRequestController
                         detail: { summary: "Get line items for repair request", tags: ["Repair Requests"] },
                     },
                 )
+                .get(
+                    "/:id/audits",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const result = await this._service.repairRequestService.GetRepairRequestAudits(id);
+                                set.status = 200;
+
+                                return result;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: RepairRequestIdParamSchema,
+                        response: t.Array(RepairRequestStatusLogResponseSchema),
+                        detail: { summary: "Get audit log for repair request", tags: ["Repair Requests"] },
+                    },
+                )
                 .post(
                     "/",
                     async ({ body, currentUser, set }) =>
@@ -184,13 +210,13 @@ export class RepairRequestController
                         detail: { summary: "Delete repair request", tags: ["Repair Requests"] },
                     },
             )
-            .delete("/collection", async ({ currentUser, set, params }) =>
+            .delete("/collection", async ({ currentUser, set, body }) =>
             {
                 return this._service.userProvider.run(currentUser!, async () =>
                 {
                     try
                     {
-                        const ids = params.ids.map((id: string) => parseInt(id, 10));
+                        const ids = body.ids.map((id: string) => parseInt(id, 10));
                         await this._service.repairRequestService.DeleteRepairRequestCollection(ids);
 
                         set.status = 204;
@@ -202,7 +228,7 @@ export class RepairRequestController
                 });
             },
             {
-                params: DeleteRepairRequestCollectionSchema,
+                body: DeleteRepairRequestCollectionSchema,
                 detail: { summary: "Delete repair request collection", tags: ["Repair Requests"] },
             })
         );
