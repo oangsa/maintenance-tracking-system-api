@@ -12,7 +12,7 @@ export class WorkOrderMapper implements IWorkOrderMapper
     {
         return {
             id: WorkOrder.id,
-            repairRequestId: WorkOrder.repairRequestId,
+            repairRequestItemId: WorkOrder.repairRequestItemId,
             scheduledStart: WorkOrder.scheduledStart,
             scheduledEnd: WorkOrder.scheduledEnd,
             orderSequence: WorkOrder.orderSequence,

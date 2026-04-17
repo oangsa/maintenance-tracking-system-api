@@ -3,7 +3,7 @@ import { IServiceManager } from "../../../Applications/Services/Core/IServiceMan
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { WorkOrderParameter } from "../../../Domains/RequestFeatures/WorkOrderParameter";
-import { WorkOrderForCreateSchema, WorkOrderForUpdateSchema, WorkOrderIdParamSchema, WorkOrderParameterSchema } from "../../../Presentations/Validators/WorkOrderSchemaValidation";
+import { WorkOrderForCreateSchema, WorkOrderForUpdateSchema, WorkOrderIdParamSchema, WorkOrderParameterSchema, DeleteCollectionSchema } from "../../../Presentations/Validators/WorkOrderSchemaValidation";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 import { WorkOrderSequenceDuplicateException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderSequenceDuplicateException";
 
@@ -38,7 +38,6 @@ export class WorkOrderController
                                     orderBy: body.orderBy as WorkOrderParameter["orderBy"],
                                     search: body.search,
                                     searchTerm: body.searchTerm,
-                                    deleted: body.deleted ?? false,
                                 };
 
                                 const result = await this._service.workOrderService.GetListWorkOrder(params);
@@ -162,6 +161,36 @@ export class WorkOrderController
                         detail: { summary: "Delete work order", tags: ["WorkOrders"] },
                     },
                 )
+
+                .delete(
+                    "/collection",
+                    async ({ body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const ids = body.ids.map((id: string) => parseInt(id, 10));
+
+                                await this._service.workOrderService.DeleteWorkOrderCollection(ids);
+
+                                set.status = 204;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        body: DeleteCollectionSchema,
+                        detail: {
+                            summary: "Delete work order collection",
+                            tags: ["WorkOrders"],
+                        },
+                    },
+                )
+                
 
         );
     }

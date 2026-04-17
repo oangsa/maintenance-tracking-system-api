@@ -1,7 +1,7 @@
 export interface WorkOrder
 {
     id: number;
-    repairRequestId : number;
+    repairRequestItemId : number;
     scheduledStart: string;
     scheduledEnd: string;
     orderSequence: number;

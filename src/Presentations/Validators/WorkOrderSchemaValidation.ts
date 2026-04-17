@@ -13,7 +13,7 @@ export const WorkOrderParameterSchema = t.Object({
 
 export const WorkOrderResponseSchema = t.Object({
     id: t.Number(),
-    repairRequestId : t.Number(),
+    repairRequestItemId : t.Number(),
     scheduledStart: t.String(),
     scheduledEnd: t.String(),
     orderSequence: t.Number(),
@@ -26,7 +26,7 @@ export const WorkOrderResponseSchema = t.Object({
 });
 
 export const WorkOrderForCreateSchema = t.Object({
-    repairRequestId: t.Number(),
+    repairRequestItemId: t.Number(),
     scheduledStart: t.String(),
     scheduledEnd: t.String(),
     orderSequence: t.Number({ minimum: 0 }),
@@ -35,7 +35,7 @@ export const WorkOrderForCreateSchema = t.Object({
 });
 
 export const WorkOrderForUpdateSchema = t.Object({
-    repairRequestId: t.Optional(t.Number()),
+    repairRequestItemId: t.Optional(t.Number()),
     scheduledEnd: t.Optional(t.String()),
     orderSequence: t.Optional(t.Number({ minimum: 0 })),
     isFinal: t.Optional(t.Boolean()),
@@ -46,3 +46,6 @@ export const WorkOrderIdParamSchema = t.Object({
     id: t.String({ pattern: "^[0-9]+$" }),
 });
 
+export const DeleteCollectionSchema = t.Object({
+    ids: t.Array(t.String({ pattern: "^[0-9]+$" }), { minItems: 1 }),
+});

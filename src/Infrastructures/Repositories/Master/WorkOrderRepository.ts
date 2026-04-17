@@ -1,7 +1,7 @@
 import { IWorkOrderRepository } from "@/Domains/Repositories/IWorkOrderRepository";
 import { AppDrizzleDB } from "../../Database";
-import { WorkOrder } from "@/Infrastructures/Entities/Master/WorkOrder";
-import { workOrder as WorkOrderTable } from "@/Infrastructures/Database/Drizzle/schema";
+import { WorkOrder } from "../../Entities/Master/WorkOrder";
+import { workOrder as workOrderTable } from "../../Database/Drizzle/schema";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
@@ -11,9 +11,9 @@ import { QueryBuilder } from "../Extensions/QueryBuilder";
 
 type WorkOrderRow = {
     id: number;
-    repair_request_id : number;
-    schedule_start: string | null;
-    scheduled_end: string | null;
+    repair_request_item_id : number;
+    scheduled_start: string;
+    scheduled_end: string;
     order_sequence: number;
     is_final: boolean | null;
     status_id: number;
@@ -37,9 +37,9 @@ export class WorkOrderRepository implements IWorkOrderRepository
     {
         return {
             id: row.id,
-            repairRequestId: row.repair_request_id,
-            scheduledStart: row.schedule_start ?? "",
-            scheduledEnd: row.scheduled_end ?? "",
+            repairRequestItemId: row.repair_request_item_id,
+            scheduledStart: row.scheduled_start,
+            scheduledEnd: row.scheduled_end,
             orderSequence: row.order_sequence,
             isFinal: row.is_final ?? false,
             statusId: row.status_id,
@@ -56,8 +56,8 @@ export class WorkOrderRepository implements IWorkOrderRepository
         const result = await this._db.db.execute<WorkOrderRow>(sql`
             SELECT
                 id,
-                repair_request_id,
-                schedule_start,
+                repair_request_item_id,
+                scheduled_start,
                 scheduled_end,
                 order_sequence,
                 is_final,
@@ -66,7 +66,7 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 updated_at,
                 created_by,
                 updated_by
-            FROM ${WorkOrderTable}
+            FROM ${workOrderTable}
             WHERE id = ${id}
             LIMIT 1
         `);
@@ -79,12 +79,12 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return this.mapRowToWorkOrder(result[0]);
     }
 
-    async CheckOrderSequenceExists(repairRequestId: number, orderSequence: number): Promise<boolean>
+    async CheckOrderSequenceExists(repairRequestItemId: number, orderSequence: number): Promise<boolean>
     {
         const result = await this._db.db.execute<{ count: number }>(sql`
             SELECT COUNT(*)::int AS count
-            FROM ${WorkOrderTable}
-            WHERE repair_request_id = ${repairRequestId} AND order_sequence = ${orderSequence}
+            FROM ${workOrderTable}
+            WHERE repair_request_item_id = ${repairRequestItemId} AND order_sequence = ${orderSequence}
             LIMIT 1
         `);
 
@@ -112,14 +112,14 @@ export class WorkOrderRepository implements IWorkOrderRepository
             if (searchSQL) whereConditions.push(searchSQL);
         }
 
-        const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
+        const whereClause = whereConditions.length > 0 ? sql`WHERE ${sql.join(whereConditions, sql` AND `)}` : sql``;
         const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
 
         const innerQuery = sql`
             SELECT
                 id,
-                repair_request_id,
-                schedule_start,
+                repair_request_item_id,
+                scheduled_start,
                 scheduled_end,
                 order_sequence,
                 is_final,
@@ -128,7 +128,7 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 updated_at,
                 created_by,
                 updated_by
-            FROM ${WorkOrderTable}
+            FROM ${workOrderTable}
         `;
 
         const [WorkOrderResults, countResult] = await Promise.all([
@@ -152,12 +152,12 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return createPagedResult(items, totalCount, params.pageNumber, params.pageSize);
     }
 
-    async CreateWorkOrder(WorkOrder: WorkOrder): Promise<WorkOrder>
+    async CreateWorkOrder(workOrder: WorkOrder): Promise<WorkOrder>
     {
         const result = await this._db.db.execute<WorkOrderRow>(sql`
-            INSERT INTO ${WorkOrderTable} (
-                repair_request_id,
-                schedule_start,
+            INSERT INTO ${workOrderTable} (
+                repair_request_item_id,
+                scheduled_start,
                 scheduled_end,
                 order_sequence,
                 is_final,
@@ -166,19 +166,19 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 updated_by
             )
             VALUES (
-                ${WorkOrder.repairRequestId},
-                ${WorkOrder.scheduledStart},
-                ${WorkOrder.scheduledEnd},
-                ${WorkOrder.orderSequence},
-                ${WorkOrder.isFinal},
-                ${WorkOrder.statusId},
-                ${WorkOrder.createdBy},
-                ${WorkOrder.updatedBy},
+                ${workOrder.repairRequestItemId},
+                ${workOrder.scheduledStart || null},
+                ${workOrder.scheduledEnd || null},
+                ${workOrder.orderSequence},
+                ${workOrder.isFinal || null},
+                ${workOrder.statusId},
+                ${workOrder.createdBy},
+                ${workOrder.updatedBy}
             )
             RETURNING
                 id,
-                repair_request_id,
-                schedule_start,
+                repair_request_item_id,
+                scheduled_start,
                 scheduled_end,
                 order_sequence,
                 is_final,
@@ -192,24 +192,24 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return this.mapRowToWorkOrder(result[0]!);
     }
 
-    async UpdateWorkOrder(WorkOrder: Partial<WorkOrder>): Promise<WorkOrder>
+    async UpdateWorkOrder(workOrder: Partial<WorkOrder>): Promise<WorkOrder>
     {
         const result = await this._db.db.execute<WorkOrderRow>(sql`
-            UPDATE ${WorkOrderTable}
+            UPDATE ${workOrderTable}
             SET
-                repair_request_id = COALESCE(${WorkOrder.repairRequestId}, repair_request_id),
-                schedule_start = COALESCE(${WorkOrder.scheduledStart}, schedule_start),
-                scheduled_end = COALESCE(${WorkOrder.scheduledEnd}, scheduled_end),
-                order_sequence = COALESCE(${WorkOrder.orderSequence}, order_sequence),
-                is_final = COALESCE(${WorkOrder.isFinal}, is_final),
-                status_id = COALESCE(${WorkOrder.statusId}, status_id),
-                updated_by = COALESCE(${WorkOrder.updatedBy}, updated_by),
+                repair_request_item_id = COALESCE(${workOrder.repairRequestItemId || null}, repair_request_item_id),
+                scheduled_start = COALESCE(${workOrder.scheduledStart || null}, scheduled_start),
+                scheduled_end = COALESCE(${workOrder.scheduledEnd || null}, scheduled_end),
+                order_sequence = COALESCE(${workOrder.orderSequence || null}, order_sequence),
+                is_final = COALESCE(${workOrder.isFinal || null}, is_final),
+                status_id = COALESCE(${workOrder.statusId || null}, status_id),
+                updated_by = COALESCE(${workOrder.updatedBy || null}, updated_by),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${WorkOrder.id}
+            WHERE id = ${workOrder.id}
             RETURNING
                 id,
-                repair_request_id,
-                schedule_start,
+                repair_request_item_id,
+                scheduled_start,
                 scheduled_end,
                 order_sequence,
                 is_final,
@@ -229,8 +229,8 @@ export class WorkOrderRepository implements IWorkOrderRepository
         await this._db.db.transaction(async (tx) => 
         {
             const targetResult = await tx.execute(sql`
-                SELECT repair_request_id, order_sequence 
-                FROM ${WorkOrderTable} 
+                SELECT repair_request_item_id, order_sequence 
+                FROM ${workOrderTable} 
                 WHERE id = ${id} 
             `);
 
@@ -239,17 +239,17 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 throw new Error(`WorkOrder with id ${id} not found`);
             }
 
-            const target = targetResult[0] as { repair_request_id: number; order_sequence: number };
+            const target = targetResult[0] as { repair_request_item_id: number; order_sequence: number };
             
             await tx.execute(sql`
-                DELETE FROM ${WorkOrderTable} 
+                DELETE FROM ${workOrderTable} 
                 WHERE id = ${id}
             `);
 
             await tx.execute(sql`
-                UPDATE ${WorkOrderTable}
+                UPDATE ${workOrderTable}
                 SET order_sequence = order_sequence - 1, updated_at = CURRENT_TIMESTAMP
-                WHERE repair_request_id = ${target.repair_request_id} AND order_sequence > ${target.order_sequence}
+                WHERE repair_request_item_id = ${target.repair_request_item_id} AND order_sequence > ${target.order_sequence}
 
             `);
         });

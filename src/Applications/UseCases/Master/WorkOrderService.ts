@@ -74,11 +74,11 @@ export class WorkOrderService implements IWorkOrderService
     {
         this.ExpectRole('admin');
 
-        const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+        const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForCreateDto.repairRequestItemId, WorkOrderForCreateDto.orderSequence);
 
         if (isDuplicateSequence)
         {
-            throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+            throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestItemId, WorkOrderForCreateDto.orderSequence);
         }
 
 
@@ -86,7 +86,7 @@ export class WorkOrderService implements IWorkOrderService
 
         const newWorkOrder: WorkOrder = {
             id: 0,
-            repairRequestId: WorkOrderForCreateDto.repairRequestId,
+            repairRequestItemId: WorkOrderForCreateDto.repairRequestItemId,
             scheduledStart: WorkOrderForCreateDto.scheduledStart ?? "",
             scheduledEnd: WorkOrderForCreateDto.scheduledEnd ?? "",
             orderSequence: WorkOrderForCreateDto.orderSequence,
@@ -109,7 +109,7 @@ export class WorkOrderService implements IWorkOrderService
         {
             if (error.code === "23505")
             {
-                throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestId, WorkOrderForCreateDto.orderSequence);
+                throw new WorkOrderSequenceDuplicateException(WorkOrderForCreateDto.repairRequestItemId, WorkOrderForCreateDto.orderSequence);
             }
 
             throw error;
@@ -125,17 +125,17 @@ export class WorkOrderService implements IWorkOrderService
 
         if (WorkOrderForUpdateDto.orderSequence !== undefined && WorkOrderForUpdateDto.orderSequence !== WorkOrderEntity.orderSequence)
         {
-            const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+            const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForUpdateDto.repairRequestItemId ?? WorkOrderEntity.repairRequestItemId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
 
             if (isDuplicateSequence)
             {
-                throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+                throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestItemId ?? WorkOrderEntity.repairRequestItemId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
             }
         }
 
         const updatedWorkOrder: WorkOrder = {
             ...WorkOrderEntity,
-            repairRequestId: WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId,
+            repairRequestItemId: WorkOrderForUpdateDto.repairRequestItemId ?? WorkOrderEntity.repairRequestItemId,
             scheduledEnd: WorkOrderForUpdateDto.scheduledEnd ?? WorkOrderEntity.scheduledEnd,
             orderSequence: WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence,
             isFinal: WorkOrderForUpdateDto.isFinal ?? WorkOrderEntity.isFinal,
@@ -153,7 +153,7 @@ export class WorkOrderService implements IWorkOrderService
         {
             if (error.code === "23505")
             {
-                throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestId ?? WorkOrderEntity.repairRequestId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
+                throw new WorkOrderSequenceDuplicateException(WorkOrderForUpdateDto.repairRequestItemId ?? WorkOrderEntity.repairRequestItemId, WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence);
             }
 
             throw error;
