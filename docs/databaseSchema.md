@@ -7,6 +7,54 @@ Notes:
 - `Nullable` is derived from whether `NOT NULL` is present.
 - `-` in `Default` means no explicit default in the provided SQL.
 
+---
+
+## Stock / Inventory Logic Rules
+
+> **`inventory_move_item` is the SINGLE SOURCE OF TRUTH for stock.**
+
+### Rules enforced in the backend
+
+| Rule | Description |
+|---|---|
+| Never update `part.stock` directly | Stock is never stored as a column on `part`. |
+| Every consumption MUST create an `inventory_move` | No shortcut allowed. Use `reason = WORK_ORDER_CONSUME` when parts are consumed for a work order. |
+| One `work_order_part` → one `inventory_move_item` | Prevents double counting. Link via `work_order_part.inventory_move_item_id`. |
+
+### Stock calculation
+
+Stock for a part is always calculated as:
+
+```sql
+SELECT part_id, SUM(quantity_in - quantity_out) AS stock
+FROM inventory_move_item
+GROUP BY part_id;
+```
+
+### Workflow
+
+```
+repair_request
+  └── repair_request_item
+        └── work_order
+              ├── work_order_part  (intent — what parts are needed/used)
+              │     └── inventory_move_item  (linked via inventory_move_item_id — actual stock movement)
+              └── work_task  (execution detail)
+
+inventory_move
+  └── inventory_move_item  (SINGLE SOURCE OF TRUTH for stock)
+```
+
+| Step | Action | Stock effect |
+|---|---|---|
+| 1 | Create `repair_request` + `repair_request_item` | None |
+| 2 | Create `work_order` (one per `repair_request_item`) | None |
+| 3 | Create `work_order_part` (plan parts needed) | **None** |
+| 4 | Technician uses parts → create `inventory_move` (`reason = WORK_ORDER_CONSUME`) + `inventory_move_item` | **Stock decreases** |
+| 5 | Set `work_order_part.inventory_move_item_id` to link plan → actual movement | None |
+
+---
+
 ## public enum types
 
 | Type Name | Values |
@@ -308,7 +356,7 @@ Notes:
 | Column | Type | Nullable | Default | Column Constraints |
 |---|---|---|---|---|
 | id | integer | No | nextval('work_order_id_seq'::regclass) | PRIMARY KEY |
-| repair_request_id | integer | No | - | FOREIGN KEY |
+| repair_request_item_id | integer | No | - | FOREIGN KEY |
 | scheduled_start | timestamp with time zone | Yes | - | - |
 | scheduled_end | timestamp with time zone | Yes | - | - |
 | order_sequence | integer | No | - | - |
@@ -322,10 +370,13 @@ Notes:
 | Constraint Name | Type | Definition |
 |---|---|---|
 | work_order_pkey | PRIMARY KEY | (id) |
-| work_order_repair_request_id_fkey | FOREIGN KEY | (repair_request_id) REFERENCES public.repair_request(id) |
+| work_order_repair_request_item_id_fkey | FOREIGN KEY | (repair_request_item_id) REFERENCES public.repair_request_item(id) |
 | work_order_status_id_fkey | FOREIGN KEY | (status_id) REFERENCES public.repair_status(id) |
 
 ## public.work_order_part
+
+> Role: **intent layer** — records what parts a work order needs/used. Does NOT directly affect stock.
+> Link `inventory_move_item_id` after actual consumption to tie planned usage → actual stock movement.
 
 | Column | Type | Nullable | Default | Column Constraints |
 |---|---|---|---|---|
@@ -338,12 +389,14 @@ Notes:
 | updated_at | timestamp with time zone | Yes | now() | - |
 | created_by | character varying | Yes | - | - |
 | updated_by | character varying | Yes | - | - |
+| inventory_move_item_id | integer | Yes | - | FOREIGN KEY |
 
 | Constraint Name | Type | Definition |
 |---|---|---|
 | work_order_part_pkey | PRIMARY KEY | (id) |
 | work_order_part_work_order_id_fkey | FOREIGN KEY | (work_order_id) REFERENCES public.work_order(id) |
 | work_order_part_part_id_fkey | FOREIGN KEY | (part_id) REFERENCES public.part(id) |
+| fk_work_order_part_inventory_move_item | FOREIGN KEY | (inventory_move_item_id) REFERENCES public.inventory_move_item(id) |
 
 ## public.work_task
 
