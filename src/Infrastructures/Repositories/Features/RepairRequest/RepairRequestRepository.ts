@@ -435,24 +435,9 @@ export class RepairRequestRepository implements IRepairRequestRepository
         `);
     }
 
-    async CreateRepairRequestItems(repairRequestId:number, items: RepairRequestItem[]): Promise<RepairRequestItem[]>
+    private async createRepairRequestItem(repairRequestId: number, item: RepairRequestItem): Promise<RepairRequestItem>
     {
-        if (items.length === 0) return [];
-
-        const valuesSQL = sql.join(items.map(item => sql`
-            (
-                ${repairRequestId},
-                ${item.productId},
-                ${item.description},
-                ${item.quantity},
-                ${item.repairStatusId ?? 1},
-                ${item.departmentId},
-                ${item.createdBy},
-                ${item.updatedBy}
-            )
-        `), sql`, `);
-
-        const insertedRows = await this._db.db.execute<{ id: number }>(sql`
+        const insertedResult = await this._db.db.execute<{ id: number }>(sql`
             INSERT INTO ${repairRequestItemTable} (
                 repair_request_id,
                 product_id,
@@ -463,14 +448,22 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 created_by,
                 updated_by
             )
-            VALUES ${valuesSQL}
+            VALUES (
+                ${repairRequestId},
+                ${item.productId},
+                ${item.description},
+                ${item.quantity},
+                ${item.repairStatusId ?? 1},
+                ${item.departmentId},
+                ${item.createdBy},
+                ${item.updatedBy}
+            )
             RETURNING id
         `);
 
-        const insertedIds = insertedRows.map(row => row.id);
-        const idsSQL = sql.join(insertedIds.map(id => sql`${id}`), sql`, `);
+        const newId = insertedResult[0]!.id;
 
-        const createdItemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
+        const itemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
             SELECT
                 ri.id,
                 ri.repair_request_id,
@@ -493,10 +486,25 @@ export class RepairRequestRepository implements IRepairRequestRepository
             FROM ${repairRequestItemTable} ri
             LEFT JOIN ${productTable} p ON p.id = ri.product_id
             LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
-            WHERE ri.id IN (${idsSQL})
-            ORDER BY ri.id ASC
+            WHERE ri.id = ${newId}
+            LIMIT 1
         `);
 
-        return createdItemRows.map(row => this.mapRowToRepairRequestItem(row as RepairRequestItemRow));
+        return this.mapRowToRepairRequestItem(itemRows[0] as RepairRequestItemRow);
+    }
+
+    async CreateRepairRequestItems(repairRequestId: number, items: RepairRequestItem[]): Promise<RepairRequestItem[]>
+    {
+        if (items.length === 0) return [];
+
+        const createdItems: RepairRequestItem[] = [];
+
+        for (const item of items)
+        {
+            const created = await this.createRepairRequestItem(repairRequestId, item);
+            createdItems.push(created);
+        }
+
+        return createdItems;
     }
 }
