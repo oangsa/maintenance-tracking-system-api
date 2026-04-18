@@ -161,7 +161,7 @@ export class RepairRequestController
                                 const param = {
                                     pageNumber: body.pageNumber ?? 1,
                                     pageSize: body.pageSize ?? 10,
-                                    orderBy: body.orderBy as RepairRequestParameter["orderBy"],
+                                    orderBy: body.orderBy as WorkOrderParameter["orderBy"],
                                     search: body.search,
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
@@ -169,9 +169,10 @@ export class RepairRequestController
 
                                 const id = parseInt(params.id, 10);
                                 const result = await this._service.workOrderService.GetListWorkOrderByRepairRequestId(id, param);
+                                set.headers["X-Pagination"] = JSON.stringify(result.meta);
                                 set.status = 200;
 
-                                return result;
+                                return result.items;
                             }
                             catch (error: any)
                             {
