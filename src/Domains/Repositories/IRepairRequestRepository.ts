@@ -1,6 +1,7 @@
 import { RepairRequest } from "../../Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "../../Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 import { RepairRequestParameter } from "../RequestFeatures/RepairRequestParameter";
+import { RepairRequestItemParameter } from "../RequestFeatures/RepairRequestItemParameter";
 import { PagedResult } from "../RequestFeatures/Core/PageResult";
 
 export interface IRepairRequestRepository
@@ -8,7 +9,7 @@ export interface IRepairRequestRepository
     GetRepairRequestById(id: number): Promise<RepairRequest | null>;
     GetRepairRequestByRequestNo(requestNo: string, includeDeleted?: boolean): Promise<RepairRequest | null>;
     GetListRepairRequest(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequest>>;
-    GetRepairRequestItemsByRequestId(repairRequestId: number): Promise<RepairRequestItem[]>;
+    GetListRepairRequestItemsByRequestId(repairRequestId: number, parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItem>>;
     CreateRepairRequest(repairRequest: RepairRequest): Promise<RepairRequest>;
     CreateRepairRequestItems(repairRequestId: number, items: RepairRequestItem[]): Promise<RepairRequestItem[]>;
     UpdateRepairRequest(repairRequest: Partial<RepairRequest>): Promise<RepairRequest>;

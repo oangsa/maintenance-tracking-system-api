@@ -1599,7 +1599,6 @@ components:
           type: number
         name:
           type: string
-          nullable: true
         email:
           type: string
         role:
@@ -2041,7 +2040,7 @@ components:
         - updatedAt
         - createdBy
         - updatedBy
-        - items
+        - repairRequestItems
       properties:
         id:
           type: number
@@ -2077,7 +2076,7 @@ components:
         updatedBy:
           type: string
           nullable: true
-        items:
+        repairRequestItems:
           type: array
           items:
             $ref: '#/components/schemas/RepairRequestItem'

@@ -53,9 +53,22 @@ export class WorkOrderService implements IWorkOrderService
 
     async GetListWorkOrder(parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>
     {
-        this.ExpectRole('admin');
+        // this.ExpectRole('admin');
 
         const pagedWorkOrders = await this._repositoryManager.workOrderRepository.GetListWorkOrder(parameters);
+
+        return {
+            items: pagedWorkOrders.items.map(WorkOrder => this._mapperManager.workOrderMapper.WorkOrderToDto(WorkOrder)),
+            meta: pagedWorkOrders.meta,
+        };
+    }
+
+    async GetListWorkOrderByRepairRequestId(repairRequestId: number, parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>
+    {
+        // TODO: Consider allowing 'manager' or higher role to view work orders by repair request id
+        // this.ExpectRole('admin');
+
+        const pagedWorkOrders = await this._repositoryManager.workOrderRepository.GetListWorkOrderByRepairRequestId(repairRequestId, parameters);
 
         return {
             items: pagedWorkOrders.items.map(WorkOrder => this._mapperManager.workOrderMapper.WorkOrderToDto(WorkOrder)),
@@ -72,6 +85,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async CreateWorkOrder(WorkOrderForCreateDto: WorkOrderForCreateDto): Promise<WorkOrderDto>
     {
+        // TODO: Consider allowing 'manager' or higher role to create work orders
         this.ExpectRole('admin');
 
         const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForCreateDto.repairRequestItemId, WorkOrderForCreateDto.orderSequence);
@@ -119,6 +133,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async UpdateWorkOrder(id: number, WorkOrderForUpdateDto: WorkOrderForUpdateDto): Promise<WorkOrderDto>
     {
+        // TODO: Consider allowing 'manager' or higher role to update work orders
         this.ExpectRole('admin');
 
         const WorkOrderEntity = await this.GetWorkOrderAndCheckIfItExists(id);
@@ -162,6 +177,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async DeleteWorkOrder(id: number): Promise<void>
     {
+        // TODO: Consider allowing 'manager' or higher role to delete work orders
         this.ExpectRole('admin');
 
         await this.GetWorkOrderAndCheckIfItExists(id);

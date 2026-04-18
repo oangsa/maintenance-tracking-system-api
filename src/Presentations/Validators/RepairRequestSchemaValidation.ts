@@ -10,6 +10,13 @@ export const RepairRequestParameterSchema = t.Object({
     deleted: t.Optional(t.Boolean({ default: false })),
 });
 
+export const RepairRequestItemParameterSchema = t.Object({
+    ...PaginationSchema,
+    ...OrderSchema,
+    ...SearchSchema,
+    deleted: t.Optional(t.Boolean({ default: false })),
+});
+
 export const RepairRequestItemResponseSchema = t.Object({
     id: t.Number(),
     repairRequestId: t.Number(),
@@ -44,7 +51,7 @@ export const RepairRequestResponseSchema = t.Object({
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
     updatedBy: t.Nullable(t.String()),
-    items: t.Array(RepairRequestItemResponseSchema),
+    repairRequestItems: t.Array(RepairRequestItemResponseSchema),
 });
 
 export const RepairRequestItemForCreateSchema = t.Object({

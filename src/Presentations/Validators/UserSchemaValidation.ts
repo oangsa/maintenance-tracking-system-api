@@ -13,7 +13,7 @@ export const UserParameterSchema = t.Object({
 
 export const UserResponseSchema = t.Object({
     id: t.Number(),
-    name: t.Nullable(t.String()),
+    name: t.String(),
     email: t.String(),
     role: t.String(),
     departmentId: t.Nullable(t.Number()),

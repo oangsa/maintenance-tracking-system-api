@@ -38,8 +38,8 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return {
             id: row.id,
             repairRequestItemId: row.repair_request_item_id,
-            scheduledStart: row.scheduled_start,
-            scheduledEnd: row.scheduled_end,
+            scheduledStart: row.scheduled_start ? String(row.scheduled_start) : "",
+            scheduledEnd: row.scheduled_end ? String(row.scheduled_end) : "",
             orderSequence: row.order_sequence,
             isFinal: row.is_final ?? false,
             statusId: row.status_id,
@@ -49,7 +49,7 @@ export class WorkOrderRepository implements IWorkOrderRepository
             updatedBy: row.updated_by,
         };
     }
-        
+
 
     async GetWorkOrderById(id: number): Promise<WorkOrder | null>
     {
@@ -113,6 +113,66 @@ export class WorkOrderRepository implements IWorkOrderRepository
         }
 
         const whereClause = whereConditions.length > 0 ? sql`WHERE ${sql.join(whereConditions, sql` AND `)}` : sql``;
+        const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
+
+        const innerQuery = sql`
+            SELECT
+                id,
+                repair_request_item_id,
+                scheduled_start,
+                scheduled_end,
+                order_sequence,
+                is_final,
+                status_id,
+                created_at,
+                updated_at,
+                created_by,
+                updated_by
+            FROM ${workOrderTable}
+        `;
+
+        const [WorkOrderResults, countResult] = await Promise.all([
+            this._db.db.execute<WorkOrderRow>(sql`
+                SELECT * FROM (${innerQuery}) base
+                ${whereClause}
+                ${orderByClause}
+                LIMIT ${limit}
+                OFFSET ${offset}
+            `),
+            this._db.db.execute<{ count: number }>(sql`
+                SELECT COUNT(*)::int AS count
+                FROM (${innerQuery}) base
+                ${whereClause}
+            `),
+        ]);
+
+        const totalCount = countResult[0]?.count ?? 0;
+        const items = Array.from(WorkOrderResults).map((row: WorkOrderRow) => this.mapRowToWorkOrder(row));
+
+        return createPagedResult(items, totalCount, params.pageNumber, params.pageSize);
+    }
+
+    async GetListWorkOrderByRepairRequestId(repairRequestId: number, parameters: WorkOrderParameter): Promise<PagedResult<WorkOrder>>
+    {
+        const params = normalizeRequestParameters(parameters);
+        const offset = (params.pageNumber - 1) * params.pageSize;
+        const limit = params.pageSize;
+
+        const whereConditions: SQL[] = [sql`repair_request_item_id = ${repairRequestId}`];
+
+        if (params.search && params.search.length > 0)
+        {
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(params.search);
+            if (filterSQL) whereConditions.push(filterSQL);
+        }
+
+        if (params.searchTerm)
+        {
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(params.searchTerm);
+            if (searchSQL) whereConditions.push(searchSQL);
+        }
+
+        const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
         const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
 
         const innerQuery = sql`
@@ -221,17 +281,17 @@ export class WorkOrderRepository implements IWorkOrderRepository
         `);
 
         return this.mapRowToWorkOrder(result[0]!);
-          
+
     }
 
     async DeleteWorkOrder(id: number): Promise<void>
     {
-        await this._db.db.transaction(async (tx) => 
+        await this._db.db.transaction(async (tx) =>
         {
             const targetResult = await tx.execute(sql`
-                SELECT repair_request_item_id, order_sequence 
-                FROM ${workOrderTable} 
-                WHERE id = ${id} 
+                SELECT repair_request_item_id, order_sequence
+                FROM ${workOrderTable}
+                WHERE id = ${id}
             `);
 
             if (targetResult.length === 0 || !targetResult[0])
@@ -240,9 +300,9 @@ export class WorkOrderRepository implements IWorkOrderRepository
             }
 
             const target = targetResult[0] as { repair_request_item_id: number; order_sequence: number };
-            
+
             await tx.execute(sql`
-                DELETE FROM ${workOrderTable} 
+                DELETE FROM ${workOrderTable}
                 WHERE id = ${id}
             `);
 
