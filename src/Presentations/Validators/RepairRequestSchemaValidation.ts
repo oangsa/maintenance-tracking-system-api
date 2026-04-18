@@ -10,6 +10,13 @@ export const RepairRequestParameterSchema = t.Object({
     deleted: t.Optional(t.Boolean({ default: false })),
 });
 
+export const RepairRequestItemParameterSchema = t.Object({
+    ...PaginationSchema,
+    ...OrderSchema,
+    ...SearchSchema,
+    deleted: t.Optional(t.Boolean({ default: false })),
+});
+
 export const RepairRequestItemResponseSchema = t.Object({
     id: t.Number(),
     repairRequestId: t.Number(),

@@ -4,6 +4,7 @@ import { RepairRequestForCreateDto } from "../../../DataTransferObjects/RepairRe
 import { RepairRequestForUpdateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForUpdateDto";
 import { RepairRequestStatusLogDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestStatusLogDto";
 import { RepairRequestParameter } from "../../../../Domains/RequestFeatures/RepairRequestParameter";
+import { RepairRequestItemParameter } from "../../../../Domains/RequestFeatures/RepairRequestItemParameter";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 import { IRepairRequestService } from "@/Applications/Services/IRepairRequestService";
 import { IRepositoryManager } from "@/Domains/Repositories/Core/IRepositoryManager";
@@ -83,11 +84,15 @@ export class RepairRequestService implements IRepairRequestService
         return this._mapperManager.repairRequestMapper.RepairRequestToDto(entity);
     }
 
-    async GetRepairRequestItems(id: number): Promise<RepairRequestItemDto[]>
+    async GetRepairRequestItems(id: number, parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItemDto>>
     {
         await this.GetRepairRequestAndCheckIfItExists(id);
-        const items = await this._repositoryManager.repairRequestRepository.GetRepairRequestItemsByRequestId(id);
-        return this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(items);
+        const pagedData = await this._repositoryManager.repairRequestRepository.GetListRepairRequestItemsByRequestId(id, parameters);
+
+        return {
+            items: this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(pagedData.items),
+            meta: pagedData.meta,
+        };
     }
 
     async GetRepairRequestAudits(id: number): Promise<RepairRequestStatusLogDto[]>

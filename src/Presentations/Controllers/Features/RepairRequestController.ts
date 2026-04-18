@@ -3,7 +3,8 @@ import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
@@ -85,19 +86,30 @@ export class RepairRequestController
                         detail: { summary: "Get repair request by ID", tags: ["Repair Requests"] },
                     },
                 )
-                .get(
-                    "/:id/items",
-                    async ({ params, currentUser, set }) =>
+                .post(
+                    "/:id/items/search",
+                    async ({ params, body, currentUser, set }) =>
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
                         {
                             try
                             {
+                                const param: RepairRequestItemParameter = {
+                                    pageNumber: body.pageNumber ?? 1,
+                                    pageSize: body.pageSize ?? 10,
+                                    orderBy: body.orderBy as RepairRequestItemParameter["orderBy"],
+                                    search: body.search,
+                                    searchTerm: body.searchTerm,
+                                    deleted: body.deleted ?? false,
+                                };
+
                                 const id = parseInt(params.id, 10);
-                                const result = await this._service.repairRequestService.GetRepairRequestItems(id);
+                                const result = await this._service.repairRequestService.GetRepairRequestItems(id, param);
+
+                                set.headers["X-Pagination"] = JSON.stringify(result.meta);
                                 set.status = 200;
 
-                                return result;
+                                return result.items;
                             }
                             catch (error: any)
                             {
@@ -107,8 +119,9 @@ export class RepairRequestController
                     },
                     {
                         params: RepairRequestIdParamSchema,
+                        body: RepairRequestItemParameterSchema,
                         response: t.Array(RepairRequestItemResponseSchema),
-                        detail: { summary: "Get line items for repair request", tags: ["Repair Requests"] },
+                        detail: { summary: "Search line items for repair request", tags: ["Repair Requests"] },
                     },
                 )
                 .get(
@@ -138,7 +151,7 @@ export class RepairRequestController
                     },
                 )
                 .post(
-                    "/:id/work-order",
+                    "/:id/work-orders/search",
                     async ({ params, body, currentUser, set }) =>
                     {
                         return this._service.userProvider.run(currentUser!, async () =>
