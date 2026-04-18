@@ -111,27 +111,27 @@ export class RepairRequestStatusLogRepository implements IRepairRequestStatusLog
     {
         const innerQuery = sql`
             SELECT
-                sl.id,
-                sl.repair_request_id,
-                sl.old_status_id,
-                sl.new_status_id,
-                sl.changed_by,
-                sl.note,
-                sl.changed_at,
-                sl.created_at,
-                sl.updated_at,
-                sl.created_by,
-                sl.updated_by,
-                old_rs.code AS old_status_code,
-                old_rs.name AS old_status_name,
-                new_rs.code AS new_status_code,
-                new_rs.name AS new_status_name,
-                u.name AS changed_by_user_name,
-                u.email AS changed_by_user_email
-            FROM ${repairRequestStatusLogTable} sl
-            LEFT JOIN ${repairStatusTable} old_rs ON old_rs.id = sl.old_status_id
-            LEFT JOIN ${repairStatusTable} new_rs ON new_rs.id = sl.new_status_id
-            LEFT JOIN ${usersTable} u ON u.id = sl.changed_by
+                status_log.id,
+                status_log.repair_request_id,
+                status_log.old_status_id,
+                status_log.new_status_id,
+                status_log.changed_by,
+                status_log.note,
+                status_log.changed_at,
+                status_log.created_at,
+                status_log.updated_at,
+                status_log.created_by,
+                status_log.updated_by,
+                old_status.code AS old_status_code,
+                old_status.name AS old_status_name,
+                new_status.code AS new_status_code,
+                new_status.name AS new_status_name,
+                changed_by_user.name AS changed_by_user_name,
+                changed_by_user.email AS changed_by_user_email
+            FROM ${repairRequestStatusLogTable} status_log
+            LEFT JOIN ${repairStatusTable} old_status ON old_status.id = status_log.old_status_id
+            LEFT JOIN ${repairStatusTable} new_status ON new_status.id = status_log.new_status_id
+            LEFT JOIN ${usersTable} changed_by_user ON changed_by_user.id = status_log.changed_by
         `;
 
         const result = await this._db.db.execute<RepairRequestStatusLogRow>(sql`

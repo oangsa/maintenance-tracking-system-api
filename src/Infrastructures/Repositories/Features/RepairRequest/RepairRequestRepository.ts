@@ -148,29 +148,29 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const itemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
             SELECT
-                ri.id,
-                ri.repair_request_id,
-                ri.product_id,
-                ri.description,
-                ri.quantity,
-                ri.repair_status_id,
-                ri.department_id,
-                ri.created_at,
-                ri.updated_at,
-                ri.created_by,
-                ri.updated_by,
-                p.code AS product_code,
-                p.name AS product_name,
-                p.product_type_id AS product_type_id,
-                rris.code AS repair_status_code,
-                rris.name AS repair_status_name,
-                rris.order_sequence AS repair_status_order_sequence,
-                rris.is_final AS repair_status_is_final
-            FROM ${repairRequestItemTable} ri
-            LEFT JOIN ${productTable} p ON p.id = ri.product_id
-            LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
-            WHERE ri.repair_request_id IN (${idsSQL})
-            ORDER BY ri.id ASC
+                repair_request_item.id,
+                repair_request_item.repair_request_id,
+                repair_request_item.product_id,
+                repair_request_item.description,
+                repair_request_item.quantity,
+                repair_request_item.repair_status_id,
+                repair_request_item.department_id,
+                repair_request_item.created_at,
+                repair_request_item.updated_at,
+                repair_request_item.created_by,
+                repair_request_item.updated_by,
+                product.code AS product_code,
+                product.name AS product_name,
+                product.product_type_id AS product_type_id,
+                item_status.code AS repair_status_code,
+                item_status.name AS repair_status_name,
+                item_status.order_sequence AS repair_status_order_sequence,
+                item_status.is_final AS repair_status_is_final
+            FROM ${repairRequestItemTable} repair_request_item
+            LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+            LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
+            WHERE repair_request_item.repair_request_id IN (${idsSQL})
+            ORDER BY repair_request_item.id ASC
         `);
 
         const itemMap = new Map<number, RepairRequestItem[]>();
@@ -190,28 +190,28 @@ export class RepairRequestRepository implements IRepairRequestRepository
     {
         const result = await this._db.db.execute<RepairRequestRow>(sql`
             SELECT
-                rr.id,
-                rr.request_no,
-                rr.requester_id,
-                rr.priority,
-                rr.requested_at,
-                rr.current_status_id,
-                rr.created_at,
-                rr.updated_at,
-                rr.created_by,
-                rr.updated_by,
-                rs.code AS current_status_code,
-                rs.name AS current_status_name,
-                rs.order_sequence AS current_status_order_sequence,
-                rs.is_final AS current_status_is_final,
-                u.email AS requester_email,
-                u.name AS requester_name,
-                u.role AS requester_role
-            FROM ${repairRequestTable} rr
-            LEFT JOIN ${repairStatusTable} rs ON rs.id = rr.current_status_id
-            LEFT JOIN ${usersTable} u ON u.id = rr.requester_id
-            WHERE rr.id = ${id}
-              AND rr.deleted = false
+                repair_request.id,
+                repair_request.request_no,
+                repair_request.requester_id,
+                repair_request.priority,
+                repair_request.requested_at,
+                repair_request.current_status_id,
+                repair_request.created_at,
+                repair_request.updated_at,
+                repair_request.created_by,
+                repair_request.updated_by,
+                current_status.code AS current_status_code,
+                current_status.name AS current_status_name,
+                current_status.order_sequence AS current_status_order_sequence,
+                current_status.is_final AS current_status_is_final,
+                requester.email AS requester_email,
+                requester.name AS requester_name,
+                requester.role AS requester_role
+            FROM ${repairRequestTable} repair_request
+            LEFT JOIN ${repairStatusTable} current_status ON current_status.id = repair_request.current_status_id
+            LEFT JOIN ${usersTable} requester ON requester.id = repair_request.requester_id
+            WHERE repair_request.id = ${id}
+              AND repair_request.deleted = false
             LIMIT 1
         `);
 
@@ -226,31 +226,31 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
     async GetRepairRequestByRequestNo(requestNo: string, includeDeleted: boolean = false): Promise<RepairRequest | null>
     {
-        const deletedFilter = includeDeleted ? sql`` : sql`AND rr.deleted = false`;
+        const deletedFilter = includeDeleted ? sql`` : sql`AND repair_request.deleted = false`;
 
         const result = await this._db.db.execute<RepairRequestRow>(sql`
             SELECT
-                rr.id,
-                rr.request_no,
-                rr.requester_id,
-                rr.priority,
-                rr.requested_at,
-                rr.current_status_id,
-                rr.created_at,
-                rr.updated_at,
-                rr.created_by,
-                rr.updated_by,
-                rs.code AS current_status_code,
-                rs.name AS current_status_name,
-                rs.order_sequence AS current_status_order_sequence,
-                rs.is_final AS current_status_is_final,
-                u.email AS requester_email,
-                u.name AS requester_name,
-                u.role AS requester_role
-            FROM ${repairRequestTable} rr
-            LEFT JOIN ${repairStatusTable} rs ON rs.id = rr.current_status_id
-            LEFT JOIN ${usersTable} u ON u.id = rr.requester_id
-            WHERE rr.request_no = ${requestNo}
+                repair_request.id,
+                repair_request.request_no,
+                repair_request.requester_id,
+                repair_request.priority,
+                repair_request.requested_at,
+                repair_request.current_status_id,
+                repair_request.created_at,
+                repair_request.updated_at,
+                repair_request.created_by,
+                repair_request.updated_by,
+                current_status.code AS current_status_code,
+                current_status.name AS current_status_name,
+                current_status.order_sequence AS current_status_order_sequence,
+                current_status.is_final AS current_status_is_final,
+                requester.email AS requester_email,
+                requester.name AS requester_name,
+                requester.role AS requester_role
+            FROM ${repairRequestTable} repair_request
+            LEFT JOIN ${repairStatusTable} current_status ON current_status.id = repair_request.current_status_id
+            LEFT JOIN ${usersTable} requester ON requester.id = repair_request.requester_id
+            WHERE repair_request.request_no = ${requestNo}
               ${deletedFilter}
             LIMIT 1
         `);
@@ -333,16 +333,16 @@ export class RepairRequestRepository implements IRepairRequestRepository
             const itemWhereSQL = sql.join(itemConditions, sql` AND `);
             const itemSubquery = sql`
                 SELECT
-                    ri.repair_request_id,
-                    p.code AS product_code,
-                    p.name AS product_name,
-                    rris.code AS repair_status_code,
-                    rris.name AS repair_status_name,
-                    ri.description,
-                    ri.quantity
-                FROM ${repairRequestItemTable} ri
-                LEFT JOIN ${productTable} p ON p.id = ri.product_id
-                LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
+                    repair_request_item.repair_request_id,
+                    product.code AS product_code,
+                    product.name AS product_name,
+                    item_status.code AS repair_status_code,
+                    item_status.name AS repair_status_name,
+                    repair_request_item.description,
+                    repair_request_item.quantity
+                FROM ${repairRequestItemTable} repair_request_item
+                LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+                LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
             `;
             whereConditions.push(sql`EXISTS (
                 SELECT 1 FROM (${itemSubquery}) item_base
@@ -356,27 +356,27 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const innerQuery = sql`
             SELECT
-                rr.id,
-                rr.request_no,
-                rr.requester_id,
-                rr.priority,
-                rr.requested_at,
-                rr.current_status_id,
-                rr.created_at,
-                rr.updated_at,
-                rr.created_by,
-                rr.updated_by,
-                rr.deleted,
-                rs.code AS current_status_code,
-                rs.name AS current_status_name,
-                rs.order_sequence AS current_status_order_sequence,
-                rs.is_final AS current_status_is_final,
-                u.email AS requester_email,
-                u.name AS requester_name,
-                u.role AS requester_role
-            FROM ${repairRequestTable} rr
-            LEFT JOIN ${repairStatusTable} rs ON rs.id = rr.current_status_id
-            LEFT JOIN ${usersTable} u ON u.id = rr.requester_id
+                repair_request.id,
+                repair_request.request_no,
+                repair_request.requester_id,
+                repair_request.priority,
+                repair_request.requested_at,
+                repair_request.current_status_id,
+                repair_request.created_at,
+                repair_request.updated_at,
+                repair_request.created_by,
+                repair_request.updated_by,
+                repair_request.deleted,
+                current_status.code AS current_status_code,
+                current_status.name AS current_status_name,
+                current_status.order_sequence AS current_status_order_sequence,
+                current_status.is_final AS current_status_is_final,
+                requester.email AS requester_email,
+                requester.name AS requester_name,
+                requester.role AS requester_role
+            FROM ${repairRequestTable} repair_request
+            LEFT JOIN ${repairStatusTable} current_status ON current_status.id = repair_request.current_status_id
+            LEFT JOIN ${usersTable} requester ON requester.id = repair_request.requester_id
         `;
 
         const [repairRequestResults, countResult] = await Promise.all([
@@ -510,27 +510,27 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const innerQuery = sql`
             SELECT
-                ri.id,
-                ri.repair_request_id,
-                ri.product_id,
-                ri.description,
-                ri.quantity,
-                ri.repair_status_id,
-                ri.department_id,
-                ri.created_at,
-                ri.updated_at,
-                ri.created_by,
-                ri.updated_by,
-                p.code AS product_code,
-                p.name AS product_name,
-                p.product_type_id AS product_type_id,
-                rris.code AS repair_status_code,
-                rris.name AS repair_status_name,
-                rris.order_sequence AS repair_status_order_sequence,
-                rris.is_final AS repair_status_is_final
-            FROM ${repairRequestItemTable} ri
-            LEFT JOIN ${productTable} p ON p.id = ri.product_id
-            LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
+                repair_request_item.id,
+                repair_request_item.repair_request_id,
+                repair_request_item.product_id,
+                repair_request_item.description,
+                repair_request_item.quantity,
+                repair_request_item.repair_status_id,
+                repair_request_item.department_id,
+                repair_request_item.created_at,
+                repair_request_item.updated_at,
+                repair_request_item.created_by,
+                repair_request_item.updated_by,
+                product.code AS product_code,
+                product.name AS product_name,
+                product.product_type_id AS product_type_id,
+                item_status.code AS repair_status_code,
+                item_status.name AS repair_status_name,
+                item_status.order_sequence AS repair_status_order_sequence,
+                item_status.is_final AS repair_status_is_final
+            FROM ${repairRequestItemTable} repair_request_item
+            LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+            LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
         `;
 
         const [itemResults, countResult] = await Promise.all([
@@ -596,28 +596,28 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const itemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
             SELECT
-                ri.id,
-                ri.repair_request_id,
-                ri.product_id,
-                ri.description,
-                ri.quantity,
-                ri.repair_status_id,
-                ri.department_id,
-                ri.created_at,
-                ri.updated_at,
-                ri.created_by,
-                ri.updated_by,
-                p.code AS product_code,
-                p.name AS product_name,
-                p.product_type_id AS product_type_id,
-                rris.code AS repair_status_code,
-                rris.name AS repair_status_name,
-                rris.order_sequence AS repair_status_order_sequence,
-                rris.is_final AS repair_status_is_final
-            FROM ${repairRequestItemTable} ri
-            LEFT JOIN ${productTable} p ON p.id = ri.product_id
-            LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
-            WHERE ri.id = ${newId}
+                repair_request_item.id,
+                repair_request_item.repair_request_id,
+                repair_request_item.product_id,
+                repair_request_item.description,
+                repair_request_item.quantity,
+                repair_request_item.repair_status_id,
+                repair_request_item.department_id,
+                repair_request_item.created_at,
+                repair_request_item.updated_at,
+                repair_request_item.created_by,
+                repair_request_item.updated_by,
+                product.code AS product_code,
+                product.name AS product_name,
+                product.product_type_id AS product_type_id,
+                item_status.code AS repair_status_code,
+                item_status.name AS repair_status_name,
+                item_status.order_sequence AS repair_status_order_sequence,
+                item_status.is_final AS repair_status_is_final
+            FROM ${repairRequestItemTable} repair_request_item
+            LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+            LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
+            WHERE repair_request_item.id = ${newId}
             LIMIT 1
         `);
 

@@ -72,7 +72,7 @@ export class UserRepository implements IUserRepository
 
     async GetUserById(id: number): Promise<User | null>
     {
-      const result = await this._db.db.execute<UserRow>(sql`
+        const result = await this._db.db.execute<UserRow>(sql`
             SELECT
                 users.id,
                 users.email,
@@ -86,17 +86,17 @@ export class UserRepository implements IUserRepository
                 users.deleted,
                 users.role,
                 users.token_version,
-                d.id AS department_id,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
+                department.id AS department_id,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
             FROM ${users}
-            LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
-            LEFT JOIN ${department} d ON ud.department_id = d.id
+            LEFT JOIN ${userDepartment} user_department ON users.id = user_department.user_id
+            LEFT JOIN ${department} department ON user_department.department_id = department.id
             WHERE users.id = ${id}
               AND users.deleted = false
             LIMIT 1
@@ -126,17 +126,17 @@ export class UserRepository implements IUserRepository
               users.deleted,
               users.role,
               users.token_version,
-              d.id AS department_id,
-              d.name AS department_name,
-              d.code AS department_code,
-              d.created_at AS department_created_at,
-              d.updated_at AS department_updated_at,
-              d.created_by AS department_created_by,
-              d.updated_by AS department_updated_by,
-              d.deleted AS department_deleted
+              department.id AS department_id,
+              department.name AS department_name,
+              department.code AS department_code,
+              department.created_at AS department_created_at,
+              department.updated_at AS department_updated_at,
+              department.created_by AS department_created_by,
+              department.updated_by AS department_updated_by,
+              department.deleted AS department_deleted
           FROM ${users}
-          LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
-          LEFT JOIN ${department} d ON ud.department_id = d.id
+          LEFT JOIN ${userDepartment} user_department ON users.id = user_department.user_id
+          LEFT JOIN ${department} department ON user_department.department_id = department.id
           WHERE users.email = ${email} ${deletedFilter}
           LIMIT 1
         `);
@@ -148,15 +148,18 @@ export class UserRepository implements IUserRepository
 
     async GetListUser(parameters: UserParameter): Promise<PagedResult<User>>
     {
+        const excludeId = "excludeId" in parameters
+            ? (parameters as { excludeId?: number }).excludeId
+            : undefined;
         const params = normalizeRequestParameters(parameters);
         const offset = (params.pageNumber - 1) * params.pageSize;
         const limit = params.pageSize;
 
         const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
 
-        if (params.excludeId)
+        if (excludeId)
         {
-            whereConditions.push(sql`users.id != ${params.excludeId}`);
+            whereConditions.push(sql`id != ${excludeId}`);
         }
 
         if (params.search && params.search.length > 0)
@@ -188,30 +191,30 @@ export class UserRepository implements IUserRepository
                 users.deleted,
                 users.role,
                 users.token_version,
-                d.id   AS department_id,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
+                department_info.id AS department_id,
+                department_info.name AS department_name,
+                department_info.code AS department_code,
+                department_info.created_at AS department_created_at,
+                department_info.updated_at AS department_updated_at,
+                department_info.created_by AS department_created_by,
+                department_info.updated_by AS department_updated_by,
+                department_info.deleted AS department_deleted
             FROM ${users}
             LEFT JOIN LATERAL (
                 SELECT
-                    dept.id,
-                    dept.name,
-                    dept.code,
-                    dept.created_at,
-                    dept.updated_at,
-                    dept.created_by,
-                    dept.updated_by,
-                    dept.deleted
-                FROM ${userDepartment} ud
-                JOIN ${department} dept ON ud.department_id = dept.id
-                WHERE ud.user_id = users.id
+                    department.id,
+                    department.name,
+                    department.code,
+                    department.created_at,
+                    department.updated_at,
+                    department.created_by,
+                    department.updated_by,
+                    department.deleted
+                FROM ${userDepartment} user_department
+                JOIN ${department} department ON user_department.department_id = department.id
+                WHERE user_department.user_id = users.id
                 LIMIT 1
-            ) d ON true
+            ) department_info ON true
         `;
 
         const [userResults, countResult] = await Promise.all([
@@ -297,17 +300,17 @@ export class UserRepository implements IUserRepository
                     users.deleted,
                     users.role,
                     users.token_version,
-                    d.id AS department_id,
-                    d.name AS department_name,
-                    d.code AS department_code,
-                    d.created_at AS department_created_at,
-                    d.updated_at AS department_updated_at,
-                    d.created_by AS department_created_by,
-                    d.updated_by AS department_updated_by,
-                    d.deleted AS department_deleted
+                    department.id AS department_id,
+                    department.name AS department_name,
+                    department.code AS department_code,
+                    department.created_at AS department_created_at,
+                    department.updated_at AS department_updated_at,
+                    department.created_by AS department_created_by,
+                    department.updated_by AS department_updated_by,
+                    department.deleted AS department_deleted
                 FROM ${users}
-                LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
-                LEFT JOIN ${department} d ON ud.department_id = d.id
+                LEFT JOIN ${userDepartment} user_department ON users.id = user_department.user_id
+                LEFT JOIN ${department} department ON user_department.department_id = department.id
                 WHERE users.id = ${userId}
                 LIMIT 1
             `);
@@ -374,17 +377,17 @@ export class UserRepository implements IUserRepository
                     users.deleted,
                     users.role,
                     users.token_version,
-                    d.id AS department_id,
-                    d.name AS department_name,
-                    d.code AS department_code,
-                    d.created_at AS department_created_at,
-                    d.updated_at AS department_updated_at,
-                    d.created_by AS department_created_by,
-                    d.updated_by AS department_updated_by,
-                    d.deleted AS department_deleted
+                    department.id AS department_id,
+                    department.name AS department_name,
+                    department.code AS department_code,
+                    department.created_at AS department_created_at,
+                    department.updated_at AS department_updated_at,
+                    department.created_by AS department_created_by,
+                    department.updated_by AS department_updated_by,
+                    department.deleted AS department_deleted
                 FROM ${users}
-                LEFT JOIN ${userDepartment} ud ON users.id = ud.user_id
-                LEFT JOIN ${department} d ON ud.department_id = d.id
+                LEFT JOIN ${userDepartment} user_department ON users.id = user_department.user_id
+                LEFT JOIN ${department} department ON user_department.department_id = department.id
                 WHERE users.id = ${user.id}
                 LIMIT 1
             `);

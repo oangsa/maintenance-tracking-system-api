@@ -66,25 +66,25 @@ export class ProductTypeRepository implements IProductTypeRepository
     {
         const result = await this._db.db.execute<ProductTypeRow>(sql`
             SELECT
-                pt.id,
-                pt.code,
-                pt.name,
-                pt.department_id,
-                pt.created_at,
-                pt.updated_at,
-                pt.created_by,
-                pt.updated_by,
-                pt.deleted,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${productTypeTable} pt
-            LEFT JOIN ${departmentTable} d ON pt.department_id = d.id
-            WHERE pt.id = ${id}
+                product_type.id,
+                product_type.code,
+                product_type.name,
+                product_type.department_id,
+                product_type.created_at,
+                product_type.updated_at,
+                product_type.created_by,
+                product_type.updated_by,
+                product_type.deleted,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
+            FROM ${productTypeTable} product_type
+            LEFT JOIN ${departmentTable} department ON product_type.department_id = department.id
+            WHERE product_type.id = ${id}
         `);
 
         if (result.length === 0)
@@ -97,29 +97,29 @@ export class ProductTypeRepository implements IProductTypeRepository
 
     async GetProductTypeByCode(code: string, includeDeleted: boolean = false): Promise<ProductType | null>
     {
-        const deletedFilter = includeDeleted ? sql`` : sql`AND pt.deleted = false`;
+        const deletedFilter = includeDeleted ? sql`` : sql`AND product_type.deleted = false`;
 
         const result = await this._db.db.execute<ProductTypeRow>(sql`
             SELECT
-                pt.id,
-                pt.code,
-                pt.name,
-                pt.department_id,
-                pt.created_at,
-                pt.updated_at,
-                pt.created_by,
-                pt.updated_by,
-                pt.deleted,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${productTypeTable} pt
-            LEFT JOIN ${departmentTable} d ON pt.department_id = d.id
-            WHERE pt.code = ${code}
+                product_type.id,
+                product_type.code,
+                product_type.name,
+                product_type.department_id,
+                product_type.created_at,
+                product_type.updated_at,
+                product_type.created_by,
+                product_type.updated_by,
+                product_type.deleted,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
+            FROM ${productTypeTable} product_type
+            LEFT JOIN ${departmentTable} department ON product_type.department_id = department.id
+            WHERE product_type.code = ${code}
               ${deletedFilter}
             LIMIT 1
         `);
@@ -157,24 +157,24 @@ export class ProductTypeRepository implements IProductTypeRepository
 
         const innerQuery = sql`
             SELECT
-                pt.id,
-                pt.code,
-                pt.name,
-                pt.department_id,
-                pt.created_at,
-                pt.updated_at,
-                pt.created_by,
-                pt.updated_by,
-                pt.deleted,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${productTypeTable} pt
-            LEFT JOIN ${departmentTable} d ON pt.department_id = d.id
+                product_type.id,
+                product_type.code,
+                product_type.name,
+                product_type.department_id,
+                product_type.created_at,
+                product_type.updated_at,
+                product_type.created_by,
+                product_type.updated_by,
+                product_type.deleted,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
+            FROM ${productTypeTable} product_type
+            LEFT JOIN ${departmentTable} department ON product_type.department_id = department.id
         `;
 
         const [productTypeResults, countResult] = await Promise.all([
@@ -230,7 +230,7 @@ export class ProductTypeRepository implements IProductTypeRepository
             `);
 
         const created = result[0]!;
-        
+
         // Fetch the full object with department info
         return this.GetProductTypeById(created.id) as Promise<ProductType>;
     }
