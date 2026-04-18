@@ -67,7 +67,7 @@ export class RepairRequestMapper implements IRepairRequestMapper
             updatedAt: repairRequest.updatedAt,
             createdBy: repairRequest.createdBy,
             updatedBy: repairRequest.updatedBy,
-            items: repairRequest.requestedItems.map(item => this.mapItem(item)),
+            repairRequestItems: repairRequest.requestedItems.map(item => this.mapItem(item)),
         };
     }
 

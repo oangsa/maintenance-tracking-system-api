@@ -51,7 +51,7 @@ export const RepairRequestResponseSchema = t.Object({
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
     updatedBy: t.Nullable(t.String()),
-    items: t.Array(RepairRequestItemResponseSchema),
+    repairRequestItems: t.Array(RepairRequestItemResponseSchema),
 });
 
 export const RepairRequestItemForCreateSchema = t.Object({

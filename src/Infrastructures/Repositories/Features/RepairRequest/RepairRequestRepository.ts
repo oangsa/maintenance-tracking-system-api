@@ -57,10 +57,10 @@ type RepairRequestItemRow = {
     product_name: string | null;
     product_type_id: number | null;
     // joined repair_request_item_status columns
-    item_status_code: string | null;
-    item_status_name: string | null;
-    item_status_order_sequence: number | null;
-    item_status_is_final: boolean | null;
+    repair_status_code: string | null;
+    repair_status_name: string | null;
+    repair_status_order_sequence: number | null;
+    repair_status_is_final: boolean | null;
 };
 
 export class RepairRequestRepository implements IRepairRequestRepository
@@ -128,13 +128,13 @@ export class RepairRequestRepository implements IRepairRequestRepository
                     productTypeId: row.product_type_id!,
                 }
                 : null,
-            repairStatus: row.item_status_code != null
+            repairStatus: row.repair_status_code != null
                 ? {
                     id: row.repair_status_id!,
-                    code: row.item_status_code!,
-                    name: row.item_status_name!,
-                    orderSequence: row.item_status_order_sequence!,
-                    isFinal: row.item_status_is_final ?? false,
+                    code: row.repair_status_code!,
+                    name: row.repair_status_name!,
+                    orderSequence: row.repair_status_order_sequence!,
+                    isFinal: row.repair_status_is_final ?? false,
                 }
                 : null,
         };
@@ -162,10 +162,10 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 p.code AS product_code,
                 p.name AS product_name,
                 p.product_type_id AS product_type_id,
-                rris.code AS item_status_code,
-                rris.name AS item_status_name,
-                rris.order_sequence AS item_status_order_sequence,
-                rris.is_final AS item_status_is_final
+                rris.code AS repair_status_code,
+                rris.name AS repair_status_name,
+                rris.order_sequence AS repair_status_order_sequence,
+                rris.is_final AS repair_status_is_final
             FROM ${repairRequestItemTable} ri
             LEFT JOIN ${productTable} p ON p.id = ri.product_id
             LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
@@ -458,10 +458,10 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 p.code AS product_code,
                 p.name AS product_name,
                 p.product_type_id AS product_type_id,
-                rris.code AS item_status_code,
-                rris.name AS item_status_name,
-                rris.order_sequence AS item_status_order_sequence,
-                rris.is_final AS item_status_is_final
+                rris.code AS repair_status_code,
+                rris.name AS repair_status_name,
+                rris.order_sequence AS repair_status_order_sequence,
+                rris.is_final AS repair_status_is_final
             FROM ${repairRequestItemTable} ri
             LEFT JOIN ${productTable} p ON p.id = ri.product_id
             LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
@@ -544,10 +544,10 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 p.code AS product_code,
                 p.name AS product_name,
                 p.product_type_id AS product_type_id,
-                rris.code AS item_status_code,
-                rris.name AS item_status_name,
-                rris.order_sequence AS item_status_order_sequence,
-                rris.is_final AS item_status_is_final
+                rris.code AS repair_status_code,
+                rris.name AS repair_status_name,
+                rris.order_sequence AS repair_status_order_sequence,
+                rris.is_final AS repair_status_is_final
             FROM ${repairRequestItemTable} ri
             LEFT JOIN ${productTable} p ON p.id = ri.product_id
             LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
