@@ -95,6 +95,120 @@ Search for "Pro" in both `name` and `department_name`:
 
 ---
 
+## How The Server Applies `search` And `searchTerm`
+
+The API evaluates these fields in a predictable order:
+
+1. Every object in `search` is combined with `AND`.
+2. Every field listed in `searchTerm.name` is combined with `OR`.
+3. If both `search` and `searchTerm` are sent, the final query becomes:
+
+```text
+(`search` result) AND (`searchTerm` result)
+```
+
+### Practical meaning
+
+- Use `search` when you need exact or structured filtering.
+- Use `searchTerm` when you need one keyword matched across several fields.
+- Use both together when you want a strict filter plus a flexible keyword search.
+
+### Behavior notes
+
+- Field names are normalized to lowercase before SQL is built.
+- `searchTerm` only performs case-insensitive partial matching with `ILIKE '%value%'`.
+- `searchTerm.name` accepts comma-separated field names and trims spaces around each one.
+- Invalid `condition` values in `search` raise a bad request error.
+- `GREATER`, `LESSER`, `GREATEROREQUAL`, and `LESSEROREQUAL` try to parse number/date/boolean values before building SQL.
+- Joined fields can be used as long as the endpoint exposes them as flat result columns in the field reference table below.
+
+### Execution examples
+
+This request means:
+
+- `role` must equal `employee`
+- and either `name` or `email` must contain `john`
+
+```json
+{
+  "search": [
+    { "name": "role", "condition": "EQUAL", "value": "employee" }
+  ],
+  "searchTerm": {
+    "name": "name,email",
+    "value": "john"
+  }
+}
+```
+
+---
+
+## Special Case: Repair Request Item Search
+
+`POST /api/v1/repair-request/search` supports searching not only repair request header fields, but also joined requested-item fields.
+
+To target requested-item fields, prefix the field name with `repair_request_items_`.
+
+Supported item-search fields:
+
+| Input field name | Meaning |
+|---|---|
+| `repair_request_items_product_code` | Requested item product code |
+| `repair_request_items_product_name` | Requested item product name |
+| `repair_request_items_repair_status_code` | Requested item status code |
+| `repair_request_items_repair_status_name` | Requested item status name |
+| `repair_request_items_description` | Requested item description |
+| `repair_request_items_quantity` | Requested item quantity |
+
+This prefix works in both `search` and `searchTerm`.
+
+### How repair request item matching works
+
+- Header-level repair request filters still work normally.
+- Item-level prefixed filters are evaluated in an `EXISTS` subquery.
+- That means a repair request is returned when at least one requested item matches the item-side conditions.
+- If both header fields and item fields are sent, both sides must match.
+- This also applies to `searchTerm`: header fields are grouped together, item fields are grouped together, and the two groups are combined with `AND`.
+
+### Example: filter by header field and item field
+
+```json
+{
+  "pageNumber": 1,
+  "pageSize": 10,
+  "search": [
+    { "name": "priority", "condition": "EQUAL", "value": "urgent" },
+    { "name": "repair_request_items_product_name", "condition": "CONTAINS", "value": "motor" }
+  ]
+}
+```
+
+This means:
+
+- the repair request priority must be `urgent`
+- and at least one requested item must have a product name containing `motor`
+
+### Example: combine header and item keyword search
+
+```json
+{
+  "pageNumber": 1,
+  "pageSize": 10,
+  "searchTerm": {
+    "name": "request_no,requester_name,repair_request_items_product_name",
+    "value": "john"
+  }
+}
+```
+
+This means:
+
+- one of the header fields `request_no` or `requester_name` must match
+- and at least one requested item `product_name` must also match
+
+---
+---
+
 ## `orderBy`
 
 A space-separated field and direction, optionally comma-separated for multiple sorts.
@@ -207,6 +321,12 @@ Default direction is `ASC` when not specified.
 | `requester_email` | `requesterEmail` | Joined users |
 | `requester_name` | `requesterName` | Joined users |
 | `requester_role` | _(no direct field)_ | Joined users |
+| `repair_request_items_product_code` | _(item search only)_ | Requested item product code |
+| `repair_request_items_product_name` | _(item search only)_ | Requested item product name |
+| `repair_request_items_repair_status_code` | _(item search only)_ | Requested item status code |
+| `repair_request_items_repair_status_name` | _(item search only)_ | Requested item status name |
+| `repair_request_items_description` | _(item search only)_ | Requested item description |
+| `repair_request_items_quantity` | _(item search only)_ | Requested item quantity |
 
 ---
 
