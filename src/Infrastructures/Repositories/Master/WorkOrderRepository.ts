@@ -38,8 +38,8 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return {
             id: row.id,
             repairRequestItemId: row.repair_request_item_id,
-            scheduledStart: row.scheduled_start,
-            scheduledEnd: row.scheduled_end,
+            scheduledStart: row.scheduled_start ? String(row.scheduled_start) : "",
+            scheduledEnd: row.scheduled_end ? String(row.scheduled_end) : "",
             orderSequence: row.order_sequence,
             isFinal: row.is_final ?? false,
             statusId: row.status_id,
