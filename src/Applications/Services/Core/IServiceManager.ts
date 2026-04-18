@@ -7,9 +7,11 @@ import { IRepairStatusService } from "../../Services/IRepairStatusService";
 import { IPartService } from "../IPartService";
 import { ILoggerService } from "../ILoggerService";
 import { IRepairRequestItemStatusService } from "../IRepairRequestItemStatusService";
+import { IInventoryMoveService } from "../IInventoryMoveService";
 import { IRepairRequestService } from "../IRepairRequestService";
 import { IProductTypeService } from "../IProductTypeService";
 import { IProductService } from "../IProductService";
+import { IWorkOrderService } from "../IWorkOrderService";
 
 export interface IServiceManager
 {
@@ -23,7 +25,9 @@ export interface IServiceManager
     repairStatusService: IRepairStatusService;
     partService: IPartService;
     repairRequestItemStatusService: IRepairRequestItemStatusService;
+    inventoryMoveService: IInventoryMoveService;
     repairRequestService: IRepairRequestService;
     productTypeService: IProductTypeService;
     productService: IProductService;
+    workOrderService: IWorkOrderService;
 }

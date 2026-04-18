@@ -17,12 +17,16 @@ import { PartService } from "../Master/PartService";
 import { ILoggerService } from "../../Services/ILoggerService";
 import { IRepairRequestItemStatusService } from "../../Services/IRepairRequestItemStatusService";
 import { RepairRequestItemStatusService } from "../Master/RepairRequestItemStatusService";
+import { IInventoryMoveService } from "../../Services/IInventoryMoveService";
+import { InventoryMoveService } from "../Master/InventoryMoveService";
 import { IRepairRequestService } from "../../Services/IRepairRequestService";
 import { RepairRequestService } from "../Features/RepairRequest/RepairRequestService";
 import { IProductTypeService } from "../../Services/IProductTypeService";
 import { ProductTypeService } from "../Master/ProductTypeService";
 import { IProductService } from "../../Services/IProductService";
 import { ProductService } from "../Master/ProductService";
+import { IWorkOrderService } from "../../Services/IWorkOrderService";
+import { WorkOrderService } from "../Master/WorkOrderService";
 
 export class ServiceManager implements IServiceManager
 {
@@ -34,9 +38,11 @@ export class ServiceManager implements IServiceManager
     private readonly _repairStatusService: IRepairStatusService;
     private readonly _partService: IPartService;
     private readonly _repairRequestItemStatusService: IRepairRequestItemStatusService;
+    private readonly _inventoryMoveService: IInventoryMoveService;
     private readonly _repairRequestService: IRepairRequestService;
     private readonly _productTypeService: IProductTypeService;
     private readonly _productService: IProductService;
+    private readonly _workOrderService: IWorkOrderService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -51,9 +57,11 @@ export class ServiceManager implements IServiceManager
         this._repairStatusService = new RepairStatusService(coreAdapterManager, mapperManager, this._userProvider);
         this._partService = new PartService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestItemStatusService = new RepairRequestItemStatusService(coreAdapterManager, mapperManager, this._userProvider);
+        this._inventoryMoveService = new InventoryMoveService(coreAdapterManager, mapperManager, this._userProvider);
         this._repairRequestService = new RepairRequestService(coreAdapterManager, mapperManager, this._userProvider);
         this._productTypeService = new ProductTypeService(coreAdapterManager, mapperManager, this._userProvider);
         this._productService = new ProductService(coreAdapterManager, mapperManager, this._userProvider);
+        this._workOrderService = new WorkOrderService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -102,6 +110,11 @@ export class ServiceManager implements IServiceManager
         return this._repairRequestItemStatusService;
     }
 
+    get inventoryMoveService(): IInventoryMoveService
+    {
+        return this._inventoryMoveService;
+    }
+
     get repairRequestService(): IRepairRequestService
     {
         return this._repairRequestService;
@@ -115,5 +128,10 @@ export class ServiceManager implements IServiceManager
     get productService(): IProductService
     {
         return this._productService;
+    }
+
+    get workOrderService(): IWorkOrderService
+    {
+        return this._workOrderService;
     }
 }

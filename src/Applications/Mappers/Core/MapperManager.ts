@@ -3,10 +3,12 @@ import { DepartmentMapper, IDepartmentMapper } from "../DepartmentMapper";
 import { IRepairStatusMapper, RepairStatusMapper } from "../RepairStatusMapper";
 import { PartMapper, IPartMapper } from "../PartMapper";
 import { IRepairRequestItemStatusMapper, RepairRequestItemStatusMapper } from "../RepairRequestItemStatusMapper";
+import { IInventoryMoveMapper, InventoryMoveMapper } from "../InventoryMoveMapper";
 import { IRepairRequestMapper, RepairRequestMapper } from "../RepairRequestMapper";
 import { ProductTypeMapper, IProductTypeMapper } from "../ProductTypeMapper";
 import { ProductMapper, IProductMapper } from "../ProductMapper";
 import { IRepairRequestStatusLogMapper, RepairRequestStatusLogMapper } from "../RepairRequestStatusLogMapper";
+import { WorkOrderMapper, IWorkOrderMapper } from "../WorkOrderMapper";
 
 export interface IMapperManager
 {
@@ -15,10 +17,12 @@ export interface IMapperManager
     departmentMapper: IDepartmentMapper;
     repairStatusMapper: IRepairStatusMapper;
     repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
+    inventoryMoveMapper: IInventoryMoveMapper;
     repairRequestMapper: IRepairRequestMapper;
     productTypeMapper: IProductTypeMapper;
     productMapper: IProductMapper;
     repairRequestStatusLogMapper: IRepairRequestStatusLogMapper;
+    workOrderMapper: IWorkOrderMapper;
 }
 
 export class MapperManager implements IMapperManager
@@ -28,10 +32,12 @@ export class MapperManager implements IMapperManager
     private readonly _repairStatusMapper: IRepairStatusMapper;
     private readonly _partMapper: IPartMapper;
     private readonly _repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
+    private readonly _inventoryMoveMapper: IInventoryMoveMapper;
     private readonly _repairRequestMapper: IRepairRequestMapper;
     private readonly _productTypeMapper: IProductTypeMapper;
     private readonly _productMapper: IProductMapper;
     private readonly _repairRequestStatusLogMapper: IRepairRequestStatusLogMapper;
+    private readonly _workOrderMapper: IWorkOrderMapper;
 
     constructor()
     {
@@ -40,10 +46,12 @@ export class MapperManager implements IMapperManager
         this._repairStatusMapper = new RepairStatusMapper();
         this._partMapper = new PartMapper();
         this._repairRequestItemStatusMapper = new RepairRequestItemStatusMapper();
+        this._inventoryMoveMapper = new InventoryMoveMapper();
         this._repairRequestMapper = new RepairRequestMapper();
         this._productTypeMapper = new ProductTypeMapper();
         this._productMapper = new ProductMapper();
         this._repairRequestStatusLogMapper = new RepairRequestStatusLogMapper();
+        this._workOrderMapper = new WorkOrderMapper();
     }
 
     get userMapper(): IUserMapper
@@ -71,6 +79,11 @@ export class MapperManager implements IMapperManager
         return this._repairRequestItemStatusMapper;
     }
 
+    get inventoryMoveMapper(): IInventoryMoveMapper
+    {
+        return this._inventoryMoveMapper;
+    }
+
     get repairRequestMapper(): IRepairRequestMapper
     {
         return this._repairRequestMapper;
@@ -89,5 +102,10 @@ export class MapperManager implements IMapperManager
     get repairRequestStatusLogMapper(): IRepairRequestStatusLogMapper
     {
         return this._repairRequestStatusLogMapper;
+    }
+
+    get workOrderMapper(): IWorkOrderMapper
+    {
+        return this._workOrderMapper;
     }
 }
