@@ -6,6 +6,8 @@ import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestP
 import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
+import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
+import { WorkOrderResponseSchema, WorkOrderParameterSchema } from "@/Presentations/Validators/WorkOrderSchemaValidation";
 
 export class RepairRequestController
 {
@@ -20,7 +22,7 @@ export class RepairRequestController
     {
         const { secret } = this._service.configurationManager.jwt;
 
-        app.group("/repair-request", (app) =>
+        app.group("/repair-requests", (app) =>
             app
                 .use(JwtPlugin(secret, this._service.authService))
                 .post(
@@ -135,6 +137,42 @@ export class RepairRequestController
                         detail: { summary: "Get audit log for repair request", tags: ["Repair Requests"] },
                     },
                 )
+                .get(
+                    "/:id/work-order",
+                    async ({ params, body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const param = {
+                                    pageNumber: body.pageNumber ?? 1,
+                                    pageSize: body.pageSize ?? 10,
+                                    orderBy: body.orderBy as RepairRequestParameter["orderBy"],
+                                    search: body.search,
+                                    searchTerm: body.searchTerm,
+                                    deleted: body.deleted ?? false,
+                                } as WorkOrderParameter;
+
+                                const id = parseInt(params.id, 10);
+                                const result = await this._service.workOrderService.GetListWorkOrderByRepairRequestId(id, param);
+                                set.status = 200;
+
+                                return result;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: RepairRequestIdParamSchema,
+                        response: t.Array(WorkOrderResponseSchema),
+                        body: WorkOrderParameterSchema,
+                        detail: { summary: "Get work orders for repair request", tags: ["Repair Requests"] },
+                    }
+                )
                 .post(
                     "/",
                     async ({ body, currentUser, set }) =>
@@ -145,7 +183,7 @@ export class RepairRequestController
                             {
                                 const created = await this._service.repairRequestService.CreateRepairRequest(body);
                                 set.status = 201;
-                                set.headers["Location"] = `/repair-request/${created.id}`;
+                                set.headers["Location"] = `/repair-requests/${created.id}`;
 
                                 return created;
                             }
@@ -160,8 +198,6 @@ export class RepairRequestController
                         detail: { summary: "Create repair request", tags: ["Repair Requests"] },
                     },
                 )
-
-                // TODO: ADD endpoint for creating line items in bulk
                 .post(
                     "/:id/items",
                     async ({ params, body, currentUser, set }) =>
@@ -172,7 +208,7 @@ export class RepairRequestController
                             {
                                 const created = await this._service.repairRequestService.CreateRepairRequestItems(parseInt(params.id, 10), body);
                                 set.status = 201;
-                                set.headers["Location"] = `/repair-request/${params.id}/items`;
+                                set.headers["Location"] = `/repair-requests/${params.id}/items`;
 
                                 return created;
                             }
