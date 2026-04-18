@@ -271,18 +271,84 @@ export class RepairRequestRepository implements IRepairRequestRepository
         const offset = (params.pageNumber - 1) * params.pageSize;
         const limit = params.pageSize;
 
+        const ITEM_PREFIX = 'repair_request_items_';
+
+        const mainSearch = (params.search ?? []).filter(s => !s.name?.startsWith(ITEM_PREFIX));
+        const itemSearch = (params.search ?? [])
+            .filter(s => s.name?.startsWith(ITEM_PREFIX))
+            .map(s => ({ ...s, name: `item_base.${s.name!.slice(ITEM_PREFIX.length)}` }));
+
+        let mainSearchTerm = params.searchTerm;
+        let itemSearchTermFields: string[] = [];
+
+        if (params.searchTerm?.name)
+        {
+            const allFields = params.searchTerm.name.split(',').map(f => f.trim());
+            const mainFields = allFields.filter(f => !f.startsWith(ITEM_PREFIX));
+            const itemFields = allFields
+                .filter(f => f.startsWith(ITEM_PREFIX))
+                .map(f => `item_base.${f.slice(ITEM_PREFIX.length)}`);
+
+            mainSearchTerm = mainFields.length > 0
+                ? { name: mainFields.join(','), value: params.searchTerm.value }
+                : undefined;
+            itemSearchTermFields = itemFields;
+        }
+
         const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
 
-        if (params.search && params.search.length > 0)
+        if (mainSearch.length > 0)
         {
-            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(params.search);
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(mainSearch);
             if (filterSQL) whereConditions.push(filterSQL);
         }
 
-        if (params.searchTerm)
+        if (mainSearchTerm)
         {
-            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(params.searchTerm);
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(mainSearchTerm);
             if (searchSQL) whereConditions.push(searchSQL);
+        }
+
+        const itemConditions: SQL[] = [];
+
+        if (itemSearch.length > 0)
+        {
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(itemSearch);
+            if (filterSQL) itemConditions.push(filterSQL);
+        }
+
+        if (itemSearchTermFields.length > 0)
+        {
+            const termConditions = itemSearchTermFields.map(field =>
+            {
+                const parts = field.split('.');
+                const fieldSQL = sql.join(parts.map(p => sql.identifier(p)), sql.raw('.'));
+                return sql`${fieldSQL} ILIKE ${`%${params.searchTerm!.value}%`}`;
+            });
+            itemConditions.push(sql`(${sql.join(termConditions, sql` OR `)})`);
+        }
+
+        if (itemConditions.length > 0)
+        {
+            const itemWhereSQL = sql.join(itemConditions, sql` AND `);
+            const itemSubquery = sql`
+                SELECT
+                    ri.repair_request_id,
+                    p.code AS product_code,
+                    p.name AS product_name,
+                    rris.code AS repair_status_code,
+                    rris.name AS repair_status_name,
+                    ri.description,
+                    ri.quantity
+                FROM ${repairRequestItemTable} ri
+                LEFT JOIN ${productTable} p ON p.id = ri.product_id
+                LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
+            `;
+            whereConditions.push(sql`EXISTS (
+                SELECT 1 FROM (${itemSubquery}) item_base
+                WHERE item_base.repair_request_id = base.id
+                AND ${itemWhereSQL}
+            )`);
         }
 
         const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
