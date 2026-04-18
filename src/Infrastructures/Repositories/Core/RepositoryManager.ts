@@ -20,6 +20,8 @@ import { IProductTypeRepository } from "@/Domains/Repositories/IProductTypeRepos
 import { ProductTypeRepository } from "../Master/ProductTypeRepository";
 import { IProductRepository } from "@/Domains/Repositories/IProductRepository";
 import { ProductRepository } from "../Master/ProductRepository";
+import { IRepairRequestStatusLogRepository } from "@/Domains/Repositories/IRepairRequestStatusLogRepository";
+import { RepairRequestStatusLogRepository } from "../Features/RepairRequest/RepairRequestStatusLogRepository";
 import { IWorkOrderRepository } from "@/Domains/Repositories/IWorkOrderRepository";
 import { WorkOrderRepository } from "../Master/WorkOrderRepository";
 
@@ -35,11 +37,13 @@ export class RepositoryManager implements IRepositoryManager
     private readonly _repairRequestRepository: IRepairRequestRepository;
     private readonly _productTypeRepository: IProductTypeRepository;
     private readonly _productRepository: IProductRepository;
+    private readonly _repairRequestStatusLogRepository: IRepairRequestStatusLogRepository;
     private readonly _workOrderRepository: IWorkOrderRepository;
 
     constructor()
     {
         const drizzleDb = DrizzleFactory.getInstance();
+
         this._userRepository = new UserRepository(drizzleDb);
         this._refreshTokenRepository = new RefreshTokenRepository(drizzleDb);
         this._departmentRepository = new DepartmentRepository(drizzleDb);
@@ -50,6 +54,7 @@ export class RepositoryManager implements IRepositoryManager
         this._repairRequestRepository = new RepairRequestRepository(drizzleDb);
         this._productTypeRepository = new ProductTypeRepository(drizzleDb);
         this._productRepository = new ProductRepository(drizzleDb);
+        this._repairRequestStatusLogRepository = new RepairRequestStatusLogRepository(drizzleDb);
         this._workOrderRepository = new WorkOrderRepository(drizzleDb);
     }
 
@@ -101,6 +106,11 @@ export class RepositoryManager implements IRepositoryManager
     get productRepository(): IProductRepository
     {
         return this._productRepository;
+    }
+
+    get repairRequestStatusLogRepository(): IRepairRequestStatusLogRepository
+    {
+        return this._repairRequestStatusLogRepository;
     }
 
     get workOrderRepository(): IWorkOrderRepository

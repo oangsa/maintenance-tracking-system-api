@@ -1182,6 +1182,103 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/repair-request/{id}/items:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Repair Requests
+      summary: Get line items for repair request
+      operationId: getRepairRequestItems
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Repair request items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Repair Requests
+      summary: Create line items for repair request
+      operationId: createRepairRequestItems
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/RepairRequestItemForCreate'
+      responses:
+        '201':
+          description: Repair request items created
+          headers:
+            Location:
+              description: URL of the created items
+              schema:
+                type: string
+                example: /api/v1/repair-request/1/items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-request/{id}/audits:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Repair Requests
+      summary: Get audit log for repair request
+      operationId: getRepairRequestAudits
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Repair request status change audit log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestStatusLog'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/repair-request/collection:
     delete:
       tags:
@@ -1874,6 +1971,58 @@ components:
           nullable: true
         departmentId:
           type: number
+
+    RepairRequestStatusLog:
+      type: object
+      required:
+        - id
+        - repairRequestId
+        - oldStatusId
+        - oldStatusCode
+        - oldStatusName
+        - newStatusId
+        - newStatusCode
+        - newStatusName
+        - changedBy
+        - changedByName
+        - changedByEmail
+        - note
+        - changedAt
+      properties:
+        id:
+          type: number
+        repairRequestId:
+          type: number
+        oldStatusId:
+          type: number
+          nullable: true
+        oldStatusCode:
+          type: string
+          nullable: true
+        oldStatusName:
+          type: string
+          nullable: true
+        newStatusId:
+          type: number
+        newStatusCode:
+          type: string
+        newStatusName:
+          type: string
+        changedBy:
+          type: number
+          nullable: true
+        changedByName:
+          type: string
+          nullable: true
+        changedByEmail:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        changedAt:
+          type: string
+          nullable: true
 
     RepairRequest:
       type: object

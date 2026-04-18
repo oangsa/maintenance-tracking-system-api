@@ -82,3 +82,19 @@ export const RepairRequestIdParamSchema = t.Object({
 export const DeleteRepairRequestCollectionSchema = t.Object({
     ids: t.Array(t.String({ pattern: "^[0-9]+$" }), { minItems: 1 }),
 });
+
+export const RepairRequestStatusLogResponseSchema = t.Object({
+    id: t.Number(),
+    repairRequestId: t.Number(),
+    oldStatusId: t.Nullable(t.Number()),
+    oldStatusCode: t.Nullable(t.String()),
+    oldStatusName: t.Nullable(t.String()),
+    newStatusId: t.Number(),
+    newStatusCode: t.String(),
+    newStatusName: t.String(),
+    changedBy: t.Nullable(t.Number()),
+    changedByName: t.Nullable(t.String()),
+    changedByEmail: t.Nullable(t.String()),
+    note: t.Nullable(t.String()),
+    changedAt: t.Nullable(t.String()),
+});

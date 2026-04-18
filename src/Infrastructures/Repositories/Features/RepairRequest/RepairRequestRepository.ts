@@ -418,6 +418,12 @@ export class RepairRequestRepository implements IRepairRequestRepository
         return updated!;
     }
 
+    async GetRepairRequestItemsByRequestId(repairRequestId: number): Promise<RepairRequestItem[]>
+    {
+        const itemMap = await this.loadItemsForRepairRequestIds([repairRequestId]);
+        return itemMap.get(repairRequestId) ?? [];
+    }
+
     async DeleteRepairRequest(id: number): Promise<void>
     {
         await this._db.db.execute(sql`
@@ -427,5 +433,78 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ${id}
         `);
+    }
+
+    private async createRepairRequestItem(repairRequestId: number, item: RepairRequestItem): Promise<RepairRequestItem>
+    {
+        const insertedResult = await this._db.db.execute<{ id: number }>(sql`
+            INSERT INTO ${repairRequestItemTable} (
+                repair_request_id,
+                product_id,
+                description,
+                quantity,
+                repair_status_id,
+                department_id,
+                created_by,
+                updated_by
+            )
+            VALUES (
+                ${repairRequestId},
+                ${item.productId},
+                ${item.description},
+                ${item.quantity},
+                ${item.repairStatusId ?? 1},
+                ${item.departmentId},
+                ${item.createdBy},
+                ${item.updatedBy}
+            )
+            RETURNING id
+        `);
+
+        const newId = insertedResult[0]!.id;
+
+        const itemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
+            SELECT
+                ri.id,
+                ri.repair_request_id,
+                ri.product_id,
+                ri.description,
+                ri.quantity,
+                ri.repair_status_id,
+                ri.department_id,
+                ri.created_at,
+                ri.updated_at,
+                ri.created_by,
+                ri.updated_by,
+                p.code AS product_code,
+                p.name AS product_name,
+                p.product_type_id AS product_type_id,
+                rris.code AS item_status_code,
+                rris.name AS item_status_name,
+                rris.order_sequence AS item_status_order_sequence,
+                rris.is_final AS item_status_is_final
+            FROM ${repairRequestItemTable} ri
+            LEFT JOIN ${productTable} p ON p.id = ri.product_id
+            LEFT JOIN ${repairRequestItemStatusTable} rris ON rris.id = ri.repair_status_id
+            WHERE ri.id = ${newId}
+            LIMIT 1
+        `);
+
+        return this.mapRowToRepairRequestItem(itemRows[0] as RepairRequestItemRow);
+    }
+
+    async CreateRepairRequestItems(repairRequestId: number, items: RepairRequestItem[]): Promise<RepairRequestItem[]>
+    {
+        if (items.length === 0) return [];
+
+        const createdItems: RepairRequestItem[] = [];
+
+        for (const item of items)
+        {
+            const created = await this.createRepairRequestItem(repairRequestId, item);
+            createdItems.push(created);
+        }
+
+        return createdItems;
     }
 }

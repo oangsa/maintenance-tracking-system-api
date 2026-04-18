@@ -3,8 +3,9 @@ import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
+import { t } from "elysia";
 
 export class RepairRequestController
 {
@@ -82,6 +83,58 @@ export class RepairRequestController
                         detail: { summary: "Get repair request by ID", tags: ["Repair Requests"] },
                     },
                 )
+                .get(
+                    "/:id/items",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const result = await this._service.repairRequestService.GetRepairRequestItems(id);
+                                set.status = 200;
+
+                                return result;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: RepairRequestIdParamSchema,
+                        response: t.Array(RepairRequestItemResponseSchema),
+                        detail: { summary: "Get line items for repair request", tags: ["Repair Requests"] },
+                    },
+                )
+                .get(
+                    "/:id/audits",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const result = await this._service.repairRequestService.GetRepairRequestAudits(id);
+                                set.status = 200;
+
+                                return result;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: RepairRequestIdParamSchema,
+                        response: t.Array(RepairRequestStatusLogResponseSchema),
+                        detail: { summary: "Get audit log for repair request", tags: ["Repair Requests"] },
+                    },
+                )
                 .post(
                     "/",
                     async ({ body, currentUser, set }) =>
@@ -105,6 +158,34 @@ export class RepairRequestController
                     {
                         body: RepairRequestForCreateSchema,
                         detail: { summary: "Create repair request", tags: ["Repair Requests"] },
+                    },
+                )
+
+                // TODO: ADD endpoint for creating line items in bulk
+                .post(
+                    "/:id/items",
+                    async ({ params, body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const created = await this._service.repairRequestService.CreateRepairRequestItems(parseInt(params.id, 10), body);
+                                set.status = 201;
+                                set.headers["Location"] = `/repair-request/${params.id}/items`;
+
+                                return created;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        body: t.Array(RepairRequestItemForCreateSchema, { minItems: 1 }),
+                        params: RepairRequestIdParamSchema,
+                        detail: { summary: "Create line items for repair request", tags: ["Repair Requests"] },
                     },
                 )
                 .put(
@@ -157,13 +238,13 @@ export class RepairRequestController
                         detail: { summary: "Delete repair request", tags: ["Repair Requests"] },
                     },
             )
-            .delete("/collection", async ({ currentUser, set, params }) =>
+            .delete("/collection", async ({ currentUser, set, body }) =>
             {
                 return this._service.userProvider.run(currentUser!, async () =>
                 {
                     try
                     {
-                        const ids = params.ids.map((id: string) => parseInt(id, 10));
+                        const ids = body.ids.map((id: string) => parseInt(id, 10));
                         await this._service.repairRequestService.DeleteRepairRequestCollection(ids);
 
                         set.status = 204;
@@ -175,7 +256,7 @@ export class RepairRequestController
                 });
             },
             {
-                params: DeleteRepairRequestCollectionSchema,
+                body: DeleteRepairRequestCollectionSchema,
                 detail: { summary: "Delete repair request collection", tags: ["Repair Requests"] },
             })
         );

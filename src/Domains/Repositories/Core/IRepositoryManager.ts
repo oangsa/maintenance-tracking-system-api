@@ -8,6 +8,7 @@ import { IInventoryMoveRepository } from "../IInventoryMoveRepository";
 import { IRepairRequestRepository } from "../IRepairRequestRepository";
 import { IProductTypeRepository } from "../IProductTypeRepository";
 import { IProductRepository } from "../IProductRepository";
+import { IRepairRequestStatusLogRepository } from "../IRepairRequestStatusLogRepository";
 import { IWorkOrderRepository } from "../IWorkOrderRepository";
 
 export interface IRepositoryManager
@@ -22,5 +23,6 @@ export interface IRepositoryManager
     repairRequestRepository: IRepairRequestRepository;
     productTypeRepository: IProductTypeRepository;
     productRepository: IProductRepository;
+    repairRequestStatusLogRepository: IRepairRequestStatusLogRepository;
     workOrderRepository: IWorkOrderRepository;
 }

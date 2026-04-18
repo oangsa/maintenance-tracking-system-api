@@ -1,6 +1,8 @@
 import { RepairRequestDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestDto";
+import { RepairRequestItemDto } from "../../../DataTransferObjects/RepairRequestItem/RepairRequestItemDto";
 import { RepairRequestForCreateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForCreateDto";
 import { RepairRequestForUpdateDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestForUpdateDto";
+import { RepairRequestStatusLogDto } from "../../../DataTransferObjects/RepairRequest/RepairRequestStatusLogDto";
 import { RepairRequestParameter } from "../../../../Domains/RequestFeatures/RepairRequestParameter";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 import { IRepairRequestService } from "@/Applications/Services/IRepairRequestService";
@@ -12,6 +14,8 @@ import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairReque
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
+import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
+
 
 export class RepairRequestService implements IRepairRequestService
 {
@@ -79,6 +83,20 @@ export class RepairRequestService implements IRepairRequestService
         return this._mapperManager.repairRequestMapper.RepairRequestToDto(entity);
     }
 
+    async GetRepairRequestItems(id: number): Promise<RepairRequestItemDto[]>
+    {
+        await this.GetRepairRequestAndCheckIfItExists(id);
+        const items = await this._repositoryManager.repairRequestRepository.GetRepairRequestItemsByRequestId(id);
+        return this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(items);
+    }
+
+    async GetRepairRequestAudits(id: number): Promise<RepairRequestStatusLogDto[]>
+    {
+        await this.GetRepairRequestAndCheckIfItExists(id);
+        const logs = await this._repositoryManager.repairRequestStatusLogRepository.GetStatusLogsByRepairRequestId(id);
+        return logs.map(log => this._mapperManager.repairRequestStatusLogMapper.RepairRequestStatusLogToDto(log));
+    }
+
     async CreateRepairRequest(dto: RepairRequestForCreateDto): Promise<RepairRequestDto>
     {
         const currentUser = this._userProvider.getCurrentUser();
@@ -120,21 +138,63 @@ export class RepairRequestService implements IRepairRequestService
         return this._mapperManager.repairRequestMapper.RepairRequestToDto(created);
     }
 
+    async CreateRepairRequestItems(repairRequestId: number, dtos: RepairRequestItemForCreateDto[]): Promise<RepairRequestItemDto[]>
+    {
+        await this.GetRepairRequestAndCheckIfItExists(repairRequestId);
+
+        const dateNow = new Date().toISOString();
+
+        const items: RepairRequestItem[] = dtos.map(dto => this._mapperManager.repairRequestMapper.RepairRequestItemForCreateDtoToRepairRequestItem(dto));
+
+        items.forEach(item => {
+            item.repairRequestId = repairRequestId;
+            item.repairStatusId = 1;
+            item.createdAt = dateNow;
+            item.updatedAt = dateNow;
+            item.createdBy = this.getCalledBy();
+            item.updatedBy = this.getCalledBy();
+        });
+
+        const createdItems = await this._repositoryManager.repairRequestRepository.CreateRepairRequestItems(repairRequestId, items);
+        return this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(createdItems);
+    }
+
     async UpdateRepairRequest(id: number, dto: RepairRequestForUpdateDto): Promise<RepairRequestDto>
     {
         this.assertManagerOrAdmin();
 
         const entity = await this.GetRepairRequestAndCheckIfItExists(id);
+        const dateNow = new Date().toISOString();
+        const statusChanged = dto.currentStatusId !== undefined && dto.currentStatusId !== entity.currentStatusId;
 
         const updatedEntity: Partial<RepairRequest> = {
             id: entity.id,
             priority: dto.priority ?? entity.priority,
             currentStatusId: dto.currentStatusId ?? entity.currentStatusId,
-            updatedAt: new Date().toISOString(),
+            updatedAt: dateNow,
             updatedBy: this.getCalledBy(),
         };
 
         const result = await this._repositoryManager.repairRequestRepository.UpdateRepairRequest(updatedEntity);
+
+        if (statusChanged)
+        {
+            const currentUser = this._userProvider.getCurrentUser();
+
+            await this._repositoryManager.repairRequestStatusLogRepository.CreateStatusLog({
+                repairRequestId: entity.id,
+                oldStatusId: entity.currentStatusId,
+                newStatusId: dto.currentStatusId!,
+                changedBy: currentUser?.userId ?? null,
+                note: null,
+                changedAt: dateNow,
+                createdAt: dateNow,
+                updatedAt: dateNow,
+                createdBy: this.getCalledBy(),
+                updatedBy: this.getCalledBy(),
+            });
+        }
+
         return this._mapperManager.repairRequestMapper.RepairRequestToDto(result);
     }
 
