@@ -137,7 +137,7 @@ export class RepairRequestController
                         detail: { summary: "Get audit log for repair request", tags: ["Repair Requests"] },
                     },
                 )
-                .get(
+                .post(
                     "/:id/work-order",
                     async ({ params, body, currentUser, set }) =>
                     {

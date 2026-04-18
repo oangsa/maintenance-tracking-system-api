@@ -7,6 +7,7 @@ import { PagedResult } from "../../Domains/RequestFeatures/Core/PageResult";
 export interface IWorkOrderService
 {
     GetListWorkOrder(parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>;
+    GetListWorkOrderByRepairRequestId(repairRequestId: number, parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>;
     GetWorkOrder(id: number): Promise<WorkOrderDto>;
     CreateWorkOrder(WorkOrderForCreateDto: WorkOrderForCreateDto): Promise<WorkOrderDto>;
     UpdateWorkOrder(id: number, WorkOrderForUpdateDto: WorkOrderForUpdateDto): Promise<WorkOrderDto>;

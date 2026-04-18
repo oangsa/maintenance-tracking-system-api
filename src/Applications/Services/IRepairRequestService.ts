@@ -11,8 +11,13 @@ export interface IRepairRequestService
 {
     GetListRepairRequest(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequestDto>>;
     GetRepairRequest(id: number): Promise<RepairRequestDto>;
+
+    // TODO: Consider returning PagedResult<RepairRequestItemDto> if the number of items can be large
     GetRepairRequestItems(id: number): Promise<RepairRequestItemDto[]>;
+
+    // TODO: Consider returning PagedResult<RepairRequestStatusLogDto> if the number of items can be large
     GetRepairRequestAudits(id: number): Promise<RepairRequestStatusLogDto[]>;
+
     CreateRepairRequest(repairRequestForCreateDto: RepairRequestForCreateDto): Promise<RepairRequestDto>;
     CreateRepairRequestItems(repairRequestId: number, repairRequestItemForCreateDtos: RepairRequestItemForCreateDto[]): Promise<RepairRequestItemDto[]>;
     UpdateRepairRequest(id: number, repairRequestForUpdateDto: RepairRequestForUpdateDto): Promise<RepairRequestDto>;
