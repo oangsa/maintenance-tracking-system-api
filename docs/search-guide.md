@@ -145,7 +145,7 @@ This request means:
 
 ## Special Case: Repair Request Item Search
 
-`POST /api/v1/repair-request/search` supports searching not only repair request header fields, but also joined requested-item fields.
+`POST /api/v1/repair-requests/search` supports searching not only repair request header fields, but also joined requested-item fields.
 
 To target requested-item fields, prefix the field name with `repair_request_items_`.
 
@@ -153,6 +153,9 @@ Supported item-search fields:
 
 | Input field name | Meaning |
 |---|---|
+| `repair_request_items_department_id` | Requested item department numeric ID |
+| `repair_request_items_department_code` | Requested item department code |
+| `repair_request_items_department_name` | Requested item department name |
 | `repair_request_items_product_code` | Requested item product code |
 | `repair_request_items_product_name` | Requested item product name |
 | `repair_request_items_repair_status_code` | Requested item status code |
@@ -161,6 +164,8 @@ Supported item-search fields:
 | `repair_request_items_quantity` | Requested item quantity |
 
 This prefix works in both `search` and `searchTerm`.
+
+Use `repair_request_items_department_code` when filtering by a business code such as `P001`. `repair_request_items_department_id` is the numeric foreign-key ID.
 
 ### How repair request item matching works
 
@@ -300,7 +305,7 @@ Default direction is `ASC` when not specified.
 | `created_by` | `createdBy` | |
 | `updated_by` | `updatedBy` | |
 
-### Repair Requests (`POST /api/v1/repair-request/search`)
+### Repair Requests (`POST /api/v1/repair-requests/search`)
 
 | Input field name | Response key (camelCase) | Notes |
 |---|---|---|
@@ -321,6 +326,9 @@ Default direction is `ASC` when not specified.
 | `requester_email` | `requesterEmail` | Joined users |
 | `requester_name` | `requesterName` | Joined users |
 | `requester_role` | _(no direct field)_ | Joined users |
+| `repair_request_items_department_id` | _(item search only)_ | Requested item department numeric ID |
+| `repair_request_items_department_code` | _(item search only)_ | Requested item department code |
+| `repair_request_items_department_name` | _(item search only)_ | Requested item department name |
 | `repair_request_items_product_code` | _(item search only)_ | Requested item product code |
 | `repair_request_items_product_name` | _(item search only)_ | Requested item product name |
 | `repair_request_items_repair_status_code` | _(item search only)_ | Requested item status code |

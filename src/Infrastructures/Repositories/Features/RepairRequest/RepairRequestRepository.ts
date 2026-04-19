@@ -3,6 +3,7 @@ import { AppDrizzleDB } from "../../../Database";
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 import {
+    department as departmentTable,
     repairRequest as repairRequestTable,
     repairRequestItem as repairRequestItemTable,
     repairStatus as repairStatusTable,
@@ -14,6 +15,7 @@ import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
+import { BadRequestMessageException } from "@/Domains/Exceptions/BadRequestException";
 import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePageResult";
 import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 import { QueryBuilder } from "../../Extensions/QueryBuilder";
@@ -70,6 +72,40 @@ export class RepairRequestRepository implements IRepairRequestRepository
     constructor(db: AppDrizzleDB)
     {
         this._db = db;
+    }
+
+    private validateNumericSearchValue(
+        searches: Array<{ name?: string; value?: string }> | undefined,
+        numericFieldName: string,
+        codeFieldName: string,
+    ): void
+    {
+        if (!searches || searches.length === 0)
+        {
+            return;
+        }
+
+        for (const search of searches)
+        {
+            if (search.name?.toLowerCase() !== numericFieldName)
+            {
+                continue;
+            }
+
+            if (!search.value || search.value.trim() === '')
+            {
+                continue;
+            }
+
+            if (!Number.isNaN(Number(search.value)))
+            {
+                continue;
+            }
+
+            throw new BadRequestMessageException(
+                `${numericFieldName} expects a numeric ID. Use ${codeFieldName} for business codes such as P001.`,
+            );
+        }
     }
 
     private mapRowToRepairRequest(row: RepairRequestRow, items: RepairRequestItem[]): RepairRequest
@@ -273,6 +309,12 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const ITEM_PREFIX = 'repair_request_items_';
 
+        this.validateNumericSearchValue(
+            params.search,
+            `${ITEM_PREFIX}department_id`,
+            `${ITEM_PREFIX}department_code`,
+        );
+
         const mainSearch = (params.search ?? []).filter(s => !s.name?.startsWith(ITEM_PREFIX));
         const itemSearch = (params.search ?? [])
             .filter(s => s.name?.startsWith(ITEM_PREFIX))
@@ -334,14 +376,18 @@ export class RepairRequestRepository implements IRepairRequestRepository
             const itemSubquery = sql`
                 SELECT
                     repair_request_item.repair_request_id,
+                    repair_request_item.department_id,
                     product.code AS product_code,
                     product.name AS product_name,
+                    department.code AS department_code,
+                    department.name AS department_name,
                     item_status.code AS repair_status_code,
                     item_status.name AS repair_status_name,
                     repair_request_item.description,
                     repair_request_item.quantity
                 FROM ${repairRequestItemTable} repair_request_item
                 LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+                LEFT JOIN ${departmentTable} department ON department.id = repair_request_item.department_id
                 LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
             `;
             whereConditions.push(sql`EXISTS (
@@ -491,6 +537,8 @@ export class RepairRequestRepository implements IRepairRequestRepository
         const offset = (params.pageNumber - 1) * params.pageSize;
         const limit = params.pageSize;
 
+        this.validateNumericSearchValue(params.search, 'department_id', 'department_code');
+
         const whereConditions: SQL[] = [sql`repair_request_id = ${repairRequestId}`];
 
         if (params.search && params.search.length > 0)
@@ -524,12 +572,15 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 product.code AS product_code,
                 product.name AS product_name,
                 product.product_type_id AS product_type_id,
+                department.code AS department_code,
+                department.name AS department_name,
                 item_status.code AS repair_status_code,
                 item_status.name AS repair_status_name,
                 item_status.order_sequence AS repair_status_order_sequence,
                 item_status.is_final AS repair_status_is_final
             FROM ${repairRequestItemTable} repair_request_item
             LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+            LEFT JOIN ${departmentTable} department ON department.id = repair_request_item.department_id
             LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
         `;
 

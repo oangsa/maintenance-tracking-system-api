@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
+import { BadRequestException } from "@/Domains/Exceptions/BadRequestException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
@@ -314,6 +315,17 @@ export class RepairRequestController
 
     private handleError(error: any, set: any)
     {
+        if (error instanceof BadRequestException)
+        {
+            set.status = 400;
+
+            return {
+                statusCode: 400,
+                message: error.message,
+                error: "Bad Request",
+            };
+        }
+
         if (error instanceof RepairRequestNotFoundException)
         {
             set.status = 404;
