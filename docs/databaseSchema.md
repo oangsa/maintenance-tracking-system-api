@@ -419,6 +419,13 @@ For the longer version of the rules and backend flow, see `docs/taskAssignmentRu
 
 > Role: **intent layer** — records what parts a work order needs/used. Does NOT directly affect stock.
 > Link `inventory_move_item_id` after actual consumption to tie planned usage → actual stock movement.
+> This table must not become a second stock table. Stock still comes only from `inventory_move_item`.
+
+Design notes:
+- `work_order_part.quantity` should be treated as operational intent or requested usage for the work order.
+- Actual stock reduction only happens when an `inventory_move` and `inventory_move_item` are created.
+- `inventory_move_item_id` is the bridge from work execution to stock movement, not a replacement for movement history.
+- With the current one `work_order_part` -> one `inventory_move_item` design, partial consumption across multiple transactions is only clean if the work order part is split into multiple rows. Otherwise the model starts mixing planned quantity and actual quantity in one record.
 
 | Column | Type | Nullable | Default | Column Constraints |
 |---|---|---|---|---|
