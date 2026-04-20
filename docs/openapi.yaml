@@ -2511,6 +2511,7 @@ components:
         - productTypeId
         - productTypeCode
         - productTypeName
+        - totalStock
         - createdAt
         - updatedAt
         - createdBy
@@ -2528,6 +2529,9 @@ components:
           type: string
         productTypeName:
           type: string
+        totalStock:
+          type: number
+          description: Derived stock level calculated from SUM(quantity_in - quantity_out) in inventory_move_item
         createdAt:
           type: string
           nullable: true

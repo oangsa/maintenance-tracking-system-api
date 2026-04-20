@@ -88,8 +88,8 @@ export class PartService implements IPartService
             code: partForCreateDto.code,
             name: partForCreateDto.name,
             productTypeId: partForCreateDto.productTypeId,
-            productTypeCode: "", 
-            productTypeName: "", 
+            productTypeCode: "",
+            productTypeName: "",
             createdAt: dateNow,
             updatedAt: dateNow,
             createdBy: this.getCalledBy(),
@@ -108,11 +108,13 @@ export class PartService implements IPartService
                     deleted: false,
                 });
 
-                return this._mapperManager.partMapper.PartToDto(restoredPart);
+                const hydratedPart = await this._repositoryManager.partRepository.GetPartById(restoredPart.id);
+                return this._mapperManager.partMapper.PartToDto(hydratedPart!);
             }
 
             const createdPart = await this._repositoryManager.partRepository.CreatePart(newPart);
-            return this._mapperManager.partMapper.PartToDto(createdPart);
+            const hydratedPart = await this._repositoryManager.partRepository.GetPartById(createdPart.id);
+            return this._mapperManager.partMapper.PartToDto(hydratedPart!);
         }
         catch (error: any)
         {
@@ -154,7 +156,8 @@ export class PartService implements IPartService
         try
         {
             const result = await this._repositoryManager.partRepository.UpdatePart(updatedPart);
-            return this._mapperManager.partMapper.PartToDto(result);
+            const hydratedPart = await this._repositoryManager.partRepository.GetPartById(result.id);
+            return this._mapperManager.partMapper.PartToDto(hydratedPart!);
         }
         catch (error: any)
         {
