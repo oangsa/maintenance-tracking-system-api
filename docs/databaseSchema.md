@@ -18,6 +18,9 @@ Notes:
 | Rule | Description |
 |---|---|
 | Never update `part.stock` directly | Stock is never stored as a column on `part`. |
+| Part response stock is calculated, not stored | Any part read model that exposes stock should return total stock from `SUM(quantity_in) - SUM(quantity_out)` grouped by part. |
+| Every stock increase MUST create an `inventory_move` | When stock is added, it must be recorded as a transaction and not patched directly onto part data. |
+| Every stock decrease MUST create an `inventory_move` | When stock is removed or consumed, it must be recorded as a transaction and not patched directly onto part data. |
 | Every consumption MUST create an `inventory_move` | No shortcut allowed. Use `reason = WORK_ORDER_CONSUME` when parts are consumed for a work order. |
 | One `work_order_part` → one `inventory_move_item` | Prevents double counting. Link via `work_order_part.inventory_move_item_id`. |
 
@@ -30,6 +33,8 @@ SELECT part_id, SUM(quantity_in - quantity_out) AS stock
 FROM inventory_move_item
 GROUP BY part_id;
 ```
+
+For part API responses, this means `total_stock` should be treated as a derived value from movement history, not as a persisted column on `part`.
 
 ### Workflow
 
@@ -52,6 +57,13 @@ inventory_move
 | 3 | Create `work_order_part` (plan parts needed) | **None** |
 | 4 | Technician uses parts → create `inventory_move` (`reason = WORK_ORDER_CONSUME`) + `inventory_move_item` | **Stock decreases** |
 | 5 | Set `work_order_part.inventory_move_item_id` to link plan → actual movement | None |
+
+### Design notes
+
+- `part` should remain master data only, while stock lives in transaction history.
+- All stock-changing actions should be modeled as inventory transactions so audit and reconciliation stay possible.
+- Any endpoint that returns part stock should derive it consistently from the same movement source to avoid mismatch between list, detail, and report screens.
+- Reversal or correction flows should also create compensating inventory transactions instead of editing historical movement rows.
 
 ---
 
