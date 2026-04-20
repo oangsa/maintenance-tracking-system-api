@@ -55,6 +55,36 @@ inventory_move
 
 ---
 
+## Task Assignment Logic Rules
+
+> **`work_task_assignment` is the SINGLE SOURCE OF TRUTH for task assignee history.**
+
+### Rules enforced in the backend
+
+| Rule | Description |
+|---|---|
+| One active assignee per `work_task` | The database guarantees only one row can stay active at a time, where active means `unassigned_at IS NULL`. |
+| Reassign by append, not replace | A new assignment automatically closes the previous active assignment before the new one becomes active. |
+| Do not mutate assignment history | Assignment records are preserved as history; only `unassigned_at` is used to end an active assignment. |
+| Cannot assign deleted users | The database rejects assignment rows that target a deleted user. |
+| Cannot assign final tasks | The database rejects new assignments when the related task is already in a final state. |
+| Assignment time must stay valid | End time must be empty for active rows or greater than or equal to the start time. |
+| Assignment ownership is required | `assigned_by` must always be present on each assignment record. |
+
+### Workflow
+
+| Step | Action | Effect |
+|---|---|---|
+| 1 | Backend validates request payload | Prevent obvious bad input before reaching persistence |
+| 2 | Insert new `work_task_assignment` row | New active assignee is recorded |
+| 3 | Database closes previous active assignment automatically | History is preserved and only one active row remains |
+| 4 | Database rejects invalid cases | Deleted assignees, final tasks, and invalid time ranges cannot be persisted |
+| 5 | Query by `unassigned_at IS NULL` | Read current assignee |
+
+For the longer version of the rules and backend flow, see `docs/taskAssignmentRules.md`.
+
+---
+
 ## public enum types
 
 | Type Name | Values |
@@ -397,6 +427,30 @@ inventory_move
 | work_order_part_work_order_id_fkey | FOREIGN KEY | (work_order_id) REFERENCES public.work_order(id) |
 | work_order_part_part_id_fkey | FOREIGN KEY | (part_id) REFERENCES public.part(id) |
 | fk_work_order_part_inventory_move_item | FOREIGN KEY | (inventory_move_item_id) REFERENCES public.inventory_move_item(id) |
+
+---
+
+## Task Assignment (new table: work_task_assignment)
+
+Note: a new append-only table `work_task_assignment` is used to record assignee history for `work_task`. The authoritative, longer specification and backend flow are documented in `docs/databaseSchema-details.md`.
+
+Brief schema (summary):
+
+| Column | Type | Notes |
+|---|---:|---|
+| id | integer | PK, serial |
+| work_task_id | integer | FK -> `work_task(id)` |
+| assignee_id | integer | FK -> `users(id)` (NOT NULL) |
+| assigned_by | integer | FK -> `users(id)` (NOT NULL) |
+| assigned_at | timestamp with time zone | default `now()` |
+| unassigned_at | timestamp with time zone | NULL if active; set when assignment ends |
+| note | text | optional context |
+
+Design highlights:
+- The table is append-only: history is preserved and `unassigned_at` is the only mutable field.
+- Enforce single active assignee per `work_task` via DB constraint (partial unique index) or trigger.
+- Backend should treat assign/reassign as an atomic operation: validate + insert in a transaction, rely on DB mechanisms to close prior active assignment.
+- See `docs/databaseSchema-details.md` for full rules, sample SQL, and backend flow examples.
 
 ## public.work_task
 
