@@ -50,6 +50,12 @@ export const relations = defineRelations(schema, (r) => ({
 		repairStatuses: r.many.repairStatus(),
 		repairRequestStatusLogs: r.many.repairRequestStatusLog(),
 		departments: r.many.department(),
+		workTaskAssignmentsAssignedBy: r.many.workTaskAssignment({
+			alias: "workTaskAssignment_assignedBy_users_id"
+		}),
+		workTaskAssignmentsAssigneeId: r.many.workTaskAssignment({
+			alias: "workTaskAssignment_assigneeId_users_id"
+		}),
 	},
 	repairStatus: {
 		users: r.many.users({
@@ -138,6 +144,23 @@ export const relations = defineRelations(schema, (r) => ({
 		workOrder: r.one.workOrder({
 			from: r.workTask.workOrderId,
 			to: r.workOrder.id
+		}),
+		workTaskAssignments: r.many.workTaskAssignment(),
+	},
+	workTaskAssignment: {
+		userAssignedBy: r.one.users({
+			from: r.workTaskAssignment.assignedBy,
+			to: r.users.id,
+			alias: "workTaskAssignment_assignedBy_users_id"
+		}),
+		userAssigneeId: r.one.users({
+			from: r.workTaskAssignment.assigneeId,
+			to: r.users.id,
+			alias: "workTaskAssignment_assigneeId_users_id"
+		}),
+		workTask: r.one.workTask({
+			from: r.workTaskAssignment.workTaskId,
+			to: r.workTask.id
 		}),
 	},
 }))
