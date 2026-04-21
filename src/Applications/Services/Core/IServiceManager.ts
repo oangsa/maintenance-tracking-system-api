@@ -12,6 +12,7 @@ import { IRepairRequestService } from "../IRepairRequestService";
 import { IProductTypeService } from "../IProductTypeService";
 import { IProductService } from "../IProductService";
 import { IWorkOrderService } from "../IWorkOrderService";
+import { IWorkOrderPartService } from "../IWorkOrderPartService";
 
 export interface IServiceManager
 {
@@ -30,4 +31,5 @@ export interface IServiceManager
     productTypeService: IProductTypeService;
     productService: IProductService;
     workOrderService: IWorkOrderService;
+    workOrderPartService: IWorkOrderPartService;
 }
