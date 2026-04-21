@@ -1,7 +1,9 @@
 import { IProductTypeRepository } from "@/Domains/Repositories/IProductTypeRepository";
 import { AppDrizzleDB } from "../../Database";
 import { ProductType } from "@/Infrastructures/Entities/Master/ProductType";
-import { productType as productTypeTable, department as departmentTable } from "@/Infrastructures/Database/Drizzle/schema";
+import { productType as productTypeTable, department as departmentTable, product as productTable, part as partTable } from "@/Infrastructures/Database/Drizzle/schema";
+import { Product } from "@/Infrastructures/Entities/Master/Product";
+import { Part } from "@/Infrastructures/Entities/Master/Part";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 import { ProductTypeParameter } from "@/Domains/RequestFeatures/ProductTypeParameter";
@@ -267,5 +269,70 @@ export class ProductTypeRepository implements IProductTypeRepository
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ${id}
         `);
+    }
+
+    async GetAssetsByProductTypeId(id: number): Promise<Product[]>
+    {
+        const result = await this._db.db.execute<any>(sql`
+            SELECT 
+                id, 
+                code, 
+                name, 
+                product_type_id, 
+                created_at, 
+                updated_at, 
+                created_by, 
+                updated_by, 
+                deleted
+            FROM ${productTable}
+            WHERE product_type_id = ${id} AND deleted = false
+        `);
+
+        return result.map(row => ({
+            id: row.id,
+            code: row.code,
+            name: row.name,
+            productTypeId: row.product_type_id,
+            productTypeCode: row.product_type_code,
+            productTypeName: row.product_type_name,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            createdBy: row.created_by,
+            updatedBy: row.updated_by,
+            deleted: row.deleted
+        }));
+    }
+
+    async GetPartsByProductTypeId(id: number): Promise<Part[]>
+    {
+        const result = await this._db.db.execute<any>(sql`
+            SELECT 
+                id, 
+                code, 
+                name, 
+                product_type_id, 
+                created_at, 
+                updated_at, 
+                created_by, 
+                updated_by, 
+                deleted
+            FROM ${partTable}
+            WHERE product_type_id = ${id} AND deleted = false
+        `);
+
+        return result.map(row => ({
+            id: row.id,
+            code: row.code,
+            name: row.name,
+            productTypeId: row.product_type_id,
+            productTypeCode: row.product_type_code,
+            productTypeName: row.product_type_name,
+            totalStock: row.total_stock ?? 0,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            createdBy: row.created_by,
+            updatedBy: row.updated_by,
+            deleted: row.deleted
+        }));
     }
 }
