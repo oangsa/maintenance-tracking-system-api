@@ -40,7 +40,6 @@ export class WorkOrderPartController
                                     orderBy: body.orderBy as WorkOrderPartParameter["orderBy"],
                                     search: body.search,
                                     searchTerm: body.searchTerm,
-                                    workOrderId: (body as any).workOrderId 
                                 };
 
                                 const result = await this._service.workOrderPartService.GetListWorkOrderPart(params);

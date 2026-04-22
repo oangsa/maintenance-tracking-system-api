@@ -101,7 +101,7 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
         }
 
         const whereClause = whereConditions.length > 0 ? sql`WHERE ${sql.join(whereConditions, sql` AND `)}` : sql``;
-        const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
+        const orderByClause = QueryBuilder.BuildRawSQLOrderQuery( params.orderBy?.replace(/\bpartId\b/g, "part_id"));
 
         const innerQuery = sql`
             SELECT
