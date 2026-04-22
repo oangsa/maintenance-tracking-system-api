@@ -27,6 +27,9 @@ import { IProductService } from "../../Services/IProductService";
 import { ProductService } from "../Master/ProductService";
 import { IWorkOrderService } from "../../Services/IWorkOrderService";
 import { WorkOrderService } from "../Master/WorkOrderService";
+import { IWorkOrderPartService } from "../../Services/IWorkOrderPartService";
+import { WorkOrderPartService } from "../Master/WorkOrderPartService";
+
 
 export class ServiceManager implements IServiceManager
 {
@@ -43,6 +46,7 @@ export class ServiceManager implements IServiceManager
     private readonly _productTypeService: IProductTypeService;
     private readonly _productService: IProductService;
     private readonly _workOrderService: IWorkOrderService;
+    private readonly _workOrderPartService: IWorkOrderPartService;
 
     constructor(coreAdapterManager: ICoreAdapterManager)
     {
@@ -62,6 +66,7 @@ export class ServiceManager implements IServiceManager
         this._productTypeService = new ProductTypeService(coreAdapterManager, mapperManager, this._userProvider);
         this._productService = new ProductService(coreAdapterManager, mapperManager, this._userProvider);
         this._workOrderService = new WorkOrderService(coreAdapterManager, mapperManager, this._userProvider);
+        this._workOrderPartService = new WorkOrderPartService(coreAdapterManager, mapperManager, this._userProvider);
     }
 
     get configurationManager(): IConfigurationManager
@@ -134,4 +139,11 @@ export class ServiceManager implements IServiceManager
     {
         return this._workOrderService;
     }
+
+    get workOrderPartService(): IWorkOrderPartService
+    {
+        return this._workOrderPartService;  
+    }
+
+
 }

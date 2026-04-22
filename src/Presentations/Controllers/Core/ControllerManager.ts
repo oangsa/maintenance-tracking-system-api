@@ -12,6 +12,8 @@ import { ProductTypeController } from "../Master/ProductTypeController";
 import { ProductController } from "../Master/ProductController";
 import { ApiConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
 import { WorkOrderController } from "../Master/WorkOrderController";
+import { WorkOrderPartController } from "../Master/WorkOrderPartController";
+
 
 export class ControllerManager
 {
@@ -27,6 +29,7 @@ export class ControllerManager
     private readonly productController: ProductController;
     private readonly apiVersioningConfiguration: ApiConfiguration;
     private readonly workorderController: WorkOrderController;
+    private readonly workOrderPartController: WorkOrderPartController;
 
     constructor(serviceManager: IServiceManager)
     {
@@ -42,6 +45,7 @@ export class ControllerManager
         this.productController = new ProductController(serviceManager);
         this.apiVersioningConfiguration = serviceManager.configurationManager.api;
         this.workorderController = new WorkOrderController(serviceManager);
+        this.workOrderPartController = new WorkOrderPartController(serviceManager);
     }
 
     public RegisterRoutes(app: Elysia<any>): void
@@ -116,5 +120,6 @@ export class ControllerManager
         this.productTypeController.RegisterRoutes(app);
         this.productController.RegisterRoutes(app);
         this.workorderController.RegisterRoutes(app);
+        this.workOrderPartController.RegisterRoutes(app);
     }
 }
