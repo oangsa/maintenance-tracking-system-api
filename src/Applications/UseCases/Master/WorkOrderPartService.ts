@@ -165,7 +165,7 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async DeleteWorkOrderPart(id: number): Promise<void>
     {
-        this.ExpectRole('employee');
+        this.ExpectRole('admin'); 
 
         const workOrderPartEntity = await this.GetWorkOrderPartAndCheckIfItExists(id);
 
