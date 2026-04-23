@@ -1190,6 +1190,40 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/inventory-move/{id}/reverse:
+    post:
+      tags:
+        - Inventory Moves
+      summary: Reverse inventory move
+      operationId: reverseInventoryMove
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryMoveForCreate'
+      responses:
+        '201':
+          description: Inventory move reversed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMove'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/inventory-move/collection:
     delete:
       tags:
