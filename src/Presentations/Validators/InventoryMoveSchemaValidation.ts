@@ -18,6 +18,7 @@ export const InventoryMoveItemResponseSchema = t.Object({
     quantityIn: t.Number(),
     quantityOut: t.Number(),
     note: t.Nullable(t.String()),
+    workOrderPartId: t.Nullable(t.Number()),
 });
 
 export const InventoryMoveResponseSchema = t.Object({
@@ -42,7 +43,8 @@ export const InventoryMoveForCreateSchema = t.Object({
         partId: t.Number(),
         quantityIn: t.Number({ minimum: 0 }),
         quantityOut: t.Number({ minimum: 0 }),
-        note: t.Optional(t.String())
+        note: t.Optional(t.Nullable(t.String())),
+        workOrderPartId: t.Optional(t.Nullable(t.Number())),
     }), { minItems: 1 }) 
 });
 

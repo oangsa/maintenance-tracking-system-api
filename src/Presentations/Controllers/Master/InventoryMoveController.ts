@@ -94,9 +94,9 @@ export class InventoryMoveController
 
                 .post(
                     "/",
-                    async ({ body, currentUser, set }) =>
+                    async ({ body, currentUser, set }) => 
                     {
-                        return this._service.userProvider.run(currentUser!, async () =>
+                        return this._service.userProvider.run(currentUser!, async () => 
                         {
                             try
                             {
@@ -108,7 +108,7 @@ export class InventoryMoveController
                             }
                             catch (error: any)
                             {
-                                return this.handleError(error, set);
+                               return this.handleError(error, set);
                             }
                         });
                     },
@@ -199,7 +199,33 @@ export class InventoryMoveController
                             tags: ["Inventory Moves"] 
                         },
                     },
-                ),
+                )
+
+                .post(
+                    "/:id/reverse",
+                    async ({ params, body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const reversedInventoryMove = await this._service.inventoryMoveService.ReverseInventoryMove(id, body);
+                                set.status = 201;
+                                return reversedInventoryMove;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: InventoryMoveIdParamSchema,
+                        body: InventoryMoveForCreateSchema,
+                        detail: { summary: "Reverse inventory move", tags: ["Inventory Moves"] },
+                    },
+                )
         );
     }
 
@@ -235,6 +261,15 @@ export class InventoryMoveController
             };
         }
 
+        if (error.message && (error.message.includes("XOR") || error.message.includes("direction"))) {
+            set.status = 400;
+            return {
+                statusCode: 400,
+                message: error.message,
+                error: "Bad Request (XOR Validation Failed)"
+            };
+        }
+        
         set.status = 500;
         return {
             statusCode: 500,

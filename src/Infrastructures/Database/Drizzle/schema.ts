@@ -39,6 +39,7 @@ export const inventoryMoveItem = pgTable("inventory_move_item", {
 	quantityIn: integer("quantity_in").default(0),
 	quantityOut: integer("quantity_out").default(0),
 	note: text(),
+	workOrderPartId: integer("work_order_part_id").references(() => workOrderPart.id),
 	createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 50 }),
@@ -221,7 +222,6 @@ export const workOrderPart = pgTable("work_order_part", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 150 }),
 	updatedBy: varchar("updated_by", { length: 150 }),
-	inventoryMoveItemId: integer("inventory_move_item_id").references(() => inventoryMoveItem.id),
 });
 
 export const workTask = pgTable("work_task", {

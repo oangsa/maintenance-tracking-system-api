@@ -1,3 +1,3 @@
-import { InventoryMoveForCreateSchema } from "@/Presentations/Validators/InventoryMoveSchemaValidation"
+import { InventoryMoveForCreateSchema } from "@/Presentations/Validators/InventoryMoveSchemaValidation";
 
-export type InventoryMoveForCreateDto = typeof InventoryMoveForCreateSchema.static
+export type InventoryMoveForCreateDto = typeof InventoryMoveForCreateSchema.static;

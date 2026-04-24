@@ -30,6 +30,7 @@ type InventoryMoveItemRow = {
     quantity_in: number;
     quantity_out: number;
     note: string | null;
+    work_order_part_id: number | null;
     created_at: string | null;
     updated_at: string | null;
     created_by: string | null;
@@ -68,6 +69,7 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
             quantityIn: row.quantity_in,
             quantityOut: row.quantity_out,
             note: row.note ?? "",
+            workOrderPartId: row.work_order_part_id,
             createdAt: row.created_at ?? "",
             updatedAt: row.updated_at ?? "",
             createdBy: row.created_by ?? "",
@@ -78,27 +80,32 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
     }
 
     async CreateInventoryMove(inventoryMove: InventoryMove): Promise<InventoryMove> {
-        return await this._db.db.transaction(async (tx) => {
-            const headerResult = await tx.execute<InventoryMoveRow>(sql`
-                INSERT INTO ${inventoryMoveTable} (move_no, reason, move_date, remark, created_by, updated_by, deleted)
-                VALUES (${inventoryMove.moveNo}, ${inventoryMove.reason}, ${inventoryMove.moveDate || sql`CURRENT_TIMESTAMP`}, ${inventoryMove.remark}, ${inventoryMove.createdBy}, ${inventoryMove.updatedBy}, false)
-                RETURNING *
-            `);
+    return await this._db.db.transaction(async (tx) => {
+        const headerResult = await tx.execute<InventoryMoveRow>(sql`
+            INSERT INTO ${inventoryMoveTable} (move_no, reason, move_date, remark, created_by, updated_by, deleted)
+            VALUES (${inventoryMove.moveNo}, ${inventoryMove.reason}, ${inventoryMove.moveDate || sql`CURRENT_TIMESTAMP`}, ${inventoryMove.remark}, ${inventoryMove.createdBy}, ${inventoryMove.updatedBy}, false)
+            RETURNING *
+        `);
 
-            const insertedHeader = this.mapRowToInventoryMove(headerResult[0]!);
+        const insertedHeader = this.mapRowToInventoryMove(headerResult[0]!);
 
-            if (inventoryMove.inventoryMoveItems && inventoryMove.inventoryMoveItems.length > 0) {
-                for (const item of inventoryMove.inventoryMoveItems) {
-                    await tx.execute(sql`
-                        INSERT INTO ${inventoryMoveItemTable} (inventory_move_id, part_id, quantity_in, quantity_out, note, created_by, updated_by, deleted)
-                        VALUES (${insertedHeader.id}, ${item.partId}, ${item.quantityIn}, ${item.quantityOut}, ${item.note}, ${inventoryMove.createdBy}, ${inventoryMove.updatedBy}, false)
-                    `);
+        if (inventoryMove.inventoryMoveItems && inventoryMove.inventoryMoveItems.length > 0) {
+            for (const item of inventoryMove.inventoryMoveItems) {
+                const itemResult = await tx.execute<InventoryMoveItemRow>(sql`
+                    INSERT INTO ${inventoryMoveItemTable} (inventory_move_id, part_id, quantity_in, quantity_out, note, work_order_part_id, created_by, updated_by, deleted)
+                    VALUES (${insertedHeader.id}, ${item.partId}, ${item.quantityIn}, ${item.quantityOut}, ${item.note}, ${item.workOrderPartId ?? null}, ${inventoryMove.createdBy}, ${inventoryMove.updatedBy}, false)
+                    RETURNING *
+                `);
+
+                if (itemResult[0]) {
+                    insertedHeader.inventoryMoveItems.push(this.mapRowToInventoryMoveItem(itemResult[0]));
                 }
             }
+        }
 
-            return insertedHeader;
-        });
-    }
+        return insertedHeader; 
+    });
+}
 
     async GetInventoryMoveById(id: number): Promise<InventoryMove | null> {
         const moveResult = await this._db.db.execute<InventoryMoveRow>(sql`
@@ -119,52 +126,94 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
     }
 
     async GetListInventoryMove(parameters: InventoryMoveParameter): Promise<PagedResult<InventoryMove>> {
-        const params = normalizeRequestParameters(parameters);
-        const offset = (params.pageNumber - 1) * params.pageSize;
-        const limit = params.pageSize;
+    const params = normalizeRequestParameters(parameters);
+    const offset = (params.pageNumber - 1) * params.pageSize;
+    const limit = params.pageSize;
 
-        const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
+    // --- [TASK 03 MODIFIED]: เริ่มสร้างเงื่อนไข WHERE ---
+    const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
 
-        if (params.searchTerm) {
-            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(params.searchTerm);
-            if (searchSQL) whereConditions.push(searchSQL);
-        }
-
-        const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
-        const orderByClause = params.orderBy 
-            ? QueryBuilder.BuildRawSQLOrderQuery(params.orderBy)
-            : sql`ORDER BY created_at DESC`;
-
-        const [results, countResult] = await Promise.all([
-            this._db.db.execute<InventoryMoveRow>(sql`
-                SELECT * FROM ${inventoryMoveTable}
-                ${whereClause}
-                ${orderByClause}
-                LIMIT ${limit} OFFSET ${offset}
-            `),
-            this._db.db.execute<{ count: number }>(sql`
-                SELECT COUNT(*)::int AS count FROM ${inventoryMoveTable} ${whereClause}
-            `),
-        ]);
-
-        const totalCount = countResult[0]?.count ?? 0;
-        const items = Array.from(results).map(row => this.mapRowToInventoryMove(row));
-
-        return createPagedResult(items, totalCount, params.pageNumber, params.pageSize);
+    // 1. [FIXED]: จัดการกับ params.search (Array) ที่เคยถูกมองข้าม
+    if (params.search && params.search.length > 0) {
+        params.search.forEach((filter) => {
+            if (filter.name && filter.value) {
+                // กรองเฉพาะฟิลด์ที่มีในตาราง inventory_move
+                // ใช้ ILIKE สำหรับการค้นหาแบบไม่สนตัวพิมพ์เล็ก-ใหญ่ (Case-insensitive)
+                whereConditions.push(sql.raw(`${filter.name}::text ILIKE '%${filter.value}%'`));
+            }
+        });
     }
 
+    // 2. [FIXED]: จัดการกับ searchTerm เพื่อป้องกัน Error 500
+    // เช็คว่าถ้าเป็น Object ให้ดึงค่า value ออกมาใช้
+    if (params.searchTerm && typeof params.searchTerm === 'object') {
+    const searchObj = params.searchTerm as any;
+    if (searchObj.value) {
+        whereConditions.push(sql.raw(`(move_no ILIKE '%${searchObj.value}%' OR remark ILIKE '%${searchObj.value}%')`));
+    }
+} else if (typeof params.searchTerm === 'string' && params.searchTerm !== "") {
+    whereConditions.push(sql.raw(`(move_no ILIKE '%${params.searchTerm}%' OR remark ILIKE '%${params.searchTerm}%')`));
+}
+
+    const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
+    const orderByClause = params.orderBy 
+        ? QueryBuilder.BuildRawSQLOrderQuery(params.orderBy)
+        : sql`ORDER BY created_at DESC`;
+
+    // 3. [SUCCESS]: ดึงข้อมูล Header
+    const [results, countResult] = await Promise.all([
+        this._db.db.execute<InventoryMoveRow>(sql`
+            SELECT * FROM ${inventoryMoveTable}
+            ${whereClause}
+            ${orderByClause}
+            LIMIT ${limit} OFFSET ${offset}
+        `),
+        this._db.db.execute<{ count: number }>(sql`
+            SELECT COUNT(*)::int AS count FROM ${inventoryMoveTable} ${whereClause}
+        `),
+    ]);
+
+    const totalCount = countResult[0]?.count ?? 0;
+    const inventoryMoves = Array.from(results).map(row => this.mapRowToInventoryMove(row));
+
+    // --- [TASK 03 ADDED]: Data Hydration (ดึง Items มาแปะให้ครบตามโจทย์) ---
+    if (inventoryMoves.length > 0) {
+        const moveIds = inventoryMoves.map(m => m.id);
+        const allItemsResult = await this._db.db.execute<InventoryMoveItemRow>(sql`
+            SELECT * FROM ${inventoryMoveItemTable} 
+            WHERE inventory_move_id IN ${sql`(${sql.join(moveIds, sql`, `)})`} 
+            AND deleted = false
+        `);
+
+        const allItems = Array.from(allItemsResult).map(row => this.mapRowToInventoryMoveItem(row));
+
+        // นำ Items ไปใส่ในแต่ละ Header ให้ถูกต้อง
+        inventoryMoves.forEach(move => {
+            move.inventoryMoveItems = allItems.filter(item => item.inventoryMoveId === move.id);
+        });
+    }
+
+    return createPagedResult(inventoryMoves, totalCount, params.pageNumber, params.pageSize);
+}
+
     async UpdateInventoryMove(inventoryMove: Partial<InventoryMove>): Promise<InventoryMove> {
+        const moveDate = (inventoryMove.moveDate && inventoryMove.moveDate.trim() !== "") 
+        ? inventoryMove.moveDate 
+        : null;
         const result = await this._db.db.execute<InventoryMoveRow>(sql`
             UPDATE ${inventoryMoveTable}
             SET
                 reason = COALESCE(${inventoryMove.reason}, reason),
                 remark = COALESCE(${inventoryMove.remark}, remark),
-                move_date = COALESCE(${inventoryMove.moveDate}, move_date),
+                move_date = COALESCE(${moveDate}, move_date),
                 updated_by = ${inventoryMove.updatedBy},
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ${inventoryMove.id}
             RETURNING *
         `);
+        if (result.length === 0 || !result[0]) {
+        throw new Error(`Inventory move with id ${inventoryMove.id} not found or deleted.`);
+    }
 
         return this.mapRowToInventoryMove(result[0]!);
     }
