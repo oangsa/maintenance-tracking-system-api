@@ -11,7 +11,7 @@ import { IProductRepository } from "../IProductRepository";
 import { IRepairRequestStatusLogRepository } from "../IRepairRequestStatusLogRepository";
 import { IWorkOrderRepository } from "../IWorkOrderRepository";
 import { IWorkOrderPartRepository } from "../IWorkOrderPartRepository";
-
+import { IWorkTaskRepository } from "../IWorkTaskRepository";
 
 export interface IRepositoryManager
 {
@@ -28,4 +28,5 @@ export interface IRepositoryManager
     repairRequestStatusLogRepository: IRepairRequestStatusLogRepository;
     workOrderRepository: IWorkOrderRepository;
     workOrderPartRepository: IWorkOrderPartRepository;
+    workTaskRepository: IWorkTaskRepository;
 }
