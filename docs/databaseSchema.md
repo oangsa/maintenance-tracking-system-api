@@ -54,9 +54,8 @@ inventory_move
 |---|---|---|
 | 1 | Create `repair_request` + `repair_request_item` | None |
 | 2 | Create `work_order` (one per `repair_request_item`) | None |
-| 3 | Create `work_order_part` (plan parts needed) | **None** |
-| 4 | Technician uses parts → create `inventory_move` (`reason = WORK_ORDER_CONSUME`) + `inventory_move_item` | **Stock decreases** |
-| 5 | Set `work_order_part.inventory_move_item_id` to link plan → actual movement | None |
+| 3 | Create `work_order_part` | **Decreased** |
+| 4 | Set `work_order_part.inventory_move_item_id` to link plan → actual movement | None |
 
 ### Design notes
 
@@ -449,7 +448,7 @@ Design notes:
 
 ---
 
-## Task Assignment (new table: work_task_assignment)
+## public.work_task_assignment
 
 Note: a new append-only table `work_task_assignment` is used to record assignee history for `work_task`. The authoritative, longer specification and backend flow are documented in `docs/databaseSchema-details.md`.
 
@@ -463,7 +462,6 @@ Brief schema (summary):
 | assigned_by | integer | FK -> `users(id)` (NOT NULL) |
 | assigned_at | timestamp with time zone | default `now()` |
 | unassigned_at | timestamp with time zone | NULL if active; set when assignment ends |
-| note | text | optional context |
 
 Design highlights:
 - The table is append-only: history is preserved and `unassigned_at` is the only mutable field.
