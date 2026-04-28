@@ -1,7 +1,7 @@
 import { ProductTypeDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeDto";
 import { ProductTypeForCreateDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeForCreateDto";
 import { ProductTypeForUpdateDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeForUpdateDto";
-import { ProductTypeAssetsResponseDto, ProductTypePartsResponseDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeSubResourceResponseDTO";
+import { ProductTypeProductsResponseDto, ProductTypePartsResponseDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeSubResourceResponseDTO";
 import { ProductTypeParameter } from "@/Domains/RequestFeatures/ProductTypeParameter";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 
@@ -14,6 +14,6 @@ export interface IProductTypeService
     DeleteProductType(id: number): Promise<void>;
     DeleteProductTypeCollection(ids: number[]): Promise<void>;
 
-    GetAssetsByProductTypeId(id: number): Promise<ProductTypeAssetsResponseDto>;
+    GetProductsByProductTypeId(id: number): Promise<ProductTypeProductsResponseDto>;
     GetPartsByProductTypeId(id: number): Promise<ProductTypePartsResponseDto>;
 }

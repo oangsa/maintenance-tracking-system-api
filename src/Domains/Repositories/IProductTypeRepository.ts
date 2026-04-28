@@ -13,6 +13,6 @@ export interface IProductTypeRepository
     UpdateProductType(productType: Partial<ProductType>): Promise<ProductType>;
     DeleteProductType(id: number): Promise<void>;
 
-    GetAssetsByProductTypeId(id: number): Promise<Product[]>;
+    GetProductsByProductTypeId(id: number): Promise<Product[]>;
     GetPartsByProductTypeId(id: number): Promise<Part[]>;
 }

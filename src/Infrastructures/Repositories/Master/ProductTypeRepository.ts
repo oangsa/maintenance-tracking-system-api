@@ -271,7 +271,7 @@ export class ProductTypeRepository implements IProductTypeRepository
         `);
     }
 
-    async GetAssetsByProductTypeId(id: number): Promise<Product[]>
+    async GetProductsByProductTypeId(id: number): Promise<Product[]>
     {
         const result = await this._db.db.execute<any>(sql`
             SELECT 

@@ -92,10 +92,10 @@ export class ProductTypeController
                             try
                             {
                                 const id = parseInt(params.id, 10);
-                                const assets = await this._service.productTypeService.GetAssetsByProductTypeId(id);
+                                const products = await this._service.productTypeService.GetProductsByProductTypeId(id);
                                 set.status = 200;
 
-                                return assets;
+                                return products;
                             }
                             catch (error: any)
                             {
@@ -105,7 +105,7 @@ export class ProductTypeController
                     },
                     {
                         params: ProductTypeIdParamSchema,
-                        detail: { summary: "Get assets by product type ID", tags: ["Product Types"] },
+                        detail: { summary: "Get products by product type ID", tags: ["Product Types"] },
                     },
                 )
                 .get(

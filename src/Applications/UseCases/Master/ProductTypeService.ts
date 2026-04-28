@@ -13,7 +13,7 @@ import { ProductType } from "../../../Infrastructures/Entities/Master/ProductTyp
 import { ProductTypeDuplicateBadRequestException } from "../../../Domains/Exceptions/ProductType/ProductTypeDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { Role } from "../../../Shared/Enums/Role";
-import { ProductTypeAssetsResponseDto, ProductTypePartsResponseDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeSubResourceResponseDTO";
+import { ProductTypePartsResponseDto, ProductTypeProductsResponseDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeSubResourceResponseDTO";
 
 export class ProductTypeService implements IProductTypeService
 {
@@ -181,13 +181,13 @@ export class ProductTypeService implements IProductTypeService
         }
     }
 
-    async GetAssetsByProductTypeId(id: number): Promise<ProductTypeAssetsResponseDto>
+    async GetProductsByProductTypeId(id: number): Promise<ProductTypeProductsResponseDto>
     {
         await this.GetProductTypeAndCheckIfItExists(id);
 
-        const assets = await this._repositoryManager.productTypeRepository.GetAssetsByProductTypeId(id);
+        const products = await this._repositoryManager.productTypeRepository.GetProductsByProductTypeId(id);
 
-        return assets.map(asset => this._mapperManager.productMapper.ProductToDto(asset));
+        return products.map(product => this._mapperManager.productMapper.ProductToDto(product));
     }
 
     async GetPartsByProductTypeId(id: number): Promise<ProductTypePartsResponseDto>
