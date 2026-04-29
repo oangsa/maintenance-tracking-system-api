@@ -108,7 +108,7 @@ export class PartStockController
                                 const partId = parseInt(params.id, 10);
                                 const isAdding = body.direction === "in";
                                 const movePayload = {
-                                    reason: "adjustment" as const,
+                                    reason: "adjust" as any,
                                     remark: body.remark,
                                     inventoryMoveItems: [{
                                         partId : partId,
