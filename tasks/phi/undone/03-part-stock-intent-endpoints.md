@@ -39,7 +39,7 @@ Exact touchpoints
 - Edit `src/Presentations/Controllers/Core/ControllerManager.ts`
     - register `PartStockController` in constructor
     - register `PartStockController` in `RegisterV1Routes(app)`
-- Create `src/Presentations/Validators/PartStockSchema.ts`
+- Create `src/Presentations/Validators/PartStockSchemaValidation.ts`
     - create `ReceiveStockSchema`
     - create `ConsumeStockSchema`
     - create `AdjustStockSchema`
