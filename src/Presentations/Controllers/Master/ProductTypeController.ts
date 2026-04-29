@@ -83,6 +83,56 @@ export class ProductTypeController
                         detail: { summary: "Get product type by ID", tags: ["Product Types"] },
                     },
                 )
+                .get(
+                    "/:id/products",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const products = await this._service.productTypeService.GetProductsByProductTypeId(id);
+                                set.status = 200;
+
+                                return products;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: ProductTypeIdParamSchema,
+                        detail: { summary: "Get products by product type ID", tags: ["Product Types"] },
+                    },
+                )
+                .get(
+                    "/:id/parts",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const parts = await this._service.productTypeService.GetPartsByProductTypeId(id);
+                                set.status = 200;
+
+                                return parts;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: ProductTypeIdParamSchema,
+                        detail: { summary: "Get parts by product type ID", tags: ["Product Types"] },
+                    },
+                )
                 .post(
                     "/",
                     async ({ body, currentUser, set }) =>

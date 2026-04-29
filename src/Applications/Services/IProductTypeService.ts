@@ -1,8 +1,9 @@
-import { ProductTypeDto } from "../../DataTransferObjects/ProductType/ProductTypeDto";
-import { ProductTypeForCreateDto } from "../../DataTransferObjects/ProductType/ProductTypeForCreateDto";
-import { ProductTypeForUpdateDto } from "../../DataTransferObjects/ProductType/ProductTypeForUpdateDto";
-import { ProductTypeParameter } from "../../../Domains/RequestFeatures/ProductTypeParameter";
-import { PagedResult } from "../../../Domains/RequestFeatures/Core/PageResult";
+import { ProductTypeDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeDto";
+import { ProductTypeForCreateDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeForCreateDto";
+import { ProductTypeForUpdateDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeForUpdateDto";
+import { ProductTypeProductsResponseDto, ProductTypePartsResponseDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeSubResourceResponseDTO";
+import { ProductTypeParameter } from "@/Domains/RequestFeatures/ProductTypeParameter";
+import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 
 export interface IProductTypeService
 {
@@ -12,4 +13,7 @@ export interface IProductTypeService
     UpdateProductType(id: number, ProductTypeForUpdateDto: ProductTypeForUpdateDto): Promise<ProductTypeDto>;
     DeleteProductType(id: number): Promise<void>;
     DeleteProductTypeCollection(ids: number[]): Promise<void>;
+
+    GetProductsByProductTypeId(id: number): Promise<ProductTypeProductsResponseDto>;
+    GetPartsByProductTypeId(id: number): Promise<ProductTypePartsResponseDto>;
 }

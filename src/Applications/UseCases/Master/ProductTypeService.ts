@@ -13,6 +13,7 @@ import { ProductType } from "../../../Infrastructures/Entities/Master/ProductTyp
 import { ProductTypeDuplicateBadRequestException } from "../../../Domains/Exceptions/ProductType/ProductTypeDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { Role } from "../../../Shared/Enums/Role";
+import { ProductTypePartsResponseDto, ProductTypeProductsResponseDto } from "@/Applications/DataTransferObjects/ProductType/ProductTypeSubResourceResponseDTO";
 
 export class ProductTypeService implements IProductTypeService
 {
@@ -178,5 +179,23 @@ export class ProductTypeService implements IProductTypeService
         {
             await this.DeleteProductType(id);
         }
+    }
+
+    async GetProductsByProductTypeId(id: number): Promise<ProductTypeProductsResponseDto>
+    {
+        await this.GetProductTypeAndCheckIfItExists(id);
+
+        const products = await this._repositoryManager.productTypeRepository.GetProductsByProductTypeId(id);
+
+        return products.map(product => this._mapperManager.productMapper.ProductToDto(product));
+    }
+
+    async GetPartsByProductTypeId(id: number): Promise<ProductTypePartsResponseDto>
+    {
+        await this.GetProductTypeAndCheckIfItExists(id);
+
+        const parts = await this._repositoryManager.productTypeRepository.GetPartsByProductTypeId(id);
+
+        return parts.map(part => this._mapperManager.partMapper.PartToDto(part));
     }
 }
