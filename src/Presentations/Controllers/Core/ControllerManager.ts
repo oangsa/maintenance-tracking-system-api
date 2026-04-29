@@ -14,6 +14,7 @@ import { ApiConfiguration } from "@/Applications/Services/Core/IConfigurationMan
 import { WorkOrderController } from "../Master/WorkOrderController";
 import { WorkOrderPartController } from "../Master/WorkOrderPartController";
 import { WorkTaskController } from "../Master/WorkTaskController";
+import { PartStockController } from "../Master/PartStockController";
 
 export class ControllerManager
 {
@@ -31,6 +32,7 @@ export class ControllerManager
     private readonly workorderController: WorkOrderController;
     private readonly workOrderPartController: WorkOrderPartController;
     private readonly workTaskController: WorkTaskController;
+    private readonly partStockController: PartStockController;
 
     constructor(serviceManager: IServiceManager)
     {
@@ -48,6 +50,7 @@ export class ControllerManager
         this.workorderController = new WorkOrderController(serviceManager);
         this.workOrderPartController = new WorkOrderPartController(serviceManager);
         this.workTaskController = new WorkTaskController(serviceManager);
+        this.partStockController = new PartStockController(serviceManager);
 
     }
 
@@ -125,5 +128,6 @@ export class ControllerManager
         this.workorderController.RegisterRoutes(app);
         this.workOrderPartController.RegisterRoutes(app);
         this.workTaskController.RegisterRoutes(app);
+        this.partStockController.RegisterRoutes(app);
     }
 }
