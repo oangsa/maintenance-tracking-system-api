@@ -10,4 +10,5 @@ export interface IInventoryMoveRepository
   CreateInventoryMove(inventoryMove: InventoryMove ): Promise<InventoryMove>;
   UpdateInventoryMove(inventoryMove: Partial<InventoryMove>): Promise<InventoryMove>;
   DeleteInventoryMove(id: number): Promise<void>;
+  CheckIfWorkOrderPartExistsInMove(workOrderPartId: number): Promise<boolean>;
 }

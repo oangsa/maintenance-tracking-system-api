@@ -20,6 +20,7 @@ export const ConsumeStockSchema = t.Object({
 export const AdjustStockSchema = t.Object({
     direction: t.Union([t.Literal("in"), t.Literal("out")]),
     quantity: t.Number(),
+    reason: t.Optional(t.Union([t.Literal("adjust"), t.Literal("lost"), t.Literal("found")])),
     remark: t.Optional(t.String({ maxLength: 500 })),
     note: t.Optional(t.String({ maxLength: 500 })),
 });

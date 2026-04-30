@@ -18,7 +18,6 @@ export const WorkOrderPartResponseSchema = t.Object({
     partName: t.Nullable(t.String()),
     quantity: t.Number(),
     note: t.Nullable(t.String()),
-    inventoryMoveItemId: t.Nullable(t.Number()), 
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),

@@ -237,4 +237,13 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
         if (result.length === 0 || !result[0]) return null;
         return this.mapRowToInventoryMove(result[0]);
     }
+
+    async CheckIfWorkOrderPartExistsInMove(workOrderPartId: number): Promise<boolean> {
+        const result = await this._db.db.execute<{ count: number }>(sql`
+            SELECT COUNT(*)::int AS count 
+            FROM ${inventoryMoveItemTable} 
+            WHERE work_order_part_id = ${workOrderPartId} AND deleted = false
+        `);
+        return (result[0]?.count ?? 0) > 0;     
+    }
 }

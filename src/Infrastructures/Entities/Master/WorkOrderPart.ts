@@ -9,7 +9,6 @@ export interface WorkOrderPart
     partName: string | null;
     quantity: number;
     note: string | null;
-    inventoryMoveItemId: number | null;
     createdAt: string | null;
     updatedAt: string | null;
     createdBy: string | null;
