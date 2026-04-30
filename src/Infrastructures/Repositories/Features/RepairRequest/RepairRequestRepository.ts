@@ -725,7 +725,7 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 current_status.id AS current_status_id,
                 current_status.name AS current_status_name,
                 current_status.order_sequence AS current_status_order_sequence,
-                COUNT(*)::int AS value
+                COUNT(DISTINCT repair_request.id)::int AS value
             FROM ${repairRequestTable} repair_request
             LEFT JOIN ${repairStatusTable} current_status ON current_status.id = repair_request.current_status_id
             ${whereClause}
