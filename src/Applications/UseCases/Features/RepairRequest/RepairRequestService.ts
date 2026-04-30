@@ -87,14 +87,24 @@ export class RepairRequestService implements IRepairRequestService
             upperBoundConditions.includes((search.condition ?? "").toUpperCase()),
         );
 
-        if (!lowerBoundSearch?.value || !upperBoundSearch?.value)
+        if (!lowerBoundSearch?.value && !upperBoundSearch?.value)
         {
-            throw new BadRequestMessageException( "Date range is required. Provide requested_at lower and upper bounds in search.",);
+            return;
         }
 
-        if ( !this._dateVerification.IsValidDate(lowerBoundSearch.value) || !this._dateVerification.IsValidDate(upperBoundSearch.value))
+        if (lowerBoundSearch?.value && !this._dateVerification.IsValidDate(lowerBoundSearch.value))
         {
             throw new BadRequestMessageException( "Invalid requested_at date format. Use a valid ISO-8601 datetime value.",);
+        }
+
+        if (upperBoundSearch?.value && !this._dateVerification.IsValidDate(upperBoundSearch.value))
+        {
+            throw new BadRequestMessageException( "Invalid requested_at date format. Use a valid ISO-8601 datetime value.",);
+        }
+
+        if (!lowerBoundSearch?.value || !upperBoundSearch?.value)
+        {
+            return;
         }
 
         if (!this._dateVerification.IsValidDateRange(lowerBoundSearch.value, upperBoundSearch.value))
