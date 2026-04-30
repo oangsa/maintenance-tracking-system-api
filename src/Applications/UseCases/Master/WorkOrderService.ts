@@ -28,9 +28,9 @@ export class WorkOrderService implements IWorkOrderService
         this._userProvider = userProvider;
     }
 
-    private ExpectRole(role: Role): void
+    private ExpectMinimumRole(role: Role): void
     {
-        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledBy(): string
@@ -85,8 +85,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async CreateWorkOrder(WorkOrderForCreateDto: WorkOrderForCreateDto): Promise<WorkOrderDto>
     {
-        // TODO: Consider allowing 'manager' or higher role to create work orders
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const isDuplicateSequence = await this._repositoryManager.workOrderRepository.CheckOrderSequenceExists(WorkOrderForCreateDto.repairRequestItemId, WorkOrderForCreateDto.orderSequence);
 
@@ -133,8 +132,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async UpdateWorkOrder(id: number, WorkOrderForUpdateDto: WorkOrderForUpdateDto): Promise<WorkOrderDto>
     {
-        // TODO: Consider allowing 'manager' or higher role to update work orders
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const WorkOrderEntity = await this.GetWorkOrderAndCheckIfItExists(id);
 
@@ -177,8 +175,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async DeleteWorkOrder(id: number): Promise<void>
     {
-        // TODO: Consider allowing 'manager' or higher role to delete work orders
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         await this.GetWorkOrderAndCheckIfItExists(id);
         await this._repositoryManager.workOrderRepository.DeleteWorkOrder(id);

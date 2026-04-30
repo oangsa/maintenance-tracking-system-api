@@ -8,6 +8,8 @@ import { WorkTaskNotFoundException } from "../../../Domains/Exceptions/WorkTask/
 import { WorkTaskAlreadyCompletedBadRequestException } from "../../../Domains/Exceptions/WorkTask/WorkTaskAlreadyCompletedBadRequestException";
 import { WorkTaskAlreadyExistsBadRequestException } from "@/Domains/Exceptions/WorkTask/WorkTaskAlreadyExistsBadRequestException";
 import { UsersNotInSameDepartmentBadRequestException } from "@/Domains/Exceptions/WorkTask/UsersNotInSameDepartmentBadRequestException";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
+import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 
 
 export class WorkTaskController
@@ -288,6 +290,17 @@ export class WorkTaskController
     private handleError(error: any, set: any)
     {
         if (error instanceof WorkTaskNotFoundException)
+        {
+            set.status = 404;
+
+            return {
+                statusCode: 404,
+                message: error.message,
+                error: "Not Found",
+            };
+        }
+
+        if (error instanceof WorkOrderNotFoundException || error instanceof UserNotFoundException)
         {
             set.status = 404;
 

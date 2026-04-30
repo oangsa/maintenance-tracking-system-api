@@ -6,6 +6,7 @@ export interface IWorkOrderRepository
 {
     GetWorkOrderById(id: number): Promise<WorkOrder | null>;
     CheckOrderSequenceExists(repairRequestId: number, orderSequence: number): Promise<boolean>;
+    GetDepartmentIdByWorkOrderId(workOrderId: number): Promise<number | null>;
     GetListWorkOrder(parameters: WorkOrderParameter): Promise<PagedResult<WorkOrder>>;
     GetListWorkOrderByRepairRequestId(repairRequestId: number, parameters: WorkOrderParameter): Promise<PagedResult<WorkOrder>>;
     CreateWorkOrder(workOrder: WorkOrder): Promise<WorkOrder>;

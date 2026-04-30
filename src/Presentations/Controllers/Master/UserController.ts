@@ -6,6 +6,7 @@ import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/Us
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
 import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema, UserResponseSchema } from "../../Validators/UserSchemaValidation";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 
 export class UserController
 {
@@ -62,6 +63,8 @@ export class UserController
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
                                     excludeId: currentUser!.userId,
+                                    departmentId: body.departmentId,
+                                    workOrderId: body.workOrderId,
                                 };
 
                                 const result = await this._service.userService.GetListUser(params);
@@ -225,6 +228,17 @@ export class UserController
     private handleError(error: any, set: any)
     {
         if (error instanceof UserNotFoundException)
+        {
+            set.status = 404;
+
+            return {
+                statusCode: 404,
+                message: error.message,
+                error: "Not Found",
+            };
+        }
+
+        if (error instanceof WorkOrderNotFoundException)
         {
             set.status = 404;
 

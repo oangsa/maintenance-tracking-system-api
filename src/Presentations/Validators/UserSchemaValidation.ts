@@ -9,6 +9,8 @@ export const UserParameterSchema = t.Object({
     ...SearchSchema,
 
     deleted: t.Optional(t.Boolean({ default: false })),
+    departmentId: t.Optional(t.Number()),
+    workOrderId: t.Optional(t.Number()),
 });
 
 export const UserResponseSchema = t.Object({
