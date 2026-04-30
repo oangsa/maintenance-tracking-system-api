@@ -14,6 +14,7 @@ import { Role } from "../../../Shared/Enums/Role";
 import { InventoryMoveNotFoundException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveNotFoundException";
 import { InventoryMoveDuplicateBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveDuplicateBadRequestException";
 
+
 export class InventoryMoveService implements IInventoryMoveService {
     private readonly _repositoryManager: IRepositoryManager;
     private readonly _mapperManager: IMapperManager;
@@ -202,5 +203,9 @@ export class InventoryMoveService implements IInventoryMoveService {
         for (const id of ids) {
             await this.DeleteInventoryMove(id);
         }
+    }
+
+    async CheckIfWorkOrderPartConsumed(workOrderPartId: number): Promise<boolean> {
+        return await this._repositoryManager.inventoryMoveRepository.CheckIfWorkOrderPartExistsInMove(workOrderPartId);
     }
 }

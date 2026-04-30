@@ -17,7 +17,6 @@ type WorkOrderPartRow = {
     part_name: string | null;
     quantity: number;
     note: string | null;
-    inventory_move_item_id: number | null;
     created_at: string | null;
     updated_at: string | null;
     created_by: string | null;
@@ -44,7 +43,6 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
             partName: row.part_name,
             quantity: row.quantity,
             note: row.note,
-            inventoryMoveItemId: row.inventory_move_item_id,
             createdAt: row.created_at!,
             updatedAt: row.updated_at!,
             createdBy: row.created_by,
@@ -65,7 +63,6 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
                 p.name AS part_name,
                 wop.quantity,
                 wop.note,
-                wop.inventory_move_item_id,
                 wop.created_at,
                 wop.updated_at,
                 wop.created_by,
@@ -112,7 +109,6 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
                 p.name AS part_name,
                 wop.quantity,
                 wop.note,
-                wop.inventory_move_item_id,
                 wop.created_at,
                 wop.updated_at,
                 wop.created_by,
@@ -144,6 +140,7 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
 
     async CreateWorkOrderPart(workOrderPart: WorkOrderPart): Promise<WorkOrderPart>
     {
+        console.log("Creating WorkOrderPart with data:", workOrderPart);
         const result = await this._db.db.execute<WorkOrderPartRow>(sql`
             WITH inserted AS (
                 INSERT INTO ${workOrderPartTable} (
@@ -172,7 +169,6 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
                 p.name AS part_name,
                 i.quantity,
                 i.note,
-                i.inventory_move_item_id,
                 i.created_at,
                 i.updated_at,
                 i.created_by,
@@ -192,7 +188,6 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
                 SET
                     quantity = COALESCE(${workOrderPart.quantity}, quantity),
                     note = COALESCE(${workOrderPart.note}, note),
-                    inventory_move_item_id = COALESCE(${workOrderPart.inventoryMoveItemId}, inventory_move_item_id),
                     updated_by = COALESCE(${workOrderPart.updatedBy}, updated_by),
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ${workOrderPart.id}
@@ -206,7 +201,6 @@ export class WorkOrderPartRepository implements IWorkOrderPartRepository
                 p.name AS part_name,
                 u.quantity,
                 u.note,
-                u.inventory_move_item_id,
                 u.created_at,
                 u.updated_at,
                 u.created_by,

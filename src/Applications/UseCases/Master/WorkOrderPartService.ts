@@ -14,7 +14,7 @@ import { Role } from "../../../Shared/Enums/Role";
 import { WorkOrderPartNotFoundException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartNotFoundException";
 import { WorkOrderPartDuplicateBadRequestException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartDuplicateBadRequestException";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
-import { WorkOrderPartAlreadyConsumedBadRequestException } from "@/Domains/Exceptions/WorkOrderPart/WorkOrderPartAlreadyConsumedBadRequestException";
+import { WorkOrderPartAlreadyConsumedBadRequestException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartAlreadyConsumedBadRequestException";
 import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
 
 export class WorkOrderPartService implements IWorkOrderPartService
@@ -98,7 +98,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
             partName: foundPart.name,
             quantity: workOrderPartForCreateDto.quantity,
             note: workOrderPartForCreateDto.note ?? null,
-            inventoryMoveItemId: null, 
             createdAt: dateNow,
             updatedAt: dateNow,
             createdBy: this.getCalledBy(),
@@ -134,11 +133,12 @@ export class WorkOrderPartService implements IWorkOrderPartService
         //this.ExpectRole('employee');
 
         const workOrderPartEntity = await this.GetWorkOrderPartAndCheckIfItExists(id);
-
-        if (workOrderPartEntity.inventoryMoveItemId !== null)
+        const isConsumed = await this._repositoryManager.inventoryMoveRepository.CheckIfWorkOrderPartExistsInMove(id);
+        if (isConsumed)
         {
             throw new WorkOrderPartAlreadyConsumedBadRequestException(id);
         }
+
 
         const updatedWorkOrderPart: WorkOrderPart = {
             ...workOrderPartEntity,
@@ -166,13 +166,15 @@ export class WorkOrderPartService implements IWorkOrderPartService
     async DeleteWorkOrderPart(id: number): Promise<void>
     {
         this.ExpectRole('admin'); 
+        
 
-        const workOrderPartEntity = await this.GetWorkOrderPartAndCheckIfItExists(id);
-
-        if (workOrderPartEntity.inventoryMoveItemId !== null)
+        await this.GetWorkOrderPartAndCheckIfItExists(id);
+        const isConsumed = await this._repositoryManager.inventoryMoveRepository.CheckIfWorkOrderPartExistsInMove(id);
+        if (isConsumed)
         {
             throw new WorkOrderPartAlreadyConsumedBadRequestException(id);
         }
+
         await this._repositoryManager.workOrderPartRepository.DeleteWorkOrderPart(id);
     }
 

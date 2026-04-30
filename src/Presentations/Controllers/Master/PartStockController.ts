@@ -68,6 +68,27 @@ export class PartStockController
                             try
                             {
                                 const partId = parseInt(params.id, 10);
+                                if (body.workOrderPartId) {
+                                    const workOrderPart = await this._service.workOrderPartService.GetWorkOrderPart(body.workOrderPartId);
+                                    if (body.quantity !== workOrderPart.quantity) {
+                                        set.status = 400;
+                                        return {
+                                            statusCode: 400,
+                                            message: `Quantity mismatch: Work order requires ${workOrderPart.quantity}, but ${body.quantity} was requested.`,
+                                            error: "Bad Request"
+                                        };
+                                    }
+                                    
+                                    const isAlreadyConsumed = await this._service.inventoryMoveService.CheckIfWorkOrderPartConsumed(body.workOrderPartId);
+                                    if (isAlreadyConsumed) {
+                                        set.status = 400;
+                                        return {
+                                            statusCode: 400,
+                                            message: `This work order part has already been consumed.`,
+                                            error: "Bad Request"
+                                        };
+                                    }
+                                }
                                 const movePayload = {
                                     reason: "use" as const,
                                     remark: body.remark,
@@ -107,8 +128,9 @@ export class PartStockController
                             {
                                 const partId = parseInt(params.id, 10);
                                 const isAdding = body.direction === "in";
+                                const moveReason = body.reason || "adjust";
                                 const movePayload = {
-                                    reason: "adjustment" as const,
+                                    reason: moveReason as any,
                                     remark: body.remark,
                                     inventoryMoveItems: [{
                                         partId : partId,
