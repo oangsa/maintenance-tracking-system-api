@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { RepairRequestItemStatusParameter } from "../../../Domains/RequestFeatures/RepairRequestItemStatusParameter";
-import { DeleteRepairRequestItemStatusCollectionSchema, RepairRequestItemStatusForCreateSchema, RepairRequestItemStatusForUpdateSchema, RepairRequestItemStatusIdParamSchema, RepairRequestItemStatusParameterSchema } from "../../Validators/RepairRequestItemStatusSchemaValidation";
+import { DeleteRepairRequestItemStatusCollectionSchema, RepairRequestItemStatusForCreateSchema, RepairRequestItemStatusForUpdateSchema, RepairRequestItemStatusIdParamSchema, RepairRequestItemStatusParameterSchema, RepairRequestItemStatusResponseSchema } from "../../Validators/RepairRequestItemStatusSchemaValidation";
 import { RepairRequestItemStatusNotFoundException } from "../../../Domains/Exceptions/RepairRequestItemStatus/RepairRequestItemStatusNotFoundException";
 import { RepairRequestItemStatusDuplicateBadRequestException } from "../../../Domains/Exceptions/RepairRequestItemStatus/RepairRequestItemStatusDuplicateBadRequestException";
 
@@ -55,6 +55,7 @@ export class RepairRequestItemStatusController
                     },
                     {
                         body: RepairRequestItemStatusParameterSchema,
+                        response: t.Array(RepairRequestItemStatusResponseSchema),
                         detail: { summary: "Search repair request item statuses", tags: ["Repair Request Item Statuses"] },
                     },
                 )
@@ -80,6 +81,7 @@ export class RepairRequestItemStatusController
                     },
                     {
                         params: RepairRequestItemStatusIdParamSchema,
+                        response: RepairRequestItemStatusResponseSchema,
                         detail: { summary: "Get repair request item status by ID", tags: ["Repair Request Item Statuses"] },
                     },
                 )
@@ -105,6 +107,7 @@ export class RepairRequestItemStatusController
                     },
                     {
                         body: RepairRequestItemStatusForCreateSchema,
+                        response: RepairRequestItemStatusResponseSchema,
                         detail: { summary: "Create repair request item status", tags: ["Repair Request Item Statuses"] },
                     },
                 )
@@ -131,6 +134,7 @@ export class RepairRequestItemStatusController
                     {
                         params: RepairRequestItemStatusIdParamSchema,
                         body: RepairRequestItemStatusForUpdateSchema,
+                        response: RepairRequestItemStatusResponseSchema,
                         detail: { summary: "Update repair request item status", tags: ["Repair Request Item Statuses"] },
                     },
                 )
@@ -155,6 +159,7 @@ export class RepairRequestItemStatusController
                     },
                     {
                         params: RepairRequestItemStatusIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete repair request item status", tags: ["Repair Request Item Statuses"] },
                     },
                 )
@@ -180,6 +185,7 @@ export class RepairRequestItemStatusController
                     },
                     {
                         body: DeleteRepairRequestItemStatusCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete repair request item status collection",
                             tags: ["Repair Request Item Statuses"],

@@ -5,7 +5,7 @@ import { BadRequestException } from "@/Domains/Exceptions/BadRequestException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
@@ -59,6 +59,7 @@ export class RepairRequestController
                     },
                     {
                         body: RepairRequestParameterSchema,
+                        response: t.Array(RepairRequestResponseSchema),
                         detail: { summary: "Search repair requests", tags: ["Repair Requests"] },
                     },
                 )
@@ -84,6 +85,7 @@ export class RepairRequestController
                     },
                     {
                         params: RepairRequestIdParamSchema,
+                        response: RepairRequestResponseSchema,
                         detail: { summary: "Get repair request by ID", tags: ["Repair Requests"] },
                     },
                 )
@@ -210,6 +212,7 @@ export class RepairRequestController
                     },
                     {
                         body: RepairRequestForCreateSchema,
+                        response: RepairRequestResponseSchema,
                         detail: { summary: "Create repair request", tags: ["Repair Requests"] },
                     },
                 )
@@ -236,6 +239,7 @@ export class RepairRequestController
                     {
                         body: t.Array(RepairRequestItemForCreateSchema, { minItems: 1 }),
                         params: RepairRequestIdParamSchema,
+                        response: t.Array(RepairRequestItemResponseSchema),
                         detail: { summary: "Create line items for repair request", tags: ["Repair Requests"] },
                     },
                 )
@@ -262,6 +266,7 @@ export class RepairRequestController
                     {
                         params: RepairRequestIdParamSchema,
                         body: RepairRequestForUpdateSchema,
+                        response: RepairRequestResponseSchema,
                         detail: { summary: "Update repair request", tags: ["Repair Requests"] },
                     },
                 )
@@ -286,6 +291,7 @@ export class RepairRequestController
                     },
                     {
                         params: RepairRequestIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete repair request", tags: ["Repair Requests"] },
                     },
             )
@@ -308,6 +314,7 @@ export class RepairRequestController
             },
             {
                 body: DeleteRepairRequestCollectionSchema,
+                response: t.Any(),
                 detail: { summary: "Delete repair request collection", tags: ["Repair Requests"] },
             }
                 )

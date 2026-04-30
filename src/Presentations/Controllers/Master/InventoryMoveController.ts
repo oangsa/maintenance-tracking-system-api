@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
@@ -9,6 +9,7 @@ import {
     InventoryMoveForUpdateSchema,
     InventoryMoveIdParamSchema,
     InventoryMoveParameterSchema,
+    InventoryMoveResponseSchema,
 } from "../../Validators/InventoryMoveSchemaValidation";
 import { InventoryMoveNotFoundException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveNotFoundException";
 import { InventoryMoveDuplicateBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveDuplicateBadRequestException";
@@ -62,6 +63,7 @@ export class InventoryMoveController
                     },
                     {
                         body: InventoryMoveParameterSchema,
+                        response: t.Array(InventoryMoveResponseSchema),
                         detail: { summary: "Search inventory moves", tags: ["Inventory Moves"] },
                     },
                 )
@@ -88,6 +90,7 @@ export class InventoryMoveController
                     },
                     {
                         params: InventoryMoveIdParamSchema,
+                        response: InventoryMoveResponseSchema,
                         detail: { summary: "Get inventory move by ID", tags: ["Inventory Moves"] },
                     },
                 )
@@ -114,6 +117,7 @@ export class InventoryMoveController
                     },
                     {
                         body: InventoryMoveForCreateSchema,
+                        response: InventoryMoveResponseSchema,
                         detail: { summary: "Create inventory move", tags: ["Inventory Moves"] },
                     },
                 )
@@ -141,6 +145,7 @@ export class InventoryMoveController
                     {
                         params: InventoryMoveIdParamSchema,
                         body: InventoryMoveForUpdateSchema,
+                        response: InventoryMoveResponseSchema,
                         detail: { summary: "Update inventory move", tags: ["Inventory Moves"] },
                     },
                 )
@@ -168,6 +173,7 @@ export class InventoryMoveController
                     
                     {
                         params: InventoryMoveIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete inventory move", tags: ["Inventory Moves"] },
                     },
                     
@@ -194,6 +200,7 @@ export class InventoryMoveController
                     },
                     {
                         body: DeleteInventoryMoveCollectionSchema,
+                        response: t.Any(),
                         detail: { 
                             summary: "Delete inventory move collection", 
                             tags: ["Inventory Moves"] 
@@ -223,6 +230,7 @@ export class InventoryMoveController
                     {
                         params: InventoryMoveIdParamSchema,
                         body: InventoryMoveForCreateSchema,
+                        response: InventoryMoveResponseSchema,
                         detail: { summary: "Reverse inventory move", tags: ["Inventory Moves"] },
                     },
                 )

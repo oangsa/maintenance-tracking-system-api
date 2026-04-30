@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { WorkOrderParameter } from "../../../Domains/RequestFeatures/WorkOrderParameter";
-import { WorkOrderForCreateSchema, WorkOrderForUpdateSchema, WorkOrderIdParamSchema, WorkOrderParameterSchema, DeleteCollectionSchema } from "../../../Presentations/Validators/WorkOrderSchemaValidation";
+import { WorkOrderForCreateSchema, WorkOrderForUpdateSchema, WorkOrderIdParamSchema, WorkOrderParameterSchema, DeleteCollectionSchema, WorkOrderResponseSchema } from "../../../Presentations/Validators/WorkOrderSchemaValidation";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 import { WorkOrderSequenceDuplicateException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderSequenceDuplicateException";
 
@@ -55,6 +55,7 @@ export class WorkOrderController
                     },
                     {
                         body: WorkOrderParameterSchema,
+                        response: t.Array(WorkOrderResponseSchema),
                         detail: { summary: "Search work orders", tags: ["WorkOrders"] },
                     },
                 )
@@ -80,6 +81,7 @@ export class WorkOrderController
                     },
                     {
                         params: WorkOrderIdParamSchema,
+                        response: WorkOrderResponseSchema,
                         detail: { summary: "Get work order by ID", tags: ["WorkOrders"] },
                     },
                 )
@@ -106,6 +108,7 @@ export class WorkOrderController
                     },
                     {
                         body: WorkOrderForCreateSchema,
+                        response: WorkOrderResponseSchema,
                         detail: { summary: "Create work order", tags: ["WorkOrders"] },
                     },
                 )
@@ -133,6 +136,7 @@ export class WorkOrderController
                     {
                         params: WorkOrderIdParamSchema,
                         body: WorkOrderForUpdateSchema,
+                        response: WorkOrderResponseSchema,
                         detail: { summary: "Update work order", tags: ["WorkOrders"] },
                     },
                 )
@@ -158,6 +162,7 @@ export class WorkOrderController
                     },
                     {
                         params: WorkOrderIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete work order", tags: ["WorkOrders"] },
                     },
                 )
@@ -184,6 +189,7 @@ export class WorkOrderController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete work order collection",
                             tags: ["WorkOrders"],

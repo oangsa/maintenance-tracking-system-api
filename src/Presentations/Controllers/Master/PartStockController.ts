@@ -4,6 +4,7 @@ import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { PartIdParamSchema, ReceiveStockSchema, ConsumeStockSchema, AdjustStockSchema } from "@/Presentations/Validators/PartStockSchemaValidation";
 import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
+import { MessageResponseSchema } from "@/Presentations/Validators/AuthSchemaValidation";
 
 export class PartStockController
 {
@@ -56,6 +57,7 @@ export class PartStockController
                     {
                         params: PartIdParamSchema,
                         body: ReceiveStockSchema,
+                        response: MessageResponseSchema,
                         detail: { summary: "Receive part stock", tags: ["Part Stock"] },
                     },
                 )
@@ -94,6 +96,7 @@ export class PartStockController
                     {
                         params: PartIdParamSchema,
                         body: ConsumeStockSchema,
+                        response: MessageResponseSchema,
                         detail: { summary: "Consume part stock", tags: ["Part Stock"] },
                     },
                 )
@@ -132,6 +135,7 @@ export class PartStockController
                     {
                         params: PartIdParamSchema,
                         body: AdjustStockSchema,
+                        response: MessageResponseSchema,
                         detail: { summary: "Adjust part stock", tags: ["Part Stock"] },
                 },
             ),  
