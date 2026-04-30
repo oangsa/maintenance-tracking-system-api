@@ -1,11 +1,13 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { ProductTypeParameter } from "../../../Domains/RequestFeatures/ProductTypeParameter";
-import { ProductTypeForCreateSchema, ProductTypeIdParamSchema, ProductTypeParameterSchema, DeleteCollectionSchema, ProductTypeForUpdateSchema} from "../../Validators/ProductTypeSchemaValidation";
+import { ProductTypeForCreateSchema, ProductTypeIdParamSchema, ProductTypeParameterSchema, DeleteCollectionSchema, ProductTypeForUpdateSchema, ProductTypeResponseSchema} from "../../Validators/ProductTypeSchemaValidation";
 import { ProductTypeNotFoundException } from "../../../Domains/Exceptions/ProductType/ProductTypeNotFoundException";
 import { ProductTypeDuplicateBadRequestException } from "../../../Domains/Exceptions/ProductType/ProductTypeDuplicateBadRequestException";
+import { ProductResponseSchema } from "@/Presentations/Validators/ProductSchemaValidation";
+import { PartResponseSchema } from "@/Presentations/Validators/PartSchemaValidation";
 
 export class ProductTypeController
 {
@@ -55,6 +57,7 @@ export class ProductTypeController
                     },
                     {
                         body: ProductTypeParameterSchema,
+                        response: t.Array(ProductTypeResponseSchema),
                         detail: { summary: "Search product types", tags: ["Product Types"] },
                     },
                 )
@@ -80,7 +83,60 @@ export class ProductTypeController
                     },
                     {
                         params: ProductTypeIdParamSchema,
+                        response: ProductTypeResponseSchema,
                         detail: { summary: "Get product type by ID", tags: ["Product Types"] },
+                    },
+                )
+                .get(
+                    "/:id/products",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const products = await this._service.productTypeService.GetProductsByProductTypeId(id);
+                                set.status = 200;
+
+                                return products;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: ProductTypeIdParamSchema,
+                        response: t.Array(ProductResponseSchema),
+                        detail: { summary: "Get products by product type ID", tags: ["Product Types"] },
+                    },
+                )
+                .get(
+                    "/:id/parts",
+                    async ({ params, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const parts = await this._service.productTypeService.GetPartsByProductTypeId(id);
+                                set.status = 200;
+
+                                return parts;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: ProductTypeIdParamSchema,
+                        response: t.Array(PartResponseSchema),
+                        detail: { summary: "Get parts by product type ID", tags: ["Product Types"] },
                     },
                 )
                 .post(
@@ -105,6 +161,7 @@ export class ProductTypeController
                     },
                     {
                         body: ProductTypeForCreateSchema,
+                        response: ProductTypeResponseSchema,
                         detail: { summary: "Create product type", tags: ["Product Types"] },
                     },
                 )
@@ -132,6 +189,7 @@ export class ProductTypeController
                     {
                         params: ProductTypeIdParamSchema,
                         body: ProductTypeForUpdateSchema,
+                        response: ProductTypeResponseSchema,
                         detail: { summary: "Update product type", tags: ["Product Types"] },
                     },
                 )
@@ -157,6 +215,7 @@ export class ProductTypeController
                     },
                     {
                         params: ProductTypeIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete product type", tags: ["Product Types"] },
                     },
                 )
@@ -183,6 +242,7 @@ export class ProductTypeController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete product types collection",
                             tags: ["Product Types"],

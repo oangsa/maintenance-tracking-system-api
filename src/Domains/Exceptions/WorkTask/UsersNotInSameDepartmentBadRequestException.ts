@@ -4,6 +4,6 @@ export class UsersNotInSameDepartmentBadRequestException extends BadRequestExcep
 {
     constructor()
     {
-        super(`Assignee and Assigner must belong to the same department.`);
+        super(`Assignee must belong to the same department as the related work order.`);
     }
 }

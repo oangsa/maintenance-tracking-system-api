@@ -17,6 +17,9 @@ import { UsersNotInSameDepartmentBadRequestException } from "@/Domains/Exception
 import { WorkTask } from "../../../Infrastructures/Entities/Master/WorkTask";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { Role } from "../../../Shared/Enums/Role";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
+import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
+import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 
 
 
@@ -33,9 +36,9 @@ export class WorkTaskService implements IWorkTaskService
         this._userProvider = userProvider;
     }
 
-    private ExpectRole(role: Role): void
+    private ExpectMinimumRole(role: Role): void
     {
-        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledById(): number
@@ -48,6 +51,52 @@ export class WorkTaskService implements IWorkTaskService
     {
         const current = this._userProvider.getCurrentUser();
         return current?.name ?? "System";
+    }
+
+    private async GetWorkOrderDepartmentIdAndCheckIfItExists(workOrderId: number): Promise<number>
+    {
+        const departmentId = await this._repositoryManager.workOrderRepository.GetDepartmentIdByWorkOrderId(workOrderId);
+
+        if (departmentId === null)
+        {
+            throw new WorkOrderNotFoundException(workOrderId);
+        }
+
+        return departmentId;
+    }
+
+    private async AssertAssigneeAllowedForWorkOrder(workOrderId: number, assigneeId: number): Promise<void>
+    {
+        const assignee = await this._repositoryManager.userRepository.GetUserById(assigneeId);
+
+        if (!assignee)
+        {
+            throw new UserNotFoundException(assigneeId);
+        }
+
+        if (assignee.role.toLowerCase() === "admin")
+        {
+            throw new ForbiddenException("Admin users cannot be assigned to work tasks.");
+        }
+
+        const currentUser = this._userProvider.getCurrentUser();
+        const actorRole = currentUser?.role.toLowerCase();
+
+        if (
+            actorRole === "manager" &&
+            assignee.id !== currentUser?.userId &&
+            assignee.role.toLowerCase() !== "employee"
+        )
+        {
+            throw new ForbiddenException("A manager may only assign work tasks to employees or themselves.");
+        }
+
+        const workOrderDepartmentId = await this.GetWorkOrderDepartmentIdAndCheckIfItExists(workOrderId);
+
+        if (assignee.departmentId === null || assignee.departmentId !== workOrderDepartmentId)
+        {
+            throw new UsersNotInSameDepartmentBadRequestException();
+        }
     }
 
     private async GetWorkTaskAndCheckIfItExists(id: number): Promise<WorkTask>
@@ -93,7 +142,10 @@ export class WorkTaskService implements IWorkTaskService
 
     async CreateWorkTask(workTaskForCreateDto: WorkTaskForCreateDto): Promise<WorkTaskDto>
     {
-        //this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
+
+        await this.GetWorkOrderDepartmentIdAndCheckIfItExists(workTaskForCreateDto.workOrderId);
+
         const isExisting = await this._repositoryManager.workTaskRepository.CheckWorkTaskExistsByOrderId(workTaskForCreateDto.workOrderId);
         if (isExisting)
         {
@@ -102,12 +154,7 @@ export class WorkTaskService implements IWorkTaskService
 
         if (workTaskForCreateDto.assigneeId)
         {
-            const assignerId = this.getCalledById();
-            const isSameDepartment = await this._repositoryManager.workTaskRepository.CheckUsersShareDepartment(workTaskForCreateDto.assigneeId, assignerId);
-            if (!isSameDepartment)
-            {
-                throw new UsersNotInSameDepartmentBadRequestException();
-            }
+            await this.AssertAssigneeAllowedForWorkOrder(workTaskForCreateDto.workOrderId, workTaskForCreateDto.assigneeId);
         }
 
         const newWorkTask: Partial<WorkTask> = {
@@ -129,7 +176,7 @@ export class WorkTaskService implements IWorkTaskService
 
     async UpdateWorkTask(id: number, workTaskForUpdateDto: WorkTaskForUpdateDto): Promise<WorkTaskDto>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const existingTask = await this.GetWorkTaskAndCheckIfItExists(id);
 
@@ -154,7 +201,7 @@ export class WorkTaskService implements IWorkTaskService
 
     async AssignWorkTask(id: number, workTaskAssignForCreateDto: WorkTaskAssignForCreateDto): Promise<WorkTaskDto>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const existingTask = await this.GetWorkTaskAndCheckIfItExists(id);
 
@@ -168,17 +215,12 @@ export class WorkTaskService implements IWorkTaskService
             return this._mapperManager.workTaskMapper.WorkTaskToDto(existingTask);
         }
 
-        const assignerId = this.getCalledById();
-        const isSameDepartment = await this._repositoryManager.workTaskRepository.CheckUsersShareDepartment(workTaskAssignForCreateDto.assigneeId, assignerId);
-        if (!isSameDepartment)
-        {
-            throw new UsersNotInSameDepartmentBadRequestException();
-        }
+        await this.AssertAssigneeAllowedForWorkOrder(existingTask.workOrderId, workTaskAssignForCreateDto.assigneeId);
 
         await this._repositoryManager.workTaskRepository.AssignWorkTask(
             id,
             workTaskAssignForCreateDto.assigneeId,
-            assignerId,
+            this.getCalledById(),
             this.getCalledByName()
         );
 
@@ -188,7 +230,7 @@ export class WorkTaskService implements IWorkTaskService
 
     async UnassignWorkTask(id: number): Promise<WorkTaskDto>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const existingTask = await this.GetWorkTaskAndCheckIfItExists(id);
 
@@ -207,7 +249,7 @@ export class WorkTaskService implements IWorkTaskService
 
     async DeleteWorkTask(id: number): Promise<void>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         await this.GetWorkTaskAndCheckIfItExists(id);
 

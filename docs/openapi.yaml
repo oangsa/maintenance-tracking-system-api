@@ -31,6 +31,10 @@ tags:
     description: Inventory movement management endpoints
   - name: WorkOrders
     description: Work order management endpoints
+  - name: Work Order Parts
+    description: Work order part management endpoints
+  - name: WorkTasks
+    description: Work task management endpoints
   - name: Versioning
     description: API version discovery endpoints
 paths:
@@ -2099,6 +2103,509 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/repair-requests/reports/group-by-status/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Get repair request count grouped by status
+      operationId: searchRepairRequestGroupByStatusReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+            examples:
+              dateRange:
+                value:
+                  pageNumber: 1
+                  pageSize: 10
+                  orderBy: currentStatusOrderSequence asc
+                  search:
+                    - name: requested_at
+                      condition: GREATEROREQUAL
+                      value: '2026-04-01T00:00:00+07:00'
+                    - name: requested_at
+                      condition: LESSEROREQUAL
+                      value: '2026-04-30T23:59:59+07:00'
+      responses:
+        '200':
+          description: Grouped repair request counts by status
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestGroupByStatusReport'
+              examples:
+                success:
+                  value:
+                    - statusName: Open
+                      value: 12
+                    - statusName: In Progress
+                      value: 7
+                    - statusName: Done
+                      value: 20
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part/search:
+    post:
+      tags:
+        - Work Order Parts
+      summary: Search work order parts
+      operationId: searchWorkOrderParts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderPartSearchRequest'
+      responses:
+        '200':
+          description: Work order parts list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrderPart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part:
+    post:
+      tags:
+        - Work Order Parts
+      summary: Create work order part
+      operationId: createWorkOrderPart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderPartForCreate'
+      responses:
+        '201':
+          description: Work order part created
+          headers:
+            Location:
+              description: Versioned URL of the newly created work order part
+              schema:
+                type: string
+                example: /api/v1/work-order-part/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPart'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Work Order Parts
+      summary: Get work order part by ID
+      operationId: getWorkOrderPartById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work order part found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Work Order Parts
+      summary: Update work order part
+      operationId: updateWorkOrderPart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderPartForUpdate'
+      responses:
+        '200':
+          description: Work order part updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPart'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Work Order Parts
+      summary: Delete work order part
+      operationId: deleteWorkOrderPart
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Work order part deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part/collection:
+    delete:
+      tags:
+        - Work Order Parts
+      summary: Delete work order part collection
+      operationId: deleteWorkOrderPartCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Work order parts deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/search:
+    post:
+      tags:
+        - WorkTasks
+      summary: Search work tasks
+      operationId: searchWorkTasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskSearchRequest'
+      responses:
+        '200':
+          description: Work tasks list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task:
+    post:
+      tags:
+        - WorkTasks
+      summary: Create work task
+      operationId: createWorkTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskForCreate'
+      responses:
+        '201':
+          description: Work task created
+          headers:
+            Location:
+              description: Versioned URL of the newly created work task
+              schema:
+                type: string
+                example: /api/v1/work-task/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - WorkTasks
+      summary: Get work task by ID
+      operationId: getWorkTaskById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work task found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - WorkTasks
+      summary: Update work task
+      operationId: updateWorkTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskForUpdate'
+      responses:
+        '200':
+          description: Work task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - WorkTasks
+      summary: Delete work task
+      operationId: deleteWorkTask
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Work task deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}/assignment-history:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - WorkTasks
+      summary: Get work task assignment history by ID
+      operationId: getWorkTaskAssignmentHistoryById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work task assignment history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkTaskAssignment'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}/assign:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - WorkTasks
+      summary: Assign or reassign work task to a user
+      operationId: assignWorkTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskAssignRequest'
+      responses:
+        '200':
+          description: Work task assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}/unassign:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - WorkTasks
+      summary: Unassign work task
+      operationId: unassignWorkTask
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work task unassigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/collection:
+    delete:
+      tags:
+        - WorkTasks
+      summary: Delete work task collection
+      operationId: deleteWorkTaskCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Work tasks deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2377,6 +2884,20 @@ components:
     WorkOrderSearchRequest:
       allOf:
         - $ref: '#/components/schemas/SearchRequestBase'
+
+    WorkOrderPartSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    WorkTaskSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+        - type: object
+          properties:
+            workOrderId:
+              type: number
+            assigneeId:
+              type: number
 
     RepairRequestItemSearchRequest:
       allOf:
@@ -2940,6 +3461,224 @@ components:
         statusId:
           type: number
 
+    WorkOrderPart:
+      type: object
+      required:
+        - id
+        - workOrderId
+        - partId
+        - partCode
+        - partName
+        - quantity
+        - note
+        - inventoryMoveItemId
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        workOrderId:
+          type: number
+        partId:
+          type: number
+        partCode:
+          type: string
+          nullable: true
+        partName:
+          type: string
+          nullable: true
+        quantity:
+          type: number
+        note:
+          type: string
+          nullable: true
+        inventoryMoveItemId:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    WorkOrderPartForCreate:
+      type: object
+      required:
+        - workOrderId
+        - partId
+        - quantity
+      properties:
+        workOrderId:
+          type: number
+        partId:
+          type: number
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    WorkOrderPartForUpdate:
+      type: object
+      properties:
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    WorkTask:
+      type: object
+      required:
+        - id
+        - workOrderId
+        - description
+        - startedAt
+        - endedAt
+        - note
+        - assigneeId
+        - assigneeName
+        - assigneeEmail
+        - assignedById
+        - assignedByName
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        workOrderId:
+          type: number
+        description:
+          type: string
+        startedAt:
+          type: string
+          nullable: true
+        endedAt:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        assigneeId:
+          type: number
+          nullable: true
+        assigneeName:
+          type: string
+          nullable: true
+        assigneeEmail:
+          type: string
+          nullable: true
+        assignedById:
+          type: number
+          nullable: true
+        assignedByName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    WorkTaskForCreate:
+      type: object
+      required:
+        - workOrderId
+        - description
+        - startedAt
+        - note
+      properties:
+        workOrderId:
+          type: number
+        description:
+          type: string
+          maxLength: 1000
+        startedAt:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        assigneeId:
+          type: number
+
+    WorkTaskForUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 1000
+        startedAt:
+          type: string
+        endedAt:
+          type: string
+        note:
+          type: string
+
+    WorkTaskAssignRequest:
+      type: object
+      required:
+        - assigneeId
+      properties:
+        assigneeId:
+          type: number
+
+    WorkTaskAssignment:
+      type: object
+      required:
+        - id
+        - workTaskId
+        - assigneeId
+        - assigneeName
+        - assigneeEmail
+        - assignedById
+        - assignedByName
+        - assignedAt
+        - unassignedAt
+      properties:
+        id:
+          type: number
+        workTaskId:
+          type: number
+        assigneeId:
+          type: number
+          nullable: true
+        assigneeName:
+          type: string
+          nullable: true
+        assigneeEmail:
+          type: string
+          nullable: true
+        assignedById:
+          type: number
+          nullable: true
+        assignedByName:
+          type: string
+          nullable: true
+        assignedAt:
+          type: string
+        unassignedAt:
+          type: string
+          nullable: true
+
     RepairStatus:
       type: object
       required:
@@ -3274,4 +4013,15 @@ components:
         priority:
           $ref: '#/components/schemas/Priority'
         currentStatusId:
+          type: number
+
+    RepairRequestGroupByStatusReport:
+      type: object
+      required:
+        - statusName
+        - value
+      properties:
+        statusName:
+          type: string
+        value:
           type: number

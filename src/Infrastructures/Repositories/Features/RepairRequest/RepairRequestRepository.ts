@@ -19,6 +19,7 @@ import { BadRequestMessageException } from "@/Domains/Exceptions/BadRequestExcep
 import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePageResult";
 import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 import { QueryBuilder } from "../../Extensions/QueryBuilder";
+import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
 
 type RepairRequestRow = {
     id: number;
@@ -65,6 +66,12 @@ type RepairRequestItemRow = {
     repair_status_is_final: boolean | null;
 };
 
+type RepairRequestCntGroupByStatusRow = {
+    current_status_id: number;
+    current_status_name: string;
+    value: number;
+};
+
 export class RepairRequestRepository implements IRepairRequestRepository
 {
     private readonly _db: AppDrizzleDB;
@@ -74,11 +81,15 @@ export class RepairRequestRepository implements IRepairRequestRepository
         this._db = db;
     }
 
-    private validateNumericSearchValue(
-        searches: Array<{ name?: string; value?: string }> | undefined,
-        numericFieldName: string,
-        codeFieldName: string,
-    ): void
+    private mapRowToRepairRequestCountGroupByStatus(row: RepairRequestCntGroupByStatusRow): RepairRequestCountGroupByStatus
+    {
+        return {
+            statusName: row.current_status_name,
+            value: row.value,
+        };
+    }
+
+    private validateNumericSearchValue( searches: Array<{ name?: string; value?: string }> | undefined, numericFieldName: string, codeFieldName: string,): void
     {
         if (!searches || searches.length === 0)
         {
@@ -688,5 +699,62 @@ export class RepairRequestRepository implements IRepairRequestRepository
         }
 
         return createdItems;
+    }
+
+    async GetRepairRequestCountGroupByStatus(params: RepairRequestParameter): Promise<PagedResult<RepairRequestCountGroupByStatus>>
+    {
+        const normalizedParams = normalizeRequestParameters(params);
+
+        const whereConditions: SQL[] = [sql`repair_request.deleted = ${normalizedParams.deleted ?? false}`];
+
+        if (normalizedParams.search && normalizedParams.search.length > 0)
+        {
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(normalizedParams.search);
+            if (filterSQL) whereConditions.push(filterSQL);
+        }
+
+        if (normalizedParams.searchTerm)
+        {
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(normalizedParams.searchTerm);
+            if (searchSQL) whereConditions.push(searchSQL);
+        }
+
+        const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
+        const innerQuery = sql`
+            SELECT
+                current_status.id AS current_status_id,
+                current_status.name AS current_status_name,
+                current_status.order_sequence AS current_status_order_sequence,
+                COUNT(DISTINCT repair_request.id)::int AS value
+            FROM ${repairRequestTable} repair_request
+            LEFT JOIN ${repairStatusTable} current_status ON current_status.id = repair_request.current_status_id
+            ${whereClause}
+            GROUP BY current_status.id, current_status.name, current_status.order_sequence
+        `;
+
+        const normalizedOrderBy = normalizedParams.orderBy
+            ?.replace(/\bcurrentStatusId\b/g, "current_status_id")
+            ?.replace(/\bstatusName\b/g, "current_status_name")
+            ?.replace(/\bcurrentStatusOrderSequence\b/g, "current_status_order_sequence")
+            ?.replace(/\borderSequence\b/g, "current_status_order_sequence");
+
+        const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(
+            normalizedOrderBy ?? "current_status_order_sequence asc",
+        );
+
+        const query = sql`
+            SELECT
+                base.current_status_id,
+                base.current_status_name,
+                base.value
+            FROM (${innerQuery}) base
+            ${orderByClause}
+        `;
+
+        const result = await this._db.db.execute<RepairRequestCntGroupByStatusRow>(query);
+
+        const mapped = Array.from(result).map(row => this.mapRowToRepairRequestCountGroupByStatus(row));
+
+        return createPagedResult(mapped, mapped.length, normalizedParams.pageNumber, normalizedParams.pageSize);
     }
 }

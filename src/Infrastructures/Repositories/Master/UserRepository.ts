@@ -162,6 +162,42 @@ export class UserRepository implements IUserRepository
             whereConditions.push(sql`id != ${excludeId}`);
         }
 
+        if (params.departmentId !== undefined)
+        {
+            whereConditions.push(sql`department_id = ${params.departmentId}`);
+        }
+
+        if (params.excludeRoles && params.excludeRoles.length > 0)
+        {
+            const excludeRoleConditions = params.excludeRoles.map((role) => sql`role != ${role}::roles_enum`);
+            whereConditions.push(sql`${sql.join(excludeRoleConditions, sql` AND `)}`);
+        }
+
+        if (params.roles && params.roles.length > 0)
+        {
+            const includeRoleConditions = params.roles.map((role) => sql`role = ${role}::roles_enum`);
+
+            if (params.includeUserIds && params.includeUserIds.length > 0)
+            {
+                const includeUserConditions = params.includeUserIds.map((id) => sql`id = ${id}`);
+
+                whereConditions.push(sql`(
+                    ${sql.join(includeRoleConditions, sql` OR `)}
+                    OR
+                    ${sql.join(includeUserConditions, sql` OR `)}
+                )`);
+            }
+            else
+            {
+                whereConditions.push(sql`(${sql.join(includeRoleConditions, sql` OR `)})`);
+            }
+        }
+        else if (params.includeUserIds && params.includeUserIds.length > 0)
+        {
+            const includeUserConditions = params.includeUserIds.map((id) => sql`id = ${id}`);
+            whereConditions.push(sql`(${sql.join(includeUserConditions, sql` OR `)})`);
+        }
+
         if (params.search && params.search.length > 0)
         {
             const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(params.search);

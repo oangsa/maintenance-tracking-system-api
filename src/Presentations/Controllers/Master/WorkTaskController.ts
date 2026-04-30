@@ -1,13 +1,15 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { WorkTaskParameter } from "../../../Domains/RequestFeatures/WorkTaskParameter";
-import { WorkTaskForCreateSchema, WorkTaskIdParamSchema, WorkTaskParameterSchema, DeleteWorkTaskCollectionSchema, WorkTaskForUpdateSchema,WorkTaskAssignSchema } from "../../Validators/WorkTaskSchemaValidation";
+import { WorkTaskForCreateSchema, WorkTaskIdParamSchema, WorkTaskParameterSchema, DeleteWorkTaskCollectionSchema, WorkTaskForUpdateSchema, WorkTaskAssignSchema, WorkTaskAssignResponseSchema, WorkTaskResponseSchema } from "../../Validators/WorkTaskSchemaValidation";
 import { WorkTaskNotFoundException } from "../../../Domains/Exceptions/WorkTask/WorkTaskNotFoundException";
 import { WorkTaskAlreadyCompletedBadRequestException } from "../../../Domains/Exceptions/WorkTask/WorkTaskAlreadyCompletedBadRequestException";
 import { WorkTaskAlreadyExistsBadRequestException } from "@/Domains/Exceptions/WorkTask/WorkTaskAlreadyExistsBadRequestException";
 import { UsersNotInSameDepartmentBadRequestException } from "@/Domains/Exceptions/WorkTask/UsersNotInSameDepartmentBadRequestException";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
+import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 
 
 export class WorkTaskController
@@ -59,6 +61,7 @@ export class WorkTaskController
                     },
                     {
                         body: WorkTaskParameterSchema,
+                        response: t.Array(WorkTaskResponseSchema),
                         detail: { summary: "Search work tasks", tags: ["WorkTasks"] },
                     },
                 )
@@ -84,6 +87,7 @@ export class WorkTaskController
                     },
                     {
                         params: WorkTaskIdParamSchema,
+                        response: WorkTaskResponseSchema,
                         detail: { summary: "Get work task by ID", tags: ["WorkTasks"] },
                     },
                 )
@@ -109,6 +113,7 @@ export class WorkTaskController
                     },
                     {
                         params: WorkTaskIdParamSchema,
+                        response: t.Array(WorkTaskAssignResponseSchema),
                         detail: { summary: "Get work task assignment history by ID", tags: ["WorkTasks"] },
                     },
                 )
@@ -134,6 +139,7 @@ export class WorkTaskController
                     },
                     {
                         body: WorkTaskForCreateSchema,
+                        response: WorkTaskResponseSchema,
                         detail: { summary: "Create work task", tags: ["WorkTasks"] },
                     },
                 )
@@ -161,6 +167,7 @@ export class WorkTaskController
                     {
                         params: WorkTaskIdParamSchema,
                         body: WorkTaskForUpdateSchema,
+                        response: WorkTaskResponseSchema,
                         detail: { summary: "Update work task", tags: ["WorkTasks"] },
                     },
                 )
@@ -189,6 +196,7 @@ export class WorkTaskController
                     {
                         params: WorkTaskIdParamSchema,
                         body: WorkTaskAssignSchema,
+                        response: WorkTaskResponseSchema,
                         detail: { summary: "Assign or reassign work task to a user", tags: ["WorkTasks"] },
                     },
                 )
@@ -216,6 +224,7 @@ export class WorkTaskController
                     },
                     {
                         params: WorkTaskIdParamSchema,
+                        response: WorkTaskResponseSchema,
                         detail: { summary: "Unassign work task", tags: ["WorkTasks"] },
                     },
                 )
@@ -241,6 +250,7 @@ export class WorkTaskController
                     },
                     {
                         params: WorkTaskIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete work task", tags: ["WorkTasks"] },
                     },
                 )
@@ -267,6 +277,7 @@ export class WorkTaskController
                     },
                     {
                         body: DeleteWorkTaskCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete work tasks collection",
                             tags: ["WorkTasks"],
@@ -279,6 +290,17 @@ export class WorkTaskController
     private handleError(error: any, set: any)
     {
         if (error instanceof WorkTaskNotFoundException)
+        {
+            set.status = 404;
+
+            return {
+                statusCode: 404,
+                message: error.message,
+                error: "Not Found",
+            };
+        }
+
+        if (error instanceof WorkOrderNotFoundException || error instanceof UserNotFoundException)
         {
             set.status = 404;
 

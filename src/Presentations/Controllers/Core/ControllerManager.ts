@@ -1,4 +1,4 @@
-import Elysia from "elysia";
+import Elysia, { t } from "elysia";
 import { AuthenticationController } from "../Auth/AuthenticationController";
 import { UserController } from "../Master/UserController";
 import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
@@ -100,6 +100,10 @@ export class ControllerManager
                 };
             },
             {
+                response: t.Object({
+                    supportedVersions: t.Array(t.String()),
+                    defaultVersion: t.String(),
+                }),
                 detail: {
                     summary: "Get supported API versions",
                     tags: ["Versioning"],

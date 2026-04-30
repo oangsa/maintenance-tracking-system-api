@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { WorkOrderPartParameter } from "../../../Domains/RequestFeatures/WorkOrderPartParameter";
-import { WorkOrderPartForCreateSchema, WorkOrderPartForUpdateSchema, WorkOrderPartIdParamSchema, WorkOrderPartParameterSchema, DeleteCollectionSchema } from "../../Validators/WorkOrderPartSchemaValidation";
+import { WorkOrderPartForCreateSchema, WorkOrderPartForUpdateSchema, WorkOrderPartIdParamSchema, WorkOrderPartParameterSchema, DeleteCollectionSchema, WorkOrderPartResponseSchema } from "../../Validators/WorkOrderPartSchemaValidation";
 import { WorkOrderPartNotFoundException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartNotFoundException";
 import { WorkOrderPartDuplicateBadRequestException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartDuplicateBadRequestException";
 import { WorkOrderPartAlreadyConsumedBadRequestException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartAlreadyConsumedBadRequestException";
@@ -57,6 +57,7 @@ export class WorkOrderPartController
                     },
                     {
                         body: WorkOrderPartParameterSchema,
+                        response: t.Array(WorkOrderPartResponseSchema),
                         detail: { summary: "Search work order parts", tags: ["Work Order Parts"] },
                     },
                 )
@@ -82,6 +83,7 @@ export class WorkOrderPartController
                     },
                     {
                         params: WorkOrderPartIdParamSchema,
+                        response: WorkOrderPartResponseSchema,
                         detail: { summary: "Get work order part by ID", tags: ["Work Order Parts"] },
                     },
                 )
@@ -107,6 +109,7 @@ export class WorkOrderPartController
                     },
                     {
                         body: WorkOrderPartForCreateSchema,
+                        response: WorkOrderPartResponseSchema,
                         detail: { summary: "Create work order part", tags: ["Work Order Parts"] },
                     },
                 )
@@ -133,6 +136,7 @@ export class WorkOrderPartController
                     {
                         params: WorkOrderPartIdParamSchema,
                         body: WorkOrderPartForUpdateSchema,
+                        response: WorkOrderPartResponseSchema,
                         detail: { summary: "Update work order part", tags: ["Work Order Parts"] },
                     },
                 )
@@ -157,6 +161,7 @@ export class WorkOrderPartController
                     },
                     {
                         params: WorkOrderPartIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete work order part", tags: ["Work Order Parts"] },
                     },
                 )
@@ -182,6 +187,7 @@ export class WorkOrderPartController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete work order parts collection",
                             tags: ["Work Order Parts"],

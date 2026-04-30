@@ -3,6 +3,8 @@ import { RepairRequestItemDto } from "../DataTransferObjects/RepairRequestItem/R
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 import { RepairRequestItemForCreateDto } from "../DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
+import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
+import { RepairRequestCountGroupByStatusDto } from "../DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
 
 export interface IRepairRequestMapper
 {
@@ -10,6 +12,7 @@ export interface IRepairRequestMapper
     RepairRequestItemsToDto(items: RepairRequestItem[]): RepairRequestItemDto[];
     RepairRequestItemsDtoToRepairRequestItems(itemsDto: RepairRequestItemDto[]): RepairRequestItem[];
     RepairRequestItemForCreateDtoToRepairRequestItem(dto: RepairRequestItemForCreateDto): RepairRequestItem;
+    RepairRequestCountGroupByStatusToDto(groupByStatus: RepairRequestCountGroupByStatus): RepairRequestCountGroupByStatusDto;
 }
 
 export class RepairRequestMapper implements IRepairRequestMapper
@@ -98,5 +101,13 @@ export class RepairRequestMapper implements IRepairRequestMapper
             product: null,
             repairStatus: null,
         }
+    }
+
+    RepairRequestCountGroupByStatusToDto(groupByStatus: RepairRequestCountGroupByStatus): RepairRequestCountGroupByStatusDto
+    {
+        return {
+            statusName: groupByStatus.statusName,
+            value: groupByStatus.value,
+        };
     }
 }

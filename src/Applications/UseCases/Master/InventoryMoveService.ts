@@ -26,8 +26,8 @@ export class InventoryMoveService implements IInventoryMoveService {
         this._userProvider = userProvider;
     }
 
-    private ExpectRole(role: Role): void {
-        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
+    private ExpectMinimumRole(role: Role): void {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledBy(): string {
@@ -65,7 +65,7 @@ export class InventoryMoveService implements IInventoryMoveService {
     }
 
     async GetListInventoryMove(parameters: InventoryMoveParameter): Promise<PagedResult<InventoryMoveDto>> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         const pagedInventoryMoves = await this._repositoryManager.inventoryMoveRepository.GetListInventoryMove(parameters);
 
@@ -76,12 +76,14 @@ export class InventoryMoveService implements IInventoryMoveService {
     }
 
     async GetInventoryMove(id: number): Promise<InventoryMoveDto> {
+        this.ExpectMinimumRole("manager");
+
         const inventoryMoveEntity = await this.GetInventoryMoveAndCheckIfItExists(id);
         return this._mapperManager.inventoryMoveMapper.InventoryMoveToDto(inventoryMoveEntity);
     }
 
     async CreateInventoryMove(inventoryMoveForCreateDto: InventoryMoveForCreateDto): Promise<InventoryMoveDto> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         this.ValidateCreateInventoryMoveItems(inventoryMoveForCreateDto.inventoryMoveItems);
 
@@ -147,7 +149,7 @@ export class InventoryMoveService implements IInventoryMoveService {
     }
 
     async ReverseInventoryMove(id: number, dto: InventoryMoveForCreateDto): Promise<InventoryMoveDto> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         // 1. ดึงรายการต้นฉบับมาตรวจสอบ
         const originalMove = await this.GetInventoryMoveAndCheckIfItExists(id);
@@ -174,7 +176,7 @@ export class InventoryMoveService implements IInventoryMoveService {
     }           
 
     async UpdateInventoryMove(id: number, inventoryMoveForUpdateDto: InventoryMoveForUpdateDto): Promise<InventoryMoveDto> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         const entity = await this.GetInventoryMoveAndCheckIfItExists(id);
 
@@ -192,7 +194,7 @@ export class InventoryMoveService implements IInventoryMoveService {
     }
 
     async DeleteInventoryMove(id: number): Promise<void> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
         
         await this.GetInventoryMoveAndCheckIfItExists(id);
 

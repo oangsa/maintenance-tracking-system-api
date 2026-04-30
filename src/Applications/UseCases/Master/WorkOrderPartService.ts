@@ -9,8 +9,6 @@ import { IMapperManager } from "../../Mappers/Core/MapperManager";
 import { IUserProvider } from "../../Providers/UserProvider";
 import { ICoreAdapterManager } from "../CoreAdapterManager";
 import { WorkOrderPart } from "../../../Infrastructures/Entities/Master/WorkOrderPart";
-import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
-import { Role } from "../../../Shared/Enums/Role";
 import { WorkOrderPartNotFoundException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartNotFoundException";
 import { WorkOrderPartDuplicateBadRequestException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartDuplicateBadRequestException";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
@@ -28,11 +26,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
         this._repositoryManager = coreAdapterManager.repositoryManager;
         this._mapperManager = mapperManager;
         this._userProvider = userProvider;
-    }
-
-    private ExpectRole(role: Role): void
-    {
-        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledBy(): string
