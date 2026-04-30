@@ -695,6 +695,167 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/part/{id}/receive-stock:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Parts
+      summary: Receive stock for part
+      operationId: receivePartStock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartStockReceiveRequest'
+            examples:
+              receiveStock:
+                value:
+                  quantity: 10
+                  note: New stock arrival
+      responses:
+        '200':
+          description: Part stock received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+              examples:
+                success:
+                  value:
+                    id: 5
+                    code: P-001
+                    name: Battery Pack
+                    productTypeId: 2
+                    productTypeCode: PT-02
+                    productTypeName: Accessories
+                    totalStock: 18
+                    createdAt: '2026-05-01T10:00:00+07:00'
+                    updatedAt: '2026-05-01T12:30:00+07:00'
+                    createdBy: Admin
+                    updatedBy: Manager
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/{id}/consume-stock:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Parts
+      summary: Consume stock for part
+      operationId: consumePartStock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartStockConsumeRequest'
+            examples:
+              consumeStock:
+                value:
+                  quantity: 2
+                  workOrderPartId: 31
+                  note: Used for repair work
+      responses:
+        '200':
+          description: Part stock consumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+              examples:
+                success:
+                  value:
+                    id: 5
+                    code: P-001
+                    name: Battery Pack
+                    productTypeId: 2
+                    productTypeCode: PT-02
+                    productTypeName: Accessories
+                    totalStock: 16
+                    createdAt: '2026-05-01T10:00:00+07:00'
+                    updatedAt: '2026-05-01T13:15:00+07:00'
+                    createdBy: Admin
+                    updatedBy: Manager
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/{id}/adjust-stock:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Parts
+      summary: Adjust stock for part
+      operationId: adjustPartStock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartStockAdjustRequest'
+            examples:
+              adjustStockOut:
+                value:
+                  direction: out
+                  quantity: 1
+                  note: Damaged item correction
+      responses:
+        '200':
+          description: Part stock adjusted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+              examples:
+                success:
+                  value:
+                    id: 5
+                    code: P-001
+                    name: Battery Pack
+                    productTypeId: 2
+                    productTypeCode: PT-02
+                    productTypeName: Accessories
+                    totalStock: 15
+                    createdAt: '2026-05-01T10:00:00+07:00'
+                    updatedAt: '2026-05-01T13:45:00+07:00'
+                    createdBy: Admin
+                    updatedBy: Manager
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/product-type/search:
     post:
       tags:
@@ -2162,6 +2323,63 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/repair-requests/reports/by-department/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Get repair request count grouped by department
+      operationId: searchRepairRequestGroupByDepartmentReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+            examples:
+              dateRange:
+                value:
+                  pageNumber: 1
+                  pageSize: 10
+                  orderBy: departmentName asc
+                  search:
+                    - name: requested_at
+                      condition: GREATEROREQUAL
+                      value: '2026-04-01T00:00:00+07:00'
+                    - name: requested_at
+                      condition: LESSEROREQUAL
+                      value: '2026-04-30T23:59:59+07:00'
+      responses:
+        '200':
+          description: Grouped repair request counts by department
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestGroupByDepartmentReport'
+              examples:
+                success:
+                  value:
+                    - departmentName: IT Support
+                      value: 15
+                    - departmentName: Facilities
+                      value: 9
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/work-order-part/search:
     post:
       tags:
@@ -3288,6 +3506,9 @@ components:
         note:
           type: string
           nullable: true
+        workOrderPartId:
+          type: number
+          nullable: true
 
     InventoryMoveItemForCreate:
       type: object
@@ -3304,6 +3525,52 @@ components:
         quantityOut:
           type: number
           minimum: 0
+        note:
+          type: string
+        workOrderPartId:
+          type: number
+
+    PartStockDirection:
+      type: string
+      enum:
+        - in
+        - out
+
+    PartStockReceiveRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    PartStockConsumeRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+        workOrderPartId:
+          type: number
+
+    PartStockAdjustRequest:
+      type: object
+      required:
+        - direction
+        - quantity
+      properties:
+        direction:
+          $ref: '#/components/schemas/PartStockDirection'
+        quantity:
+          type: number
+          minimum: 1
         note:
           type: string
 
@@ -4022,6 +4289,17 @@ components:
         - value
       properties:
         statusName:
+          type: string
+        value:
+          type: number
+
+    RepairRequestGroupByDepartmentReport:
+      type: object
+      required:
+        - departmentName
+        - value
+      properties:
+        departmentName:
           type: string
         value:
           type: number
