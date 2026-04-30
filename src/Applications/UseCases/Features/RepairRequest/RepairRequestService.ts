@@ -16,6 +16,7 @@ import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
+import { RepairRequestCountGroupByStatusDto } from "@/Applications/DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
 
 
 export class RepairRequestService implements IRepairRequestService
@@ -229,5 +230,15 @@ export class RepairRequestService implements IRepairRequestService
         {
             await this.DeleteRepairRequest(id);
         }
+    }
+
+    async GetRepairRequestCountGroupByStatus(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequestCountGroupByStatusDto>>
+    {
+        const pagedData = await this._repositoryManager.repairRequestRepository.GetRepairRequestCountGroupByStatus(parameters);
+
+        return {
+            items: pagedData.items.map(item => this._mapperManager.repairRequestMapper.RepairRequestCountGroupByStatusToDto(item)),
+            meta: pagedData.meta,
+        };
     }
 }

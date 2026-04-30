@@ -5,7 +5,7 @@ import { BadRequestException } from "@/Domains/Exceptions/BadRequestException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
@@ -309,7 +309,40 @@ export class RepairRequestController
             {
                 body: DeleteRepairRequestCollectionSchema,
                 detail: { summary: "Delete repair request collection", tags: ["Repair Requests"] },
-            })
+            }
+                )
+                .post(
+                    "/reports/group-by-status/search",
+                    async ({ body, currentUser, set }) => {
+                        return this._service.userProvider.run(currentUser!, async () => {
+                            try {
+                                const params: RepairRequestParameter = {
+                                    pageNumber: body.pageNumber ?? 1,
+                                    pageSize: body.pageSize ?? 10,
+                                    orderBy: body.orderBy as RepairRequestParameter["orderBy"],
+                                    search: body.search,
+                                    searchTerm: body.searchTerm,
+                                    deleted: body.deleted ?? false,
+                                };
+
+                                const result = await this._service.repairRequestService.GetRepairRequestCountGroupByStatus(params);
+
+                                set.headers["X-Pagination"] = JSON.stringify(result.meta);
+                                set.status = 200;
+
+                                return result.items;
+                            }
+                            catch (error: any) {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        body: RepairRequestParameterSchema,
+                        response: t.Array(RepairRequestCountGroupByStatusResponseSchema),
+                        detail: { summary: "Get repair request count grouped by status", tags: ["Repair Requests"] },
+                    },
+                )
         );
     }
 

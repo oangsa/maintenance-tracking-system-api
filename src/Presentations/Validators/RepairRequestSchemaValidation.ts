@@ -105,3 +105,8 @@ export const RepairRequestStatusLogResponseSchema = t.Object({
     note: t.Nullable(t.String()),
     changedAt: t.Nullable(t.String()),
 });
+
+export const RepairRequestCountGroupByStatusResponseSchema = t.Object({
+    statusName: t.String(),
+    value: t.Number(),
+});
