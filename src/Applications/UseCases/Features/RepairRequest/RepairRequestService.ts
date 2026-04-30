@@ -13,9 +13,12 @@ import { IUserProvider } from "../../../Providers/UserProvider";
 import { ICoreAdapterManager } from "../../CoreAdapterManager";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
+import { BadRequestMessageException } from "@/Domains/Exceptions/BadRequestException";
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
+import { RepairRequestCountGroupByStatusDto } from "@/Applications/DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
+import { DateVerification, IDateVerification } from "@/Shared/Utilities/DateVerification/DateVerification";
 
 
 export class RepairRequestService implements IRepairRequestService
@@ -23,12 +26,14 @@ export class RepairRequestService implements IRepairRequestService
     private readonly _repositoryManager: IRepositoryManager;
     private readonly _mapperManager: IMapperManager;
     private readonly _userProvider: IUserProvider;
+    private readonly _dateVerification: IDateVerification;
 
     constructor(coreAdapterManager: ICoreAdapterManager, mapperManager: IMapperManager, userProvider: IUserProvider)
     {
         this._repositoryManager = coreAdapterManager.repositoryManager;
         this._mapperManager = mapperManager;
         this._userProvider = userProvider;
+        this._dateVerification = new DateVerification();
     }
 
     private getCalledBy(): string
@@ -66,6 +71,36 @@ export class RepairRequestService implements IRepairRequestService
         }
 
         return entity;
+    }
+
+    private ValidateRequestedAtDateRange(parameters: RepairRequestParameter): void
+    {
+        const searches = parameters.search ?? [];
+        const requestedAtSearches = searches.filter(search => search.name?.toLowerCase() === "requested_at");
+        const lowerBoundConditions = ["GREATER", "GREATEROREQUAL"];
+        const upperBoundConditions = ["LESSER", "LESSEROREQUAL"];
+
+        const lowerBoundSearch = requestedAtSearches.find(search =>
+            lowerBoundConditions.includes((search.condition ?? "").toUpperCase()),
+        );
+        const upperBoundSearch = requestedAtSearches.find(search =>
+            upperBoundConditions.includes((search.condition ?? "").toUpperCase()),
+        );
+
+        if (!lowerBoundSearch?.value || !upperBoundSearch?.value)
+        {
+            throw new BadRequestMessageException( "Date range is required. Provide requested_at lower and upper bounds in search.",);
+        }
+
+        if ( !this._dateVerification.IsValidDate(lowerBoundSearch.value) || !this._dateVerification.IsValidDate(upperBoundSearch.value))
+        {
+            throw new BadRequestMessageException( "Invalid requested_at date format. Use a valid ISO-8601 datetime value.",);
+        }
+
+        if (!this._dateVerification.IsValidDateRange(lowerBoundSearch.value, upperBoundSearch.value))
+        {
+            throw new BadRequestMessageException( "Invalid requested_at date range. Lower bound must be less than or equal to upper bound.",);
+        }
     }
 
     async GetListRepairRequest(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequestDto>>
@@ -229,5 +264,17 @@ export class RepairRequestService implements IRepairRequestService
         {
             await this.DeleteRepairRequest(id);
         }
+    }
+
+    async GetRepairRequestCountGroupByStatus(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequestCountGroupByStatusDto>>
+    {
+        this.ValidateRequestedAtDateRange(parameters);
+
+        const pagedData = await this._repositoryManager.repairRequestRepository.GetRepairRequestCountGroupByStatus(parameters);
+
+        return {
+            items: pagedData.items.map(item => this._mapperManager.repairRequestMapper.RepairRequestCountGroupByStatusToDto(item)),
+            meta: pagedData.meta,
+        };
     }
 }
