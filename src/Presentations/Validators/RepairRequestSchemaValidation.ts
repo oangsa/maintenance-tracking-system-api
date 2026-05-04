@@ -110,3 +110,8 @@ export const RepairRequestCountGroupByStatusResponseSchema = t.Object({
     statusName: t.String(),
     value: t.Number(),
 });
+
+export const MonthlyRepairTrendByProductTypeReportResponseSchema = t.Object({
+    productTypeName: t.String(),
+    value: t.Number(),
+});

@@ -5,7 +5,7 @@ import { BadRequestException } from "@/Domains/Exceptions/BadRequestException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema, MonthlyRepairTrendByProductTypeReportResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
@@ -350,10 +350,40 @@ export class RepairRequestController
                         detail: { summary: "Get repair request count grouped by status", tags: ["Repair Requests"] },
                     },
                 )
+                .post(
+                    "/reports/monthly-product-type/search",
+                    async ({ body, currentUser, set }) => {
+                        return this._service.userProvider.run(currentUser!, async () => {
+                            try {
+                                const params: RepairRequestParameter = {
+                                    pageNumber: body.pageNumber ?? 1,
+                                    pageSize: body.pageSize ?? 10,
+                                    orderBy: body.orderBy as RepairRequestParameter["orderBy"],
+                                    search: body.search,
+                                    searchTerm: body.searchTerm,
+                                    deleted: body.deleted ?? false,
+                                };
+
+                                const result = await this._service.repairRequestService.GetMonthlyRepairTrendByProductTypeReport(params);
+
+                                set.status = 200;
+                                return result;
+                            }
+                            catch (error: any) {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        body: RepairRequestParameterSchema,
+                        response: t.Array(MonthlyRepairTrendByProductTypeReportResponseSchema),
+                        detail: { summary: "Get monthly repair trend by product type report", tags: ["Repair Requests"] },
+                    },
+                )
         );
     }
 
-    private handleError(error: any, set: any)
+    private handleError(error: any, set: any): any
     {
         if (error instanceof BadRequestException)
         {
