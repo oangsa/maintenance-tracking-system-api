@@ -19,6 +19,7 @@ import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairReq
 import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
 import { RepairRequestCountGroupByStatusDto } from "@/Applications/DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
 import { DateVerification, IDateVerification } from "@/Shared/Utilities/DateVerification/DateVerification";
+import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
 
 
 export class RepairRequestService implements IRepairRequestService
@@ -286,5 +287,39 @@ export class RepairRequestService implements IRepairRequestService
             items: pagedData.items.map(item => this._mapperManager.repairRequestMapper.RepairRequestCountGroupByStatusToDto(item)),
             meta: pagedData.meta,
         };
+    }
+
+    public async GetMonthlyRepairTrendByProductTypeReport(parameters: RepairRequestParameter): Promise<MonthlyRepairTrendByProductTypeReport[]> {
+        const searches = parameters.search || [];
+        
+        const startDateSearch = searches.find(s => s.name === 'requested_at' && s.condition === 'GREATEROREQUAL');
+        const endDateSearch = searches.find(s => s.name === 'requested_at' && s.condition === 'LESSEROREQUAL');
+
+        if (!startDateSearch || !startDateSearch.value || !endDateSearch || !endDateSearch.value) {
+            throw new BadRequestMessageException("Date range (requested_at) is required with GREATEROREQUAL and LESSEROREQUAL conditions.");
+        }
+
+        let startDate = new Date(startDateSearch.value);
+        let endDate = new Date(endDateSearch.value);
+
+        if (startDateSearch.value.length <= 10) {
+            const [y = 0, m = 1, d = 1] = startDateSearch.value.split('-').map(Number);
+            startDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+        }
+
+        if (endDateSearch.value.length <= 10) {
+            const [y = 0, m = 1, d = 1] = endDateSearch.value.split('-').map(Number);
+            endDate = new Date(y, m - 1, d, 23, 59, 59, 999);
+        }
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            throw new BadRequestMessageException("Invalid date format provided for requested_at.");
+        }
+
+        if (startDate > endDate) {
+            throw new BadRequestMessageException("Start date cannot be greater than end date.");
+        }
+
+        return await this._repositoryManager.repairRequestRepository.GetMonthlyRepairTrendByProductTypeReport(startDate, endDate);
     }
 }
