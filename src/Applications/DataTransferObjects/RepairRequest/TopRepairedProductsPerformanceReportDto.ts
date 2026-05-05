@@ -1,0 +1,3 @@
+import { TopRepairedProductsPerformanceReportResponseSchema } from "@/Presentations/Validators/RepairRequestSchemaValidation";
+
+export type TopRepairedProductsPerformanceReportDto = typeof TopRepairedProductsPerformanceReportResponseSchema.static;

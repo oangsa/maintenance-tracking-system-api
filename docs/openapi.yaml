@@ -4303,3 +4303,14 @@ components:
           type: string
         value:
           type: number
+
+    TopRepairedProductsPerformanceReport:
+      type: object
+      required:
+        - productName
+        - value
+      properties:
+        productName:
+          type: string
+        value:
+          type: number

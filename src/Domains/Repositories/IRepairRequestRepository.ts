@@ -4,6 +4,7 @@ import { RepairRequestParameter } from "../RequestFeatures/RepairRequestParamete
 import { RepairRequestItemParameter } from "../RequestFeatures/RepairRequestItemParameter";
 import { PagedResult } from "../RequestFeatures/Core/PageResult";
 import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
+import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 
 export interface IRepairRequestRepository
 {
@@ -16,4 +17,5 @@ export interface IRepairRequestRepository
     CreateRepairRequestItems(repairRequestId: number, items: RepairRequestItem[]): Promise<RepairRequestItem[]>;
     UpdateRepairRequest(repairRequest: Partial<RepairRequest>): Promise<RepairRequest>;
     DeleteRepairRequest(id: number): Promise<void>;
+    GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]>;
 }

@@ -20,6 +20,7 @@ import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePage
 import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 import { QueryBuilder } from "../../Extensions/QueryBuilder";
 import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
+import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 
 type RepairRequestRow = {
     id: number;
@@ -69,6 +70,11 @@ type RepairRequestItemRow = {
 type RepairRequestCntGroupByStatusRow = {
     current_status_id: number;
     current_status_name: string;
+    value: number;
+};
+
+type TopRepairedProductsPerformanceReportRow = {
+    productName: string;
     value: number;
 };
 
@@ -756,5 +762,85 @@ export class RepairRequestRepository implements IRepairRequestRepository
         const mapped = Array.from(result).map(row => this.mapRowToRepairRequestCountGroupByStatus(row));
 
         return createPagedResult(mapped, mapped.length, normalizedParams.pageNumber, normalizedParams.pageSize);
+    }
+
+    async GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]> 
+    {
+
+        const normalizedParams = normalizeRequestParameters(parameters);
+
+        const whereConditions: SQL[] = [sql`repair_request.deleted = ${normalizedParams.deleted ?? false}`];
+
+    let lowerBound: string | null = null;
+    let upperBound: string | null = null;
+
+        if (normalizedParams.search && normalizedParams.search.length > 0) {
+            for (const filter of normalizedParams.search) {
+                if (filter.name === 'requested_at' && filter.value) {
+                    const condition = (filter.condition ?? '').toUpperCase();
+
+                    if (['GREATER', 'GREATEROREQUAL'].includes(condition)) {
+                    lowerBound = filter.value;
+                    }
+
+                    if (['LESSER', 'LESSEROREQUAL'].includes(condition)) {
+                    upperBound = filter.value;
+                    }
+                }
+            }
+        }
+
+        if (lowerBound) {
+            whereConditions.push(sql`repair_request.requested_at >= ${lowerBound}`);
+        }
+
+        if (upperBound) {
+            whereConditions.push(sql`repair_request.requested_at <= ${upperBound}`);
+        }
+
+        if (normalizedParams.search && normalizedParams.search.length > 0) {
+            const otherFilters = normalizedParams.search.filter(f => f.name !== 'requested_at');
+            if (otherFilters.length > 0) {
+                const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(otherFilters);
+            if (filterSQL) whereConditions.push(filterSQL);
+            }
+        }
+
+        if (normalizedParams.searchTerm) {
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(normalizedParams.searchTerm);
+            if (searchSQL) whereConditions.push(searchSQL);
+        }
+
+        const whereClause = sql`
+            WHERE ${sql.join(whereConditions, sql` AND `)}
+        `;
+
+        const innerQuery = sql`
+            SELECT
+                product.name AS product_name,
+                CAST(COUNT(DISTINCT repair_request.id) AS INTEGER) AS value
+            FROM ${repairRequestTable} repair_request
+            INNER JOIN ${repairRequestItemTable} repair_request_item
+                ON repair_request_item.repair_request_id = repair_request.id
+            INNER JOIN ${productTable} product
+                ON product.id = repair_request_item.product_id
+            ${whereClause}
+            GROUP BY product.name
+        `;
+
+        const query = sql`
+            SELECT
+                base.product_name AS "productName",
+                base.value
+            FROM (${innerQuery}) base
+            ORDER BY base.value DESC, base.product_name ASC
+        `;
+
+        const result = await this._db.db.execute<TopRepairedProductsPerformanceReportRow>(query);
+
+        return Array.from(result).map(row => ({
+            productName: row.productName,
+            value: row.value
+        }));
     }
 }

@@ -19,7 +19,7 @@ import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairReq
 import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
 import { RepairRequestCountGroupByStatusDto } from "@/Applications/DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
 import { DateVerification, IDateVerification } from "@/Shared/Utilities/DateVerification/DateVerification";
-
+import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 
 export class RepairRequestService implements IRepairRequestService
 {
@@ -286,5 +286,28 @@ export class RepairRequestService implements IRepairRequestService
             items: pagedData.items.map(item => this._mapperManager.repairRequestMapper.RepairRequestCountGroupByStatusToDto(item)),
             meta: pagedData.meta,
         };
+    }
+
+    async GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]> {
+        const searches = parameters.search ?? [];
+        const requestedAtFilters = searches.filter(s => s.name?.toLowerCase() === "requested_at");
+
+        const lowerBoundConditions = ["GREATER", "GREATEROREQUAL"];
+        const upperBoundConditions = ["LESSER", "LESSEROREQUAL"];
+
+        const lowerBound = requestedAtFilters.find(f => 
+            lowerBoundConditions.includes((f.condition ?? "").toUpperCase())
+        );
+        const upperBound = requestedAtFilters.find(f => 
+            upperBoundConditions.includes((f.condition ?? "").toUpperCase())
+        );
+
+        if (!lowerBound?.value || !upperBound?.value) {
+            throw new BadRequestMessageException("Date range (requested_at) is required with both lower and upper bounds for this report.");
+        }
+
+        this.ValidateRequestedAtDateRange(parameters);
+
+        return await this._repositoryManager.repairRequestRepository.GetTopRepairedProductsPerformanceReport(parameters);
     }
 }
