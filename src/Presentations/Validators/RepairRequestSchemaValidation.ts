@@ -111,12 +111,12 @@ export const RepairRequestCountGroupByStatusResponseSchema = t.Object({
     value: t.Number(),
 });
 
-<<<<<<< feat/top-repaired-report
 export const TopRepairedProductsPerformanceReportResponseSchema = t.Object({
     productName: t.String(),
-=======
+    value: t.Number(),
+});
+
 export const MonthlyRepairTrendByProductTypeReportResponseSchema = t.Object({
     productTypeName: t.String(),
->>>>>>> main
     value: t.Number(),
 });
