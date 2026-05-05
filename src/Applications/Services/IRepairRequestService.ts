@@ -8,7 +8,11 @@ import { RepairRequestItemParameter } from "../../Domains/RequestFeatures/Repair
 import { PagedResult } from "../../Domains/RequestFeatures/Core/PageResult";
 import { RepairRequestItemForCreateDto } from "../DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
 import { RepairRequestCountGroupByStatusDto } from "../DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
+<<<<<<< feat/top-repaired-report
 import { TopRepairedProductsPerformanceReportDto } from "../DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
+=======
+import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
+>>>>>>> main
 
 export interface IRepairRequestService
 {
@@ -23,4 +27,5 @@ export interface IRepairRequestService
     UpdateRepairRequest(id: number, repairRequestForUpdateDto: RepairRequestForUpdateDto): Promise<RepairRequestDto>;
     DeleteRepairRequest(id: number): Promise<void>;
     DeleteRepairRequestCollection(ids: number[]): Promise<void>;
+    GetMonthlyRepairTrendByProductTypeReport(parameters: RepairRequestParameter): Promise<MonthlyRepairTrendByProductTypeReport[]>;
 }

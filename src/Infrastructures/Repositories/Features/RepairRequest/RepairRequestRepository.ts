@@ -10,6 +10,7 @@ import {
     repairRequestItemStatus as repairRequestItemStatusTable,
     product as productTable,
     users as usersTable,
+    productType as productTypeTable,
 } from "@/Infrastructures/Database/Drizzle/schema";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
@@ -20,7 +21,11 @@ import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePage
 import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 import { QueryBuilder } from "../../Extensions/QueryBuilder";
 import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
+<<<<<<< feat/top-repaired-report
 import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
+=======
+import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
+>>>>>>> main
 
 type RepairRequestRow = {
     id: number;
@@ -764,6 +769,7 @@ export class RepairRequestRepository implements IRepairRequestRepository
         return createPagedResult(mapped, mapped.length, normalizedParams.pageNumber, normalizedParams.pageSize);
     }
 
+<<<<<<< feat/top-repaired-report
     async GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]> 
     {
 
@@ -844,3 +850,41 @@ export class RepairRequestRepository implements IRepairRequestRepository
         }));
     }
 }
+=======
+    public async GetMonthlyRepairTrendByProductTypeReport(startDate: Date, endDate: Date): Promise<MonthlyRepairTrendByProductTypeReport[]>
+    {
+        const query = sql`
+            WITH ProductTypeStats AS (
+                SELECT
+                    product_type.id,
+                    product_type.code,
+                    product_type.name AS "productTypeName",
+                    (
+                        SELECT COUNT(repair_request_item.id)::int
+                        FROM ${repairRequestItemTable} repair_request_item
+                        INNER JOIN ${productTable} product ON product.id = repair_request_item.product_id
+                        INNER JOIN ${repairRequestTable} repair_request ON repair_request.id = repair_request_item.repair_request_id
+                        WHERE product.product_type_id = product_type.id
+                          AND repair_request.deleted = false
+                          AND repair_request.requested_at >= ${startDate.toISOString()}
+                          AND repair_request.requested_at <= ${endDate.toISOString()}
+                    ) AS value
+                FROM ${productTypeTable} product_type
+            )
+            SELECT
+                "productTypeName",
+                SUM(value)::int AS value
+            FROM ProductTypeStats
+            GROUP BY "productTypeName"
+            ORDER BY MAX(code) ASC
+        `;
+
+        const result = await this._db.db.execute<{ productTypeName: string, value: number }>(query);
+
+        return Array.from(result).map(row => ({
+            productTypeName: row.productTypeName,
+            value: row.value
+        }));
+    }
+}
+>>>>>>> main
