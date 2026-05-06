@@ -18,7 +18,7 @@ export const PartResponseSchema = t.Object({
     productTypeId: t.Number(),
     productTypeCode: t.String(),
     productTypeName: t.String(),
-    totalStock: t.Number(),
+    totalStock: t.String(),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
