@@ -5,7 +5,7 @@ import { BadRequestException } from "@/Domains/Exceptions/BadRequestException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema, MonthlyRepairTrendByProductTypeReportResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema, MonthlyRepairTrendByProductTypeReportResponseSchema, TopRepairedProductsPerformanceReportResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
@@ -458,4 +458,3 @@ export class RepairRequestController
         };
     }
 }
-
