@@ -21,11 +21,8 @@ import { createPagedResult } from "@/Shared/Utilities/RequestFeatures/CreatePage
 import { normalizeRequestParameters } from "@/Shared/Utilities/RequestFeatures/NormalizedRequestParameters";
 import { QueryBuilder } from "../../Extensions/QueryBuilder";
 import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
-<<<<<<< feat/top-repaired-report
 import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
-=======
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
->>>>>>> main
 
 type RepairRequestRow = {
     id: number;
@@ -769,8 +766,7 @@ export class RepairRequestRepository implements IRepairRequestRepository
         return createPagedResult(mapped, mapped.length, normalizedParams.pageNumber, normalizedParams.pageSize);
     }
 
-<<<<<<< feat/top-repaired-report
-    async GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]> 
+    async GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]>
     {
 
         const normalizedParams = normalizeRequestParameters(parameters);
@@ -849,8 +845,7 @@ export class RepairRequestRepository implements IRepairRequestRepository
             value: row.value
         }));
     }
-}
-=======
+
     public async GetMonthlyRepairTrendByProductTypeReport(startDate: Date, endDate: Date): Promise<MonthlyRepairTrendByProductTypeReport[]>
     {
         const query = sql`
@@ -887,4 +882,3 @@ export class RepairRequestRepository implements IRepairRequestRepository
         }));
     }
 }
->>>>>>> main
