@@ -275,17 +275,20 @@ export class ProductTypeRepository implements IProductTypeRepository
     {
         const result = await this._db.db.execute<any>(sql`
             SELECT 
-                id, 
-                code, 
-                name, 
-                product_type_id, 
-                created_at, 
-                updated_at, 
-                created_by, 
-                updated_by, 
-                deleted
-            FROM ${productTable}
-            WHERE product_type_id = ${id} AND deleted = false
+                product.id, 
+                product.code, 
+                product.name, 
+                product.product_type_id, 
+                product.created_at, 
+                product.updated_at, 
+                product.created_by, 
+                product.updated_by, 
+                product.deleted,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name
+            FROM ${productTable} product
+            LEFT JOIN ${productTypeTable} product_type ON product.product_type_id = product_type.id
+            WHERE product.product_type_id = ${id} AND product.deleted = false
         `);
 
         return result.map(row => ({
@@ -307,17 +310,21 @@ export class ProductTypeRepository implements IProductTypeRepository
     {
         const result = await this._db.db.execute<any>(sql`
             SELECT 
-                id, 
-                code, 
-                name, 
-                product_type_id, 
-                created_at, 
-                updated_at, 
-                created_by, 
-                updated_by, 
-                deleted
-            FROM ${partTable}
-            WHERE product_type_id = ${id} AND deleted = false
+                part.id, 
+                part.code, 
+                part.name, 
+                part.product_type_id, 
+                part.total_stock,
+                part.created_at, 
+                part.updated_at, 
+                part.created_by, 
+                part.updated_by, 
+                part.deleted,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name
+            FROM ${partTable} part
+            LEFT JOIN ${productTypeTable} product_type ON part.product_type_id = product_type.id
+            WHERE part.product_type_id = ${id} AND part.deleted = false
         `);
 
         return result.map(row => ({
