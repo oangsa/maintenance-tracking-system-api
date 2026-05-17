@@ -15,6 +15,8 @@ export class ProductTypeMapper implements IProductTypeMapper
             code: productType.code,
             name: productType.name,
             departmentId: productType.departmentId,
+            departmentCode: productType.department?.code ?? null,
+            departmentName: productType.department?.name ?? null,
             createdAt: productType.createdAt,
             updatedAt: productType.updatedAt,
             createdBy: productType.createdBy,
