@@ -21,6 +21,11 @@ type WorkOrderRow = {
     updated_at: string | null;
     created_by: string | null;
     updated_by: string | null;
+    repair_request_item_description?: string;
+    status_name?: string;
+    status_code?: string;
+    product_name?: string;
+    request_no?: string;
 };
 
 
@@ -47,7 +52,25 @@ export class WorkOrderRepository implements IWorkOrderRepository
             updatedAt: row.updated_at ?? "",
             createdBy: row.created_by,
             updatedBy: row.updated_by,
-        };
+            repairRequestItemDescription: row.repair_request_item_description,
+            statusName: row.status_name,
+            statusCode: row.status_code,
+            productName: row.product_name,
+            requestNo: row.request_no,
+            status: {
+                name: row.status_name,
+                code: row.status_code
+            },
+            repairRequestItem: {
+                description: row.repair_request_item_description,
+                product: {
+                    name: row.product_name
+                }
+            },
+            repairRequest: {
+                requestNo: row.request_no
+            }
+        }as unknown as WorkOrder;
     }
         
 
@@ -55,19 +78,29 @@ export class WorkOrderRepository implements IWorkOrderRepository
     {
         const result = await this._db.db.execute<WorkOrderRow>(sql`
             SELECT
-                id,
-                repair_request_item_id,
-                scheduled_start,
-                scheduled_end,
-                order_sequence,
-                is_final,
-                status_id,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by
-            FROM ${workOrderTable}
-            WHERE id = ${id}
+                work_order.id,
+                work_order.repair_request_item_id,
+                work_order.scheduled_start,
+                work_order.scheduled_end,
+                work_order.order_sequence,
+                work_order.is_final,
+                work_order.status_id,
+                work_order.created_at,
+                work_order.updated_at,
+                work_order.created_by,
+                work_order.updated_by,
+                repair_request_item.description AS repair_request_item_description,
+                repair_status.name AS status_name,
+                repair_status.code AS status_code,
+                product.name AS product_name,
+                repair_request.request_no AS request_no,
+                repair_request.request_no AS work_order_no
+            FROM ${workOrderTable} work_order
+            LEFT JOIN repair_status ON work_order.status_id = repair_status.id
+            LEFT JOIN repair_request_item ON work_order.repair_request_item_id = repair_request_item.id
+            LEFT JOIN product ON repair_request_item.product_id = product.id
+            LEFT JOIN repair_request ON repair_request_item.repair_request_id = repair_request.id
+            WHERE work_order.id = ${id}
             LIMIT 1
         `);
 
@@ -117,18 +150,28 @@ export class WorkOrderRepository implements IWorkOrderRepository
 
         const innerQuery = sql`
             SELECT
-                id,
-                repair_request_item_id,
-                scheduled_start,
-                scheduled_end,
-                order_sequence,
-                is_final,
-                status_id,
-                created_at,
-                updated_at,
-                created_by,
-                updated_by
-            FROM ${workOrderTable}
+                work_order.id,
+                work_order.repair_request_item_id,
+                work_order.scheduled_start,
+                work_order.scheduled_end,
+                work_order.order_sequence,
+                work_order.is_final,
+                work_order.status_id,
+                work_order.created_at,
+                work_order.updated_at,
+                work_order.created_by,
+                work_order.updated_by,
+                repair_request_item.description AS repair_request_item_description,
+                repair_status.name AS status_name,
+                repair_status.code AS status_code,
+                product.name AS product_name,
+                repair_request.request_no AS request_no,
+                repair_request.request_no AS work_order_no
+            FROM ${workOrderTable} work_order
+            LEFT JOIN repair_status ON work_order.status_id = repair_status.id
+            LEFT JOIN repair_request_item ON work_order.repair_request_item_id = repair_request_item.id
+            LEFT JOIN product ON repair_request_item.product_id = product.id
+            LEFT JOIN repair_request ON repair_request_item.repair_request_id = repair_request.id
         `;
 
         const [WorkOrderResults, countResult] = await Promise.all([
