@@ -1,3 +1,5 @@
+import { RepairRequestItem } from "../Features/RepairRequest/RepairRequestItem";
+
 export interface WorkOrder
 {
     id: number;
@@ -6,9 +8,12 @@ export interface WorkOrder
     scheduledEnd: string;
     orderSequence: number;
     isFinal: boolean;
-    statusId: number;
-    createdAt: string;
-    updatedAt: string;
+    statusId: number | null;
+    createdAt: string | null;
+    updatedAt: string | null;
     createdBy: string | null;
     updatedBy: string | null;
+
+    repairRequestItem?: Pick<RepairRequestItem, "id" | "description" | "repairStatusId" | "product" | "repairStatus"> | null;
+    repairRequestRequestNo?: string | null;
 }

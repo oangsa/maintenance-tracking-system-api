@@ -3713,8 +3713,6 @@ components:
         - scheduledStart
         - scheduledEnd
         - orderSequence
-        - isFinal
-        - statusId
         - createdAt
         - updatedAt
         - createdBy
@@ -3730,10 +3728,9 @@ components:
           type: string
         orderSequence:
           type: number
-        isFinal:
-          type: boolean
         statusId:
           type: number
+          nullable: true
         createdAt:
           type: string
           nullable: true
@@ -3746,6 +3743,21 @@ components:
         updatedBy:
           type: string
           nullable: true
+        repairRequestItemDescription:
+          type: string
+        repairRequestItemRepairStatusId:
+          type: number
+          nullable: true
+        repairRequestItemRepairStatusCode:
+          type: string
+          nullable: true
+        repairRequestItemRepairStatusName:
+          type: string
+          nullable: true
+        repairRequestItemProductName:
+          type: string
+        repairRequestRequestNo:
+          type: string
 
     WorkOrderForCreate:
       type: object
@@ -3754,7 +3766,6 @@ components:
         - scheduledStart
         - scheduledEnd
         - orderSequence
-        - statusId
       properties:
         repairRequestItemId:
           type: number
@@ -3767,14 +3778,14 @@ components:
           minimum: 0
         isFinal:
           type: boolean
-        statusId:
-          type: number
 
     WorkOrderForUpdate:
       type: object
       properties:
         repairRequestItemId:
           type: number
+        scheduledStart:
+          type: string
         scheduledEnd:
           type: string
         orderSequence:
@@ -3782,8 +3793,6 @@ components:
           minimum: 0
         isFinal:
           type: boolean
-        statusId:
-          type: number
 
     WorkOrderPart:
       type: object

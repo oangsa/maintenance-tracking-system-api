@@ -39,12 +39,12 @@ export const inventoryMoveItem = pgTable("inventory_move_item", {
 	quantityIn: integer("quantity_in").default(0),
 	quantityOut: integer("quantity_out").default(0),
 	note: text(),
-	workOrderPartId: integer("work_order_part_id").references(() => workOrderPart.id),
 	createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 50 }),
 	updatedBy: varchar("updated_by", { length: 50 }),
 	deleted: boolean().default(false),
+	workOrderPartId: integer("work_order_part_id").references(() => workOrderPart.id),
 });
 
 export const part = pgTable("part", {
@@ -203,8 +203,6 @@ export const workOrder = pgTable("work_order", {
 	scheduledStart: timestamp("scheduled_start", { withTimezone: true }),
 	scheduledEnd: timestamp("scheduled_end", { withTimezone: true }),
 	orderSequence: integer("order_sequence").notNull(),
-	isFinal: boolean("is_final").default(false),
-	statusId: integer("status_id").notNull().references(() => repairStatus.id),
 	createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 150 }),

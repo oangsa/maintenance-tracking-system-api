@@ -402,7 +402,6 @@ For the longer version of the rules and backend flow, see `docs/taskAssignmentRu
 | scheduled_end | timestamp with time zone | Yes | - | - |
 | order_sequence | integer | No | - | - |
 | is_final | boolean | Yes | false | - |
-| status_id | integer | No | - | FOREIGN KEY |
 | created_at | timestamp with time zone | Yes | now() | - |
 | updated_at | timestamp with time zone | Yes | now() | - |
 | created_by | character varying | Yes | - | - |
@@ -412,7 +411,6 @@ For the longer version of the rules and backend flow, see `docs/taskAssignmentRu
 |---|---|---|
 | work_order_pkey | PRIMARY KEY | (id) |
 | work_order_repair_request_item_id_fkey | FOREIGN KEY | (repair_request_item_id) REFERENCES public.repair_request_item(id) |
-| work_order_status_id_fkey | FOREIGN KEY | (status_id) REFERENCES public.repair_status(id) |
 
 ## public.work_order_part
 

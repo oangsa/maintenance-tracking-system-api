@@ -10,29 +10,24 @@ export class WorkOrderMapper implements IWorkOrderMapper
 {
     WorkOrderToDto(WorkOrder: WorkOrder): WorkOrderDto
     {
-        const data = WorkOrder as any;
         return {
             id: WorkOrder.id,
             repairRequestItemId: WorkOrder.repairRequestItemId,
             scheduledStart: WorkOrder.scheduledStart,
             scheduledEnd: WorkOrder.scheduledEnd,
             orderSequence: WorkOrder.orderSequence,
-            isFinal: WorkOrder.isFinal,
             statusId: WorkOrder.statusId,
             createdAt: WorkOrder.createdAt,
             updatedAt: WorkOrder.updatedAt,
             createdBy: WorkOrder.createdBy,
             updatedBy: WorkOrder.updatedBy,
-            repairRequestItemDescription: data.repairRequestItemDescription,
-            statusName: data.statusName,
-            statusCode: data.statusCode,
-            productName: data.productName,
-            requestNo: data.requestNo,
-            
-            status: data.status,
-            repairRequestItem: data.repairRequestItem,
-            repairRequest: data.repairRequest,
-        
+            repairRequestItemDescription: WorkOrder.repairRequestItem?.description,
+            repairRequestItemRepairStatusId: WorkOrder.repairRequestItem?.repairStatusId ?? null,
+            repairRequestItemRepairStatusCode: WorkOrder.repairRequestItem?.repairStatus?.code ?? null,
+            repairRequestItemRepairStatusName: WorkOrder.repairRequestItem?.repairStatus?.name ?? null,
+            repairRequestItemProductName: WorkOrder.repairRequestItem?.product?.name,
+            repairRequestRequestNo: WorkOrder.repairRequestRequestNo ?? undefined,
+
         };
     }
 }

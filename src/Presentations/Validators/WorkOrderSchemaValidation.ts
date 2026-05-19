@@ -17,30 +17,17 @@ export const WorkOrderResponseSchema = t.Object({
     scheduledStart: t.String(),
     scheduledEnd: t.String(),
     orderSequence: t.Number(),
-    isFinal: t.Boolean(),
-    statusId: t.Number(),
+    statusId: t.Nullable(t.Number()),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
     updatedBy: t.Nullable(t.String()),
     repairRequestItemDescription: t.Optional(t.String()),
-    statusName: t.Optional(t.String()),
-    statusCode: t.Optional(t.String()),
-    productName: t.Optional(t.String()),
-    requestNo: t.Optional(t.String()),
-    status: t.Optional(t.Object({
-        name: t.Optional(t.String()),
-        code: t.Optional(t.String())
-    })),
-    repairRequestItem: t.Optional(t.Object({
-        description: t.Optional(t.String()),
-        product: t.Optional(t.Object({
-            name: t.Optional(t.String())
-        }))
-    })),
-    repairRequest: t.Optional(t.Object({
-        requestNo: t.Optional(t.String())
-    }))
+    repairRequestItemRepairStatusId: t.Nullable(t.Number()),
+    repairRequestItemRepairStatusCode: t.Nullable(t.String()),
+    repairRequestItemRepairStatusName: t.Nullable(t.String()),
+    repairRequestItemProductName: t.Optional(t.String()),
+    repairRequestRequestNo: t.Optional(t.String()),
 });
 
 export const WorkOrderForCreateSchema = t.Object({
@@ -49,7 +36,6 @@ export const WorkOrderForCreateSchema = t.Object({
     scheduledEnd: t.String(),
     orderSequence: t.Number({ minimum: 0 }),
     isFinal: t.Optional(t.Boolean()),
-    statusId: t.Number(),
 });
 
 export const WorkOrderForUpdateSchema = t.Object({
@@ -58,7 +44,6 @@ export const WorkOrderForUpdateSchema = t.Object({
     scheduledEnd: t.Optional(t.String()),
     orderSequence: t.Optional(t.Number({ minimum: 0 })),
     isFinal: t.Optional(t.Boolean()),
-    statusId: t.Optional(t.Number()),
 });
 
 export const WorkOrderIdParamSchema = t.Object({
