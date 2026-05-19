@@ -149,6 +149,7 @@ export class WorkOrderService implements IWorkOrderService
         const updatedWorkOrder: WorkOrder = {
             ...WorkOrderEntity,
             repairRequestItemId: WorkOrderForUpdateDto.repairRequestItemId ?? WorkOrderEntity.repairRequestItemId,
+            scheduledStart: WorkOrderForUpdateDto.scheduledStart ?? WorkOrderEntity.scheduledStart,
             scheduledEnd: WorkOrderForUpdateDto.scheduledEnd ?? WorkOrderEntity.scheduledEnd,
             orderSequence: WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence,
             isFinal: WorkOrderForUpdateDto.isFinal ?? WorkOrderEntity.isFinal,
@@ -178,7 +179,21 @@ export class WorkOrderService implements IWorkOrderService
         this.ExpectMinimumRole('manager');
 
         await this.GetWorkOrderAndCheckIfItExists(id);
-        await this._repositoryManager.workOrderRepository.DeleteWorkOrder(id);
+        try
+        {
+            await this._repositoryManager.workOrderRepository.DeleteWorkOrder(id);
+        }
+        catch (error: any)
+        {
+            const errorMessage = error.message || "";
+            if (error.code === "23505" || errorMessage.includes('DELETE FROM "work_order"'))
+            {
+                throw new Error("Cannot delete this work order because it has related tasks or parts. Please delete them first.");
+            }
+
+            throw error;
+        }
+        
     }
 
     async DeleteWorkOrderCollection(ids: number[]): Promise<void>

@@ -10,6 +10,7 @@ export class WorkOrderMapper implements IWorkOrderMapper
 {
     WorkOrderToDto(WorkOrder: WorkOrder): WorkOrderDto
     {
+        const data = WorkOrder as any;
         return {
             id: WorkOrder.id,
             repairRequestItemId: WorkOrder.repairRequestItemId,
@@ -22,6 +23,15 @@ export class WorkOrderMapper implements IWorkOrderMapper
             updatedAt: WorkOrder.updatedAt,
             createdBy: WorkOrder.createdBy,
             updatedBy: WorkOrder.updatedBy,
+            repairRequestItemDescription: data.repairRequestItemDescription,
+            statusName: data.statusName,
+            statusCode: data.statusCode,
+            productName: data.productName,
+            requestNo: data.requestNo,
+            
+            status: data.status,
+            repairRequestItem: data.repairRequestItem,
+            repairRequest: data.repairRequest,
         
         };
     }
