@@ -45,6 +45,7 @@ export class Application
                             { name: "Repair Requests", description: "Repair request management endpoints" },
                             { name: "Product Types", description: "Product type management endpoints" },
                             { name: "Products", description: "Product management endpoints" },
+                            { name: "Inventory Moves", description: "Inventory movement management endpoints" },
                             { name: "Versioning", description: "API version discovery endpoints" },
                         ],
                     },

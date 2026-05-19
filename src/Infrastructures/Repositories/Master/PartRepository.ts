@@ -10,7 +10,6 @@ import { normalizeRequestParameters } from "../../../Shared/Utilities/RequestFea
 import { QueryBuilder } from "../Extensions/QueryBuilder";
 
 
-
 type PartRow = {
     id: number;
     code: string;
@@ -34,6 +33,7 @@ export class PartRepository implements IPartRepository
         this._db = db;
     }
 
+    
     private mapRowToPart(row: PartRow): Part
     {
         return {
