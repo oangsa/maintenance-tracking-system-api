@@ -29,11 +29,11 @@ tags:
     description: Product management endpoints
   - name: Inventory Moves
     description: Inventory movement management endpoints
-  - name: WorkOrders
+  - name: Work Orders
     description: Work order management endpoints
   - name: Work Order Parts
     description: Work order part management endpoints
-  - name: WorkTasks
+  - name: Work Tasks
     description: Work task management endpoints
   - name: Versioning
     description: API version discovery endpoints
@@ -1418,7 +1418,7 @@ paths:
   /api/v1/work-order/search:
     post:
       tags:
-        - WorkOrders
+        - Work Orders
       summary: Search work orders
       operationId: searchWorkOrders
       security:
@@ -1453,7 +1453,7 @@ paths:
   /api/v1/work-order:
     post:
       tags:
-        - WorkOrders
+        - Work Orders
       summary: Create work order
       operationId: createWorkOrder
       security:
@@ -1493,7 +1493,7 @@ paths:
       - $ref: '#/components/parameters/IdPathParam'
     get:
       tags:
-        - WorkOrders
+        - Work Orders
       summary: Get work order by ID
       operationId: getWorkOrderById
       security:
@@ -1515,7 +1515,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - WorkOrders
+        - Work Orders
       summary: Update work order
       operationId: updateWorkOrder
       security:
@@ -1547,7 +1547,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - WorkOrders
+        - Work Orders
       summary: Delete work order
       operationId: deleteWorkOrder
       security:
@@ -1567,7 +1567,7 @@ paths:
   /api/v1/work-order/collection:
     delete:
       tags:
-        - WorkOrders
+        - Work Orders
       summary: Delete work order collection
       operationId: deleteWorkOrderCollection
       security:
@@ -2617,7 +2617,7 @@ paths:
   /api/v1/work-task/search:
     post:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Search work tasks
       operationId: searchWorkTasks
       security:
@@ -2652,7 +2652,7 @@ paths:
   /api/v1/work-task:
     post:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Create work task
       operationId: createWorkTask
       security:
@@ -2692,7 +2692,7 @@ paths:
       - $ref: '#/components/parameters/IdPathParam'
     get:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Get work task by ID
       operationId: getWorkTaskById
       security:
@@ -2714,7 +2714,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Update work task
       operationId: updateWorkTask
       security:
@@ -2746,7 +2746,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Delete work task
       operationId: deleteWorkTask
       security:
@@ -2768,7 +2768,7 @@ paths:
       - $ref: '#/components/parameters/IdPathParam'
     get:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Get work task assignment history by ID
       operationId: getWorkTaskAssignmentHistoryById
       security:
@@ -2796,7 +2796,7 @@ paths:
       - $ref: '#/components/parameters/IdPathParam'
     post:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Assign or reassign work task to a user
       operationId: assignWorkTask
       security:
@@ -2832,7 +2832,7 @@ paths:
       - $ref: '#/components/parameters/IdPathParam'
     post:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Unassign work task
       operationId: unassignWorkTask
       security:
@@ -2858,7 +2858,7 @@ paths:
   /api/v1/work-task/collection:
     delete:
       tags:
-        - WorkTasks
+        - Work Tasks
       summary: Delete work task collection
       operationId: deleteWorkTaskCollection
       security:
