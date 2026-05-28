@@ -23,7 +23,13 @@ export const InventoryMoveItemResponseSchema = t.Object({
 export const InventoryMoveResponseSchema = t.Object({
     id: t.Number(),
     moveNo: t.String(),
-    reason: t.Enum(InventoryMoveReason),
+    reason: t.Union([
+        t.Literal("buy"),
+        t.Literal("use"),
+        t.Literal("lost"),
+        t.Literal("found"),
+        t.Literal("adjust"),
+    ]),
     moveDate: t.String(),
     remark: t.String(),
     createdAt: t.Nullable(t.String()),
@@ -42,7 +48,8 @@ export const InventoryMoveForCreateSchema = t.Object({
         partId: t.Number(),
         quantityIn: t.Number({ minimum: 0 }),
         quantityOut: t.Number({ minimum: 0 }),
-        note: t.Optional(t.String())
+        note: t.Optional(t.Nullable(t.String())),
+        workOrderPartId: t.Optional(t.Nullable(t.Number())),
     }), { minItems: 1 }) 
 });
 
