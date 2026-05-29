@@ -346,4 +346,13 @@ export class RepairRequestService implements IRepairRequestService
 
         return await this._repositoryManager.repairRequestRepository.GetMonthlyRepairTrendByProductTypeReport(startDate, endDate);
     }
+
+     async GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItemDto>>
+    {
+        const pagedData = await this._repositoryManager.repairRequestRepository.GetAllRepairRequestItems(parameters);
+        return {
+            items: this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(pagedData.items),
+            meta: pagedData.meta,
+        };
+    }
 }

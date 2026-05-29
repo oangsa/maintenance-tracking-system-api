@@ -8,11 +8,8 @@ import { RepairRequestItemParameter } from "../../Domains/RequestFeatures/Repair
 import { PagedResult } from "../../Domains/RequestFeatures/Core/PageResult";
 import { RepairRequestItemForCreateDto } from "../DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
 import { RepairRequestCountGroupByStatusDto } from "../DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
-<<<<<<< feat/top-repaired-report
 import { TopRepairedProductsPerformanceReportDto } from "../DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
-=======
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
->>>>>>> main
 
 export interface IRepairRequestService
 {
@@ -21,6 +18,7 @@ export interface IRepairRequestService
     GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]>
     GetRepairRequest(id: number): Promise<RepairRequestDto>;
     GetRepairRequestItems(id: number, parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItemDto>>;
+    GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItemDto>>;
     GetRepairRequestAudits(id: number): Promise<RepairRequestStatusLogDto[]>;
     CreateRepairRequest(repairRequestForCreateDto: RepairRequestForCreateDto): Promise<RepairRequestDto>;
     CreateRepairRequestItems(repairRequestId: number, repairRequestItemForCreateDtos: RepairRequestItemForCreateDto[]): Promise<RepairRequestItemDto[]>;

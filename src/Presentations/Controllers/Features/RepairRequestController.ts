@@ -403,12 +403,50 @@ export class RepairRequestController
                                 return this.handleError(error, set);
                             }
                         });
+                },
+                {
+                    body: RepairRequestParameterSchema,
+                    response: t.Array(MonthlyRepairTrendByProductTypeReportResponseSchema),
+                    detail: { summary: "Get monthly repair trend by product type report", tags: ["Repair Requests"] },
+                })
+                .post(
+                    "/items/search",
+                    async ({ body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const params: RepairRequestItemParameter = {
+                                    pageNumber: body.pageNumber ?? 1,
+                                    pageSize: body.pageSize ?? 10,
+                                    orderBy: body.orderBy as RepairRequestItemParameter["orderBy"],
+                                    search: body.search,
+                                    searchTerm: body.searchTerm,
+                                    deleted: body.deleted ?? false,
+                                };
+
+                                const result = await this._service.repairRequestService.GetAllRepairRequestItems(params);
+
+                                set.headers["X-Pagination"] = JSON.stringify(result.meta);
+                                set.status = 200;
+
+                                return result.items;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
                     },
                     {
-                        body: RepairRequestParameterSchema,
-                        response: t.Array(MonthlyRepairTrendByProductTypeReportResponseSchema),
-                        detail: { summary: "Get monthly repair trend by product type report", tags: ["Repair Requests"] },
-                    },
+                        body: RepairRequestItemParameterSchema,
+                        response: t.Array(RepairRequestItemResponseSchema),
+                        detail: {
+                            summary: "Search all repair request items",
+                            tags: ["Repair Requests"] 
+                        }
+                    }
                 )
         );
     }
