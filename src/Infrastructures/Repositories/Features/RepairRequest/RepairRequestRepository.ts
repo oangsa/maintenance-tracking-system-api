@@ -961,5 +961,16 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         return createPagedResult(items as RepairRequestItem[], totalCount, params.pageNumber, params.pageSize);
     }
-    
+
+    async UpdateRepairRequestItemStatus(itemId: number, newStatusId: number): Promise<void>
+    {
+        await this._db.db.execute(sql`
+            UPDATE ${repairRequestItemTable}
+            SET
+                repair_status_id = ${newStatusId},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ${itemId}
+        `);
+    }
+
 }

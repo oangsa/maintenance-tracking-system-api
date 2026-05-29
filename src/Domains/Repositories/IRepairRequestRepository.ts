@@ -21,4 +21,5 @@ export interface IRepairRequestRepository
     GetTopRepairedProductsPerformanceReport(parameters: RepairRequestParameter): Promise<TopRepairedProductsPerformanceReportDto[]>;
     GetMonthlyRepairTrendByProductTypeReport(startDate: Date, endDate: Date): Promise<MonthlyRepairTrendByProductTypeReport[]>;
     GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItem>>;
+    UpdateRepairRequestItemStatus(itemId: number, newStatusId: number): Promise<void>;
 }
