@@ -881,4 +881,85 @@ export class RepairRequestRepository implements IRepairRequestRepository
             value: row.value
         }));
     }
+
+    async GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItem>>
+    {
+        const params = normalizeRequestParameters(parameters);
+        const offset = (params.pageNumber - 1) * params.pageSize;
+        const limit = params.pageSize;
+        const whereConditions: SQL[] = [];
+
+        this.validateNumericSearchValue(params.search, 'department_id', 'department_code');
+
+        if (params.search && params.search.length > 0)
+        {
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(params.search);
+            if (filterSQL) whereConditions.push(filterSQL);
+        }
+
+        if (params.searchTerm)
+        {
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(params.searchTerm);
+            if (searchSQL) whereConditions.push(searchSQL);
+        }
+
+        const whereClause = whereConditions.length > 0 ? sql`WHERE ${sql.join(whereConditions, sql` AND `)}` : sql``;
+        const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(params.orderBy);
+
+        const innerQuery = sql`
+            SELECT
+                repair_request_item.id,
+                repair_request_item.repair_request_id,
+                repair_request_item.product_id,
+                repair_request_item.description,
+                repair_request_item.quantity,
+                repair_request_item.repair_status_id,
+                repair_request_item.department_id,
+                repair_request_item.created_at,
+                repair_request_item.updated_at,
+                repair_request_item.created_by,
+                repair_request_item.updated_by,
+                product.code AS product_code,
+                product.name AS product_name,
+                product.product_type_id AS product_type_id,
+                department.code AS department_code,
+                department.name AS department_name,
+                item_status.code AS repair_status_code,
+                item_status.name AS repair_status_name,
+                item_status.order_sequence AS repair_status_order_sequence,
+                item_status.is_final AS repair_status_is_final,
+                repair_request.request_no AS request_no
+            FROM ${repairRequestItemTable} repair_request_item
+            LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+            LEFT JOIN ${departmentTable} department ON department.id = repair_request_item.department_id
+            LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
+            LEFT JOIN ${repairRequestTable} repair_request ON repair_request.id = repair_request_item.repair_request_id
+        `;
+
+        const [itemResults, countResult] = await Promise.all([
+            this._db.db.execute<RepairRequestItemRow>(sql`
+                SELECT * FROM (${innerQuery}) base
+                ${whereClause}
+                ${orderByClause}
+                LIMIT ${limit}
+                OFFSET ${offset}
+            `),
+            this._db.db.execute<{ count: number }>(sql`
+                SELECT COUNT(*)::int AS count
+                FROM (${innerQuery}) base
+                ${whereClause}
+            `),
+        ]);
+
+        const rows = Array.from(itemResults) as RepairRequestItemRow[];
+        const totalCount = countResult[0]?.count ?? 0;
+        const items = rows.map(row => {
+            const item = this.mapRowToRepairRequestItem(row);
+            (item as any).requestNo = (row as any).request_no; 
+            return item;
+        });
+
+        return createPagedResult(items as RepairRequestItem[], totalCount, params.pageNumber, params.pageSize);
+    }
+    
 }
