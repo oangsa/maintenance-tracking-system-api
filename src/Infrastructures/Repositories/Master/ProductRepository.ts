@@ -53,20 +53,20 @@ export class ProductRepository implements IProductRepository
     {
         const result = await this._db.db.execute<ProductRow>(sql`
             SELECT
-                p.id,
-                p.code,
-                p.name,
-                pt.id AS product_type_id,
-                pt.code AS product_type_code,
-                pt.name AS product_type_name,
-                p.created_at,
-                p.updated_at,
-                p.created_by,
-                p.updated_by,
-                p.deleted
-            FROM ${productTable} p
-            JOIN product_type pt ON pt.id = p.product_type_id
-            WHERE p.id = ${id} AND p.deleted = false
+                product.id,
+                product.code,
+                product.name,
+                product_type.id AS product_type_id,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name,
+                product.created_at,
+                product.updated_at,
+                product.created_by,
+                product.updated_by,
+                product.deleted
+            FROM ${productTable} product
+            JOIN product_type product_type ON product_type.id = product.product_type_id
+            WHERE product.id = ${id} AND product.deleted = false
             LIMIT 1
         `);
 
@@ -80,24 +80,24 @@ export class ProductRepository implements IProductRepository
 
     async GetProductByCode(code: string, includeDeleted: boolean = false): Promise<Product | null>
     {
-        const deletedFilter = includeDeleted ? sql`` : sql`AND p.deleted = false`;
+        const deletedFilter = includeDeleted ? sql`` : sql`AND product.deleted = false`;
 
         const result = await this._db.db.execute<ProductRow>(sql`
             SELECT
-                p.id,
-                p.code,
-                p.name,
-                pt.id AS product_type_id,
-                pt.code AS product_type_code,
-                pt.name AS product_type_name,
-                p.created_at,
-                p.updated_at,
-                p.created_by,
-                p.updated_by,
-                p.deleted
-            FROM ${productTable} p
-            JOIN product_type pt ON pt.id = p.product_type_id
-            WHERE p.code = ${code}
+                product.id,
+                product.code,
+                product.name,
+                product_type.id AS product_type_id,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name,
+                product.created_at,
+                product.updated_at,
+                product.created_by,
+                product.updated_by,
+                product.deleted
+            FROM ${productTable} product
+            JOIN product_type product_type ON product_type.id = product.product_type_id
+            WHERE product.code = ${code}
               ${deletedFilter}
             LIMIT 1
         `);
@@ -135,19 +135,19 @@ export class ProductRepository implements IProductRepository
 
         const innerQuery = sql`
             SELECT
-                p.id,
-                p.code,
-                p.name,
-                pt.id AS product_type_id,
-                pt.code AS product_type_code,
-                pt.name AS product_type_name,
-                p.created_at,
-                p.updated_at,
-                p.created_by,
-                p.updated_by,
-                p.deleted
-            FROM ${productTable} p
-            JOIN product_type pt ON pt.id = p.product_type_id
+                product.id,
+                product.code,
+                product.name,
+                product_type.id AS product_type_id,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name,
+                product.created_at,
+                product.updated_at,
+                product.created_by,
+                product.updated_by,
+                product.deleted
+            FROM ${productTable} product
+            JOIN product_type product_type ON product_type.id = product.product_type_id
         `;
 
         const [productResults, countResult] = await Promise.all([

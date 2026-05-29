@@ -13,6 +13,7 @@ import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotF
 import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
 import { hashPassword } from "../../../Shared/Utilities/Authentication/PasswordUtils";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 
 export class UserService implements IUserService
 {
@@ -47,7 +48,45 @@ export class UserService implements IUserService
 
     async GetListUser(parameters: UserParameter): Promise<PagedResult<UserDto>>
     {
-        const pagedUsers = await this._repositoryManager.userRepository.GetListUser(parameters);
+        const currentUser = this._userProvider.getCurrentUser();
+        let resolvedParameters: UserParameter = {
+            ...parameters,
+        };
+
+        if (parameters.workOrderId !== undefined)
+        {
+            const departmentId = await this._repositoryManager.workOrderRepository.GetDepartmentIdByWorkOrderId(parameters.workOrderId);
+
+            if (departmentId === null)
+            {
+                throw new WorkOrderNotFoundException(parameters.workOrderId);
+            }
+
+            resolvedParameters = {
+                ...resolvedParameters,
+                departmentId,
+                excludeId: undefined,
+                excludeRoles: ["admin"],
+            };
+
+            if (currentUser?.role.toLowerCase() === "manager")
+            {
+                resolvedParameters = {
+                    ...resolvedParameters,
+                    roles: ["employee"],
+                    includeUserIds: [currentUser.userId],
+                };
+            }
+            else if (currentUser?.role.toLowerCase() === "admin")
+            {
+                resolvedParameters = {
+                    ...resolvedParameters,
+                    roles: ["manager", "employee"],
+                };
+            }
+        }
+
+        const pagedUsers = await this._repositoryManager.userRepository.GetListUser(resolvedParameters);
 
         return {
             items: pagedUsers.items.map(user => this._mapperManager.userMapper.UserToDto(user)),

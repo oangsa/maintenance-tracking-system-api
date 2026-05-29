@@ -11,6 +11,9 @@ import { IInventoryMoveService } from "../IInventoryMoveService";
 import { IRepairRequestService } from "../IRepairRequestService";
 import { IProductTypeService } from "../IProductTypeService";
 import { IProductService } from "../IProductService";
+import { IWorkOrderService } from "../IWorkOrderService";
+import { IWorkOrderPartService } from "../IWorkOrderPartService";
+import { IWorkTaskService } from "../IWorkTaskService";
 
 export interface IServiceManager
 {
@@ -28,4 +31,8 @@ export interface IServiceManager
     repairRequestService: IRepairRequestService;
     productTypeService: IProductTypeService;
     productService: IProductService;
+    workOrderService: IWorkOrderService;
+    workOrderPartService: IWorkOrderPartService;
+    workTaskService: IWorkTaskService;
+
 }

@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { InvalidCredentialsException } from "../../../Domains/Exceptions/Auth/InvalidCredentialsException";
-import { UserForLoginSchema } from "../../Validators/AuthSchemaValidation";
+import { LoginResponseSchema, MessageResponseSchema, RefreshResponseSchema, UserForLoginSchema } from "../../Validators/AuthSchemaValidation";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 
 const REFRESH_COOKIE = "refresh_token";
@@ -68,6 +68,7 @@ export class AuthenticationController
                     },
                     {
                         body: UserForLoginSchema,
+                        response: LoginResponseSchema,
                         detail: { summary: "Login user", tags: ["Authentications"] },
                     },
                 )
@@ -121,7 +122,10 @@ export class AuthenticationController
                             return this.handleError(error, set);
                         }
                     },
-                    { detail: { summary: "Refresh access token", tags: ["Authentications"] } },
+                    {
+                        response: RefreshResponseSchema,
+                        detail: { summary: "Refresh access token", tags: ["Authentications"] },
+                    },
                 )
                 .group("", (app) =>
                     app
@@ -142,7 +146,10 @@ export class AuthenticationController
 
                                 return { message: "Logged out successfully" };
                             },
-                            { detail: { summary: "Logout current device", tags: ["Authentications"] } },
+                            {
+                                response: MessageResponseSchema,
+                                detail: { summary: "Logout current device", tags: ["Authentications"] },
+                            },
                         )
                         .post(
                             "/logout-all",
@@ -153,7 +160,10 @@ export class AuthenticationController
                                 cookie[REFRESH_COOKIE]!.remove();
                                 return { message: "Logged out from all devices" };
                             },
-                            { detail: { summary: "Logout all devices", tags: ["Authentications"] } },
+                            {
+                                response: MessageResponseSchema,
+                                detail: { summary: "Logout all devices", tags: ["Authentications"] },
+                            },
                         ),
                 ),
         );

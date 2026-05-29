@@ -17,6 +17,7 @@ export class PartMapper implements IPartMapper
             productTypeId: part.productTypeId,
             productTypeCode: part.productTypeCode,
             productTypeName: part.productTypeName,
+            totalStock: part.totalStock,
             createdAt: part.createdAt,
             updatedAt: part.updatedAt,
             createdBy: part.createdBy,

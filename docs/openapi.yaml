@@ -23,6 +23,18 @@ tags:
     description: Repair request item status management endpoints
   - name: Repair Requests
     description: Repair request management endpoints
+  - name: Product Types
+    description: Product type management endpoints
+  - name: Products
+    description: Product management endpoints
+  - name: Inventory Moves
+    description: Inventory movement management endpoints
+  - name: Work Orders
+    description: Work order management endpoints
+  - name: Work Order Parts
+    description: Work order part management endpoints
+  - name: Work Tasks
+    description: Work task management endpoints
   - name: Versioning
     description: API version discovery endpoints
 paths:
@@ -683,6 +695,901 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/part/{id}/receive-stock:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Parts
+      summary: Receive stock for part
+      operationId: receivePartStock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartStockReceiveRequest'
+            examples:
+              receiveStock:
+                value:
+                  quantity: 10
+                  note: New stock arrival
+      responses:
+        '200':
+          description: Part stock received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+              examples:
+                success:
+                  value:
+                    id: 5
+                    code: P-001
+                    name: Battery Pack
+                    productTypeId: 2
+                    productTypeCode: PT-02
+                    productTypeName: Accessories
+                    totalStock: 18
+                    createdAt: '2026-05-01T10:00:00+07:00'
+                    updatedAt: '2026-05-01T12:30:00+07:00'
+                    createdBy: Admin
+                    updatedBy: Manager
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/{id}/consume-stock:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Parts
+      summary: Consume stock for part
+      operationId: consumePartStock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartStockConsumeRequest'
+            examples:
+              consumeStock:
+                value:
+                  quantity: 2
+                  workOrderPartId: 31
+                  note: Used for repair work
+      responses:
+        '200':
+          description: Part stock consumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+              examples:
+                success:
+                  value:
+                    id: 5
+                    code: P-001
+                    name: Battery Pack
+                    productTypeId: 2
+                    productTypeCode: PT-02
+                    productTypeName: Accessories
+                    totalStock: 16
+                    createdAt: '2026-05-01T10:00:00+07:00'
+                    updatedAt: '2026-05-01T13:15:00+07:00'
+                    createdBy: Admin
+                    updatedBy: Manager
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/part/{id}/adjust-stock:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Parts
+      summary: Adjust stock for part
+      operationId: adjustPartStock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartStockAdjustRequest'
+            examples:
+              adjustStockOut:
+                value:
+                  direction: out
+                  quantity: 1
+                  note: Damaged item correction
+      responses:
+        '200':
+          description: Part stock adjusted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Part'
+              examples:
+                success:
+                  value:
+                    id: 5
+                    code: P-001
+                    name: Battery Pack
+                    productTypeId: 2
+                    productTypeCode: PT-02
+                    productTypeName: Accessories
+                    totalStock: 15
+                    createdAt: '2026-05-01T10:00:00+07:00'
+                    updatedAt: '2026-05-01T13:45:00+07:00'
+                    createdBy: Admin
+                    updatedBy: Manager
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product-type/search:
+    post:
+      tags:
+        - Product Types
+      summary: Search product types
+      operationId: searchProductTypes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductTypeSearchRequest'
+      responses:
+        '200':
+          description: Product types list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductType'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product-type:
+    post:
+      tags:
+        - Product Types
+      summary: Create product type
+      operationId: createProductType
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductTypeForCreate'
+      responses:
+        '201':
+          description: Product type created
+          headers:
+            Location:
+              description: Versioned URL of the newly created product type
+              schema:
+                type: string
+                example: /api/v1/product-type/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product-type/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Product Types
+      summary: Get product type by ID
+      operationId: getProductTypeById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Product type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Product Types
+      summary: Update product type
+      operationId: updateProductType
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductTypeForUpdate'
+      responses:
+        '200':
+          description: Product type updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductType'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Product Types
+      summary: Delete product type
+      operationId: deleteProductType
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Product type deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product-type/collection:
+    delete:
+      tags:
+        - Product Types
+      summary: Delete product types collection
+      operationId: deleteProductTypeCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Product types deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product/search:
+    post:
+      tags:
+        - Products
+      summary: Search products
+      operationId: searchProducts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductSearchRequest'
+      responses:
+        '200':
+          description: Products list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product:
+    post:
+      tags:
+        - Products
+      summary: Create product
+      operationId: createProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductForCreate'
+      responses:
+        '201':
+          description: Product created
+          headers:
+            Location:
+              description: Versioned URL of the newly created product
+              schema:
+                type: string
+                example: /api/v1/product/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      operationId: getProductById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Products
+      summary: Update product
+      operationId: updateProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductForUpdate'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      operationId: deleteProduct
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Product deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/product/collection:
+    delete:
+      tags:
+        - Products
+      summary: Delete products collection
+      operationId: deleteProductCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Products deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/inventory-move/search:
+    post:
+      tags:
+        - Inventory Moves
+      summary: Search inventory moves
+      operationId: searchInventoryMoves
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryMoveSearchRequest'
+      responses:
+        '200':
+          description: Inventory moves list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryMove'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/inventory-move:
+    post:
+      tags:
+        - Inventory Moves
+      summary: Create inventory move
+      operationId: createInventoryMove
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryMoveForCreate'
+      responses:
+        '201':
+          description: Inventory move created
+          headers:
+            Location:
+              description: Versioned URL of the newly created inventory move
+              schema:
+                type: string
+                example: /api/v1/inventory-move/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMove'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/inventory-move/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Inventory Moves
+      summary: Get inventory move by ID
+      operationId: getInventoryMoveById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Inventory move found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMove'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Inventory Moves
+      summary: Update inventory move
+      operationId: updateInventoryMove
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryMoveForUpdate'
+      responses:
+        '200':
+          description: Inventory move updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMove'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Inventory Moves
+      summary: Delete inventory move
+      operationId: deleteInventoryMove
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Inventory move deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/inventory-move/{id}/reverse:
+    post:
+      tags:
+        - Inventory Moves
+      summary: Reverse inventory move
+      operationId: reverseInventoryMove
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryMoveForCreate'
+      responses:
+        '201':
+          description: Inventory move reversed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMove'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/inventory-move/collection:
+    delete:
+      tags:
+        - Inventory Moves
+      summary: Delete inventory move collection
+      operationId: deleteInventoryMoveCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Inventory moves deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order/search:
+    post:
+      tags:
+        - Work Orders
+      summary: Search work orders
+      operationId: searchWorkOrders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderSearchRequest'
+      responses:
+        '200':
+          description: Work orders list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrder'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order:
+    post:
+      tags:
+        - Work Orders
+      summary: Create work order
+      operationId: createWorkOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderForCreate'
+      responses:
+        '201':
+          description: Work order created
+          headers:
+            Location:
+              description: Versioned URL of the newly created work order
+              schema:
+                type: string
+                example: /api/v1/work-order/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrder'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Work Orders
+      summary: Get work order by ID
+      operationId: getWorkOrderById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work order found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrder'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Work Orders
+      summary: Update work order
+      operationId: updateWorkOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderForUpdate'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrder'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Work Orders
+      summary: Delete work order
+      operationId: deleteWorkOrder
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Work order deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order/collection:
+    delete:
+      tags:
+        - Work Orders
+      summary: Delete work order collection
+      operationId: deleteWorkOrderCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Work orders deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/repair-status/search:
     post:
       tags:
@@ -1033,7 +1940,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/repair-request/search:
+  /api/v1/repair-requests/search:
     post:
       tags:
         - Repair Requests
@@ -1068,7 +1975,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/repair-request:
+  /api/v1/repair-requests:
     post:
       tags:
         - Repair Requests
@@ -1090,7 +1997,7 @@ paths:
               description: Versioned URL of the newly created repair request
               schema:
                 type: string
-                example: /api/v1/repair-request/1
+                example: /api/v1/repair-requests/1
           content:
             application/json:
               schema:
@@ -1106,7 +2013,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/repair-request/{id}:
+  /api/v1/repair-requests/{id}:
     parameters:
       - $ref: '#/components/parameters/IdPathParam'
     get:
@@ -1182,7 +2089,156 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/v1/repair-request/collection:
+  /api/v1/repair-requests/{id}/items/search:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Repair Requests
+      summary: Search line items for repair request
+      operationId: searchRepairRequestItems
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestItemSearchRequest'
+      responses:
+        '200':
+          description: Repair request items
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/{id}/items:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Repair Requests
+      summary: Create line items for repair request
+      operationId: createRepairRequestItems
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/RepairRequestItemForCreate'
+      responses:
+        '201':
+          description: Repair request items created
+          headers:
+            Location:
+              description: URL of the created items
+              schema:
+                type: string
+                example: /api/v1/repair-requests/1/items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/{id}/audits:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Repair Requests
+      summary: Get audit log for repair request
+      operationId: getRepairRequestAudits
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Repair request status change audit log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestStatusLog'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/{id}/work-orders/search:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Repair Requests
+      summary: Get work orders for repair request
+      operationId: searchRepairRequestWorkOrders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderSearchRequest'
+      responses:
+        '200':
+          description: Work orders for repair request
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrder'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/collection:
     delete:
       tags:
         - Repair Requests
@@ -1199,6 +2255,623 @@ paths:
       responses:
         '204':
           description: Repair requests deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/reports/group-by-status/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Get repair request count grouped by status
+      operationId: searchRepairRequestGroupByStatusReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+            examples:
+              dateRange:
+                value:
+                  pageNumber: 1
+                  pageSize: 10
+                  orderBy: currentStatusOrderSequence asc
+                  search:
+                    - name: requested_at
+                      condition: GREATEROREQUAL
+                      value: '2026-04-01T00:00:00+07:00'
+                    - name: requested_at
+                      condition: LESSEROREQUAL
+                      value: '2026-04-30T23:59:59+07:00'
+      responses:
+        '200':
+          description: Grouped repair request counts by status
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestGroupByStatusReport'
+              examples:
+                success:
+                  value:
+                    - statusName: Open
+                      value: 12
+                    - statusName: In Progress
+                      value: 7
+                    - statusName: Done
+                      value: 20
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/reports/by-department/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Get repair request count grouped by department
+      operationId: searchRepairRequestGroupByDepartmentReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+            examples:
+              dateRange:
+                value:
+                  pageNumber: 1
+                  pageSize: 10
+                  orderBy: departmentName asc
+                  search:
+                    - name: requested_at
+                      condition: GREATEROREQUAL
+                      value: '2026-04-01T00:00:00+07:00'
+                    - name: requested_at
+                      condition: LESSEROREQUAL
+                      value: '2026-04-30T23:59:59+07:00'
+      responses:
+        '200':
+          description: Grouped repair request counts by department
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepairRequestGroupByDepartmentReport'
+              examples:
+                success:
+                  value:
+                    - departmentName: IT Support
+                      value: 15
+                    - departmentName: Facilities
+                      value: 9
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/repair-requests/reports/monthly-product-type/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Get monthly repair trend by product type report
+      operationId: searchMonthlyRepairTrendByProductTypeReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+            examples:
+              dateRange:
+                value:
+                  pageNumber: 1
+                  pageSize: 10
+                  orderBy: productTypeId asc
+                  search:
+                    - name: requested_at
+                      condition: GREATEROREQUAL
+                      value: '2026-04-01T00:00:00+07:00'
+                    - name: requested_at
+                      condition: LESSEROREQUAL
+                      value: '2026-04-30T23:59:59+07:00'
+      responses:
+        '200':
+          description: Monthly repair trend grouped by product type
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MonthlyRepairTrendByProductTypeReport'
+              examples:
+                success:
+                  value:
+                    - productTypeName: Laptop
+                      value: 12
+                    - productTypeName: Printer
+                      value: 0
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part/search:
+    post:
+      tags:
+        - Work Order Parts
+      summary: Search work order parts
+      operationId: searchWorkOrderParts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderPartSearchRequest'
+      responses:
+        '200':
+          description: Work order parts list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrderPart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part:
+    post:
+      tags:
+        - Work Order Parts
+      summary: Create work order part
+      operationId: createWorkOrderPart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderPartForCreate'
+      responses:
+        '201':
+          description: Work order part created
+          headers:
+            Location:
+              description: Versioned URL of the newly created work order part
+              schema:
+                type: string
+                example: /api/v1/work-order-part/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPart'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Work Order Parts
+      summary: Get work order part by ID
+      operationId: getWorkOrderPartById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work order part found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPart'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Work Order Parts
+      summary: Update work order part
+      operationId: updateWorkOrderPart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderPartForUpdate'
+      responses:
+        '200':
+          description: Work order part updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPart'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Work Order Parts
+      summary: Delete work order part
+      operationId: deleteWorkOrderPart
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Work order part deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-order-part/collection:
+    delete:
+      tags:
+        - Work Order Parts
+      summary: Delete work order part collection
+      operationId: deleteWorkOrderPartCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Work order parts deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/search:
+    post:
+      tags:
+        - Work Tasks
+      summary: Search work tasks
+      operationId: searchWorkTasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskSearchRequest'
+      responses:
+        '200':
+          description: Work tasks list
+          headers:
+            X-Pagination:
+              $ref: '#/components/headers/PaginationHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task:
+    post:
+      tags:
+        - Work Tasks
+      summary: Create work task
+      operationId: createWorkTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskForCreate'
+      responses:
+        '201':
+          description: Work task created
+          headers:
+            Location:
+              description: Versioned URL of the newly created work task
+              schema:
+                type: string
+                example: /api/v1/work-task/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Work Tasks
+      summary: Get work task by ID
+      operationId: getWorkTaskById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work task found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Work Tasks
+      summary: Update work task
+      operationId: updateWorkTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskForUpdate'
+      responses:
+        '200':
+          description: Work task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Work Tasks
+      summary: Delete work task
+      operationId: deleteWorkTask
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Work task deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}/assignment-history:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    get:
+      tags:
+        - Work Tasks
+      summary: Get work task assignment history by ID
+      operationId: getWorkTaskAssignmentHistoryById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work task assignment history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkTaskAssignment'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}/assign:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Work Tasks
+      summary: Assign or reassign work task to a user
+      operationId: assignWorkTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkTaskAssignRequest'
+      responses:
+        '200':
+          description: Work task assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/{id}/unassign:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    post:
+      tags:
+        - Work Tasks
+      summary: Unassign work task
+      operationId: unassignWorkTask
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Work task unassigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkTask'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/work-task/collection:
+    delete:
+      tags:
+        - Work Tasks
+      summary: Delete work task collection
+      operationId: deleteWorkTaskCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '204':
+          description: Work tasks deleted
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -1471,6 +3144,40 @@ components:
       allOf:
         - $ref: '#/components/schemas/SearchRequestBase'
 
+    ProductTypeSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    ProductSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    InventoryMoveSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    WorkOrderSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    WorkOrderPartSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
+    WorkTaskSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+        - type: object
+          properties:
+            workOrderId:
+              type: number
+            assigneeId:
+              type: number
+
+    RepairRequestItemSearchRequest:
+      allOf:
+        - $ref: '#/components/schemas/SearchRequestBase'
+
     RepairStatusSearchRequest:
       allOf:
         - $ref: '#/components/schemas/SearchRequestBase'
@@ -1502,7 +3209,6 @@ components:
           type: number
         name:
           type: string
-          nullable: true
         email:
           type: string
         role:
@@ -1635,6 +3341,7 @@ components:
         - productTypeId
         - productTypeCode
         - productTypeName
+        - totalStock
         - createdAt
         - updatedAt
         - createdBy
@@ -1652,6 +3359,9 @@ components:
           type: string
         productTypeName:
           type: string
+        totalStock:
+          type: number
+          description: Derived stock level calculated from SUM(quantity_in - quantity_out) in inventory_move_item
         createdAt:
           type: string
           nullable: true
@@ -1692,6 +3402,648 @@ components:
           maxLength: 150
         productTypeId:
           type: number
+
+    ProductType:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - departmentId
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        code:
+          type: string
+        name:
+          type: string
+        departmentId:
+          type: number
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    ProductTypeForCreate:
+      type: object
+      required:
+        - code
+        - name
+        - departmentId
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        departmentId:
+          type: number
+
+    ProductTypeForUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        departmentId:
+          type: number
+
+    Product:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - productTypeId
+        - productTypeCode
+        - productTypeName
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        code:
+          type: string
+        name:
+          type: string
+        productTypeId:
+          type: number
+        productTypeCode:
+          type: string
+        productTypeName:
+          type: string
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    ProductForCreate:
+      type: object
+      required:
+        - code
+        - name
+        - productTypeId
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        productTypeId:
+          type: number
+
+    ProductForUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 150
+        name:
+          type: string
+          maxLength: 150
+        productTypeId:
+          type: number
+
+    InventoryMoveReason:
+      type: string
+      enum:
+        - buy
+        - use
+        - lost
+        - found
+        - adjustment
+
+    InventoryMoveItem:
+      type: object
+      required:
+        - id
+        - inventoryMoveId
+        - partId
+        - quantityIn
+        - quantityOut
+        - note
+      properties:
+        id:
+          type: number
+        inventoryMoveId:
+          type: number
+        partId:
+          type: number
+        quantityIn:
+          type: number
+        quantityOut:
+          type: number
+        note:
+          type: string
+          nullable: true
+        workOrderPartId:
+          type: number
+          nullable: true
+
+    InventoryMoveItemForCreate:
+      type: object
+      required:
+        - partId
+        - quantityIn
+        - quantityOut
+      properties:
+        partId:
+          type: number
+        quantityIn:
+          type: number
+          minimum: 0
+        quantityOut:
+          type: number
+          minimum: 0
+        note:
+          type: string
+        workOrderPartId:
+          type: number
+
+    PartStockDirection:
+      type: string
+      enum:
+        - in
+        - out
+
+    PartStockReceiveRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    PartStockConsumeRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+        workOrderPartId:
+          type: number
+
+    PartStockAdjustRequest:
+      type: object
+      required:
+        - direction
+        - quantity
+      properties:
+        direction:
+          $ref: '#/components/schemas/PartStockDirection'
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    InventoryMove:
+      type: object
+      required:
+        - id
+        - moveNo
+        - reason
+        - moveDate
+        - remark
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+        - inventoryMoveItems
+      properties:
+        id:
+          type: number
+        moveNo:
+          type: string
+        reason:
+          $ref: '#/components/schemas/InventoryMoveReason'
+        moveDate:
+          type: string
+        remark:
+          type: string
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+        inventoryMoveItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryMoveItem'
+
+    InventoryMoveForCreate:
+      type: object
+      required:
+        - reason
+        - inventoryMoveItems
+      properties:
+        moveNo:
+          type: string
+          maxLength: 50
+        reason:
+          $ref: '#/components/schemas/InventoryMoveReason'
+        moveDate:
+          type: string
+        remark:
+          type: string
+          maxLength: 500
+        inventoryMoveItems:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/InventoryMoveItemForCreate'
+
+    InventoryMoveForUpdate:
+      type: object
+      properties:
+        reason:
+          $ref: '#/components/schemas/InventoryMoveReason'
+        moveDate:
+          type: string
+        remark:
+          type: string
+          maxLength: 500
+
+    WorkOrder:
+      type: object
+      required:
+        - id
+        - repairRequestItemId
+        - scheduledStart
+        - scheduledEnd
+        - orderSequence
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        repairRequestItemId:
+          type: number
+        scheduledStart:
+          type: string
+        scheduledEnd:
+          type: string
+        orderSequence:
+          type: number
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+        repairRequestItemDescription:
+          type: string
+        repairRequestItemRepairStatusId:
+          type: number
+          nullable: true
+        repairRequestItemRepairStatusCode:
+          type: string
+          nullable: true
+        repairRequestItemRepairStatusName:
+          type: string
+          nullable: true
+        repairRequestItemProductName:
+          type: string
+        repairRequestRequestNo:
+          type: string
+        workTaskId:
+          type: number
+          nullable: true
+        workTaskDescription:
+          type: string
+          nullable: true
+        workTaskNote:
+          type: string
+          nullable: true
+        workTaskStartedAt:
+          type: string
+          nullable: true
+        workTaskEndedAt:
+          type: string
+          nullable: true
+        workTaskAssigneeId:
+          type: number
+          nullable: true
+        workTaskAssigneeName:
+          type: string
+          nullable: true
+        workTaskAssigneeEmail:
+          type: string
+          nullable: true
+        workTaskAssignedById:
+          type: number
+          nullable: true
+        workTaskAssignedByName:
+          type: string
+          nullable: true
+        workTaskAssignmentAssignedAt:
+          type: string
+          nullable: true
+        workTaskAssignmentUnassignedAt:
+          type: string
+          nullable: true
+
+    WorkOrderForCreate:
+      type: object
+      required:
+        - repairRequestItemId
+        - scheduledStart
+        - scheduledEnd
+        - orderSequence
+      properties:
+        repairRequestItemId:
+          type: number
+        scheduledStart:
+          type: string
+        scheduledEnd:
+          type: string
+        orderSequence:
+          type: number
+          minimum: 0
+        isFinal:
+          type: boolean
+
+    WorkOrderForUpdate:
+      type: object
+      properties:
+        repairRequestItemId:
+          type: number
+        scheduledStart:
+          type: string
+        scheduledEnd:
+          type: string
+        orderSequence:
+          type: number
+          minimum: 0
+        isFinal:
+          type: boolean
+
+    WorkOrderPart:
+      type: object
+      required:
+        - id
+        - workOrderId
+        - partId
+        - partCode
+        - partName
+        - quantity
+        - note
+        - inventoryMoveItemId
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        workOrderId:
+          type: number
+        partId:
+          type: number
+        partCode:
+          type: string
+          nullable: true
+        partName:
+          type: string
+          nullable: true
+        quantity:
+          type: number
+        note:
+          type: string
+          nullable: true
+        inventoryMoveItemId:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    WorkOrderPartForCreate:
+      type: object
+      required:
+        - workOrderId
+        - partId
+        - quantity
+      properties:
+        workOrderId:
+          type: number
+        partId:
+          type: number
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    WorkOrderPartForUpdate:
+      type: object
+      properties:
+        quantity:
+          type: number
+          minimum: 1
+        note:
+          type: string
+
+    WorkTask:
+      type: object
+      required:
+        - id
+        - workOrderId
+        - description
+        - startedAt
+        - endedAt
+        - note
+        - assigneeId
+        - assigneeName
+        - assigneeEmail
+        - assignedById
+        - assignedByName
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
+      properties:
+        id:
+          type: number
+        workOrderId:
+          type: number
+        description:
+          type: string
+        startedAt:
+          type: string
+          nullable: true
+        endedAt:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        assigneeId:
+          type: number
+          nullable: true
+        assigneeName:
+          type: string
+          nullable: true
+        assigneeEmail:
+          type: string
+          nullable: true
+        assignedById:
+          type: number
+          nullable: true
+        assignedByName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+
+    WorkTaskForCreate:
+      type: object
+      required:
+        - workOrderId
+        - description
+        - startedAt
+        - note
+      properties:
+        workOrderId:
+          type: number
+        description:
+          type: string
+          maxLength: 1000
+        startedAt:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        assigneeId:
+          type: number
+
+    WorkTaskForUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 1000
+        startedAt:
+          type: string
+        endedAt:
+          type: string
+        note:
+          type: string
+
+    WorkTaskAssignRequest:
+      type: object
+      required:
+        - assigneeId
+      properties:
+        assigneeId:
+          type: number
+
+    WorkTaskAssignment:
+      type: object
+      required:
+        - id
+        - workTaskId
+        - assigneeId
+        - assigneeName
+        - assigneeEmail
+        - assignedById
+        - assignedByName
+        - assignedAt
+        - unassignedAt
+      properties:
+        id:
+          type: number
+        workTaskId:
+          type: number
+        assigneeId:
+          type: number
+          nullable: true
+        assigneeName:
+          type: string
+          nullable: true
+        assigneeEmail:
+          type: string
+          nullable: true
+        assignedById:
+          type: number
+          nullable: true
+        assignedByName:
+          type: string
+          nullable: true
+        assignedAt:
+          type: string
+        unassignedAt:
+          type: string
+          nullable: true
 
     RepairStatus:
       type: object
@@ -1875,6 +4227,58 @@ components:
         departmentId:
           type: number
 
+    RepairRequestStatusLog:
+      type: object
+      required:
+        - id
+        - repairRequestId
+        - oldStatusId
+        - oldStatusCode
+        - oldStatusName
+        - newStatusId
+        - newStatusCode
+        - newStatusName
+        - changedBy
+        - changedByName
+        - changedByEmail
+        - note
+        - changedAt
+      properties:
+        id:
+          type: number
+        repairRequestId:
+          type: number
+        oldStatusId:
+          type: number
+          nullable: true
+        oldStatusCode:
+          type: string
+          nullable: true
+        oldStatusName:
+          type: string
+          nullable: true
+        newStatusId:
+          type: number
+        newStatusCode:
+          type: string
+        newStatusName:
+          type: string
+        changedBy:
+          type: number
+          nullable: true
+        changedByName:
+          type: string
+          nullable: true
+        changedByEmail:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        changedAt:
+          type: string
+          nullable: true
+
     RepairRequest:
       type: object
       required:
@@ -1892,7 +4296,7 @@ components:
         - updatedAt
         - createdBy
         - updatedBy
-        - items
+        - repairRequestItems
       properties:
         id:
           type: number
@@ -1928,7 +4332,7 @@ components:
         updatedBy:
           type: string
           nullable: true
-        items:
+        repairRequestItems:
           type: array
           items:
             $ref: '#/components/schemas/RepairRequestItem'
@@ -1975,4 +4379,48 @@ components:
         priority:
           $ref: '#/components/schemas/Priority'
         currentStatusId:
+          type: number
+
+    RepairRequestGroupByStatusReport:
+      type: object
+      required:
+        - statusName
+        - value
+      properties:
+        statusName:
+          type: string
+        value:
+          type: number
+
+    MonthlyRepairTrendByProductTypeReport:
+      type: object
+      required:
+        - productTypeName
+        - value
+      properties:
+        productTypeName:
+          type: string
+        value:
+          type: number
+
+    RepairRequestGroupByDepartmentReport:
+      type: object
+      required:
+        - departmentName
+        - value
+      properties:
+        departmentName:
+          type: string
+        value:
+          type: number
+
+    TopRepairedProductsPerformanceReport:
+      type: object
+      required:
+        - productName
+        - value
+      properties:
+        productName:
+          type: string
+        value:
           type: number

@@ -2,19 +2,36 @@ import { defineRelations } from "drizzle-orm";
 import * as schema from "./schema";
 
 export const relations = defineRelations(schema, (r) => ({
-	inventoryMove: {
-		parts: r.many.part({
-			from: r.inventoryMove.id.through(r.inventoryMoveItem.inventoryMoveId),
-			to: r.part.id.through(r.inventoryMoveItem.partId)
+	inventoryMoveItem: {
+		inventoryMove: r.one.inventoryMove({
+			from: r.inventoryMoveItem.inventoryMoveId,
+			to: r.inventoryMove.id
+		}),
+		part: r.one.part({
+			from: r.inventoryMoveItem.partId,
+			to: r.part.id
+		}),
+		workOrderPart: r.one.workOrderPart({
+			from: r.inventoryMoveItem.workOrderPartId,
+			to: r.workOrderPart.id
 		}),
 	},
+	inventoryMove: {
+		inventoryMoveItems: r.many.inventoryMoveItem(),
+	},
 	part: {
-		inventoryMoves: r.many.inventoryMove(),
+		inventoryMoveItems: r.many.inventoryMoveItem(),
 		productType: r.one.productType({
 			from: r.part.productTypeId,
 			to: r.productType.id
 		}),
-		workOrderParts: r.many.workOrderPart(),
+		workOrders: r.many.workOrder({
+			from: r.part.id.through(r.workOrderPart.partId),
+			to: r.workOrder.id.through(r.workOrderPart.workOrderId)
+		}),
+	},
+	workOrderPart: {
+		inventoryMoveItems: r.many.inventoryMoveItem(),
 	},
 	productType: {
 		parts: r.many.part(),
@@ -50,6 +67,12 @@ export const relations = defineRelations(schema, (r) => ({
 		repairStatuses: r.many.repairStatus(),
 		repairRequestStatusLogs: r.many.repairRequestStatusLog(),
 		departments: r.many.department(),
+		workTaskAssignmentsAssignedBy: r.many.workTaskAssignment({
+			alias: "workTaskAssignment_assignedBy_users_id"
+		}),
+		workTaskAssignmentsAssigneeId: r.many.workTaskAssignment({
+			alias: "workTaskAssignment_assigneeId_users_id"
+		}),
 	},
 	repairStatus: {
 		users: r.many.users({
@@ -62,7 +85,6 @@ export const relations = defineRelations(schema, (r) => ({
 		repairRequestStatusLogsOldStatusId: r.many.repairRequestStatusLog({
 			alias: "repairRequestStatusLog_oldStatusId_repairStatus_id"
 		}),
-		repairRequestItems: r.many.repairRequestItem(),
 	},
 	repairRequestItem: {
 		repairRequestItemStatus: r.one.repairRequestItemStatus({
@@ -81,10 +103,7 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.repairRequestItem.repairRequestId,
 			to: r.repairRequest.id
 		}),
-		repairStatuses: r.many.repairStatus({
-			from: r.repairRequestItem.id.through(r.workOrder.repairRequestItemId),
-			to: r.repairStatus.id.through(r.workOrder.statusId)
-		}),
+		workOrders: r.many.workOrder(),
 	},
 	repairRequestItemStatus: {
 		repairRequestItems: r.many.repairRequestItem(),
@@ -113,31 +132,35 @@ export const relations = defineRelations(schema, (r) => ({
 			to: r.repairRequest.id
 		}),
 	},
-	workOrderPart: {
-		inventoryMoveItem: r.one.inventoryMoveItem({
-			from: r.workOrderPart.inventoryMoveItemId,
-			to: r.inventoryMoveItem.id
-		}),
-		part: r.one.part({
-			from: r.workOrderPart.partId,
-			to: r.part.id
-		}),
-		workOrder: r.one.workOrder({
-			from: r.workOrderPart.workOrderId,
-			to: r.workOrder.id
-		}),
-	},
-	inventoryMoveItem: {
-		workOrderParts: r.many.workOrderPart(),
-	},
 	workOrder: {
-		workOrderParts: r.many.workOrderPart(),
+		repairRequestItem: r.one.repairRequestItem({
+			from: r.workOrder.repairRequestItemId,
+			to: r.repairRequestItem.id
+		}),
+		parts: r.many.part(),
 		workTasks: r.many.workTask(),
 	},
 	workTask: {
 		workOrder: r.one.workOrder({
 			from: r.workTask.workOrderId,
 			to: r.workOrder.id
+		}),
+		workTaskAssignments: r.many.workTaskAssignment(),
+	},
+	workTaskAssignment: {
+		userAssignedBy: r.one.users({
+			from: r.workTaskAssignment.assignedBy,
+			to: r.users.id,
+			alias: "workTaskAssignment_assignedBy_users_id"
+		}),
+		userAssigneeId: r.one.users({
+			from: r.workTaskAssignment.assigneeId,
+			to: r.users.id,
+			alias: "workTaskAssignment_assigneeId_users_id"
+		}),
+		workTask: r.one.workTask({
+			from: r.workTaskAssignment.workTaskId,
+			to: r.workTask.id
 		}),
 	},
 }))

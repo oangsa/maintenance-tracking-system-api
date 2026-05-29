@@ -11,4 +11,6 @@ export interface IInventoryMoveService {
     UpdateInventoryMove(id: number, inventoryMoveForUpdateDto: InventoryMoveForUpdateDto): Promise<InventoryMoveDto>;
     DeleteInventoryMove(id: number): Promise<void>;
     DeleteInventoryMoveCollection(ids: number[]): Promise<void>;
+    ReverseInventoryMove(id: number, dto: InventoryMoveForCreateDto): Promise<InventoryMoveDto>;
+    CheckIfWorkOrderPartConsumed(workOrderPartId: number): Promise<boolean>;
 }

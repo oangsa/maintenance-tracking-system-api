@@ -16,6 +16,8 @@ export const ProductTypeResponseSchema = t.Object({
     code: t.String(),
     name: t.String(),
     departmentId: t.Number(),
+    departmentCode: t.Nullable(t.String()),
+    departmentName: t.Nullable(t.String()),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),

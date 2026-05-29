@@ -18,6 +18,9 @@ Notes:
 | Rule | Description |
 |---|---|
 | Never update `part.stock` directly | Stock is never stored as a column on `part`. |
+| Part response stock is calculated, not stored | Any part read model that exposes stock should return total stock from `SUM(quantity_in) - SUM(quantity_out)` grouped by part. |
+| Every stock increase MUST create an `inventory_move` | When stock is added, it must be recorded as a transaction and not patched directly onto part data. |
+| Every stock decrease MUST create an `inventory_move` | When stock is removed or consumed, it must be recorded as a transaction and not patched directly onto part data. |
 | Every consumption MUST create an `inventory_move` | No shortcut allowed. Use `reason = WORK_ORDER_CONSUME` when parts are consumed for a work order. |
 | One `work_order_part` → one `inventory_move_item` | Prevents double counting. Link via `work_order_part.inventory_move_item_id`. |
 
@@ -30,6 +33,8 @@ SELECT part_id, SUM(quantity_in - quantity_out) AS stock
 FROM inventory_move_item
 GROUP BY part_id;
 ```
+
+For part API responses, this means `total_stock` should be treated as a derived value from movement history, not as a persisted column on `part`.
 
 ### Workflow
 
@@ -49,9 +54,45 @@ inventory_move
 |---|---|---|
 | 1 | Create `repair_request` + `repair_request_item` | None |
 | 2 | Create `work_order` (one per `repair_request_item`) | None |
-| 3 | Create `work_order_part` (plan parts needed) | **None** |
-| 4 | Technician uses parts → create `inventory_move` (`reason = WORK_ORDER_CONSUME`) + `inventory_move_item` | **Stock decreases** |
-| 5 | Set `work_order_part.inventory_move_item_id` to link plan → actual movement | None |
+| 3 | Create `work_order_part` | **Decreased** |
+| 4 | Set `work_order_part.inventory_move_item_id` to link plan → actual movement | None |
+
+### Design notes
+
+- `part` should remain master data only, while stock lives in transaction history.
+- All stock-changing actions should be modeled as inventory transactions so audit and reconciliation stay possible.
+- Any endpoint that returns part stock should derive it consistently from the same movement source to avoid mismatch between list, detail, and report screens.
+- Reversal or correction flows should also create compensating inventory transactions instead of editing historical movement rows.
+
+---
+
+## Task Assignment Logic Rules
+
+> **`work_task_assignment` is the SINGLE SOURCE OF TRUTH for task assignee history.**
+
+### Rules enforced in the backend
+
+| Rule | Description |
+|---|---|
+| One active assignee per `work_task` | The database guarantees only one row can stay active at a time, where active means `unassigned_at IS NULL`. |
+| Reassign by append, not replace | A new assignment automatically closes the previous active assignment before the new one becomes active. |
+| Do not mutate assignment history | Assignment records are preserved as history; only `unassigned_at` is used to end an active assignment. |
+| Cannot assign deleted users | The database rejects assignment rows that target a deleted user. |
+| Cannot assign final tasks | The database rejects new assignments when the related task is already in a final state. |
+| Assignment time must stay valid | End time must be empty for active rows or greater than or equal to the start time. |
+| Assignment ownership is required | `assigned_by` must always be present on each assignment record. |
+
+### Workflow
+
+| Step | Action | Effect |
+|---|---|---|
+| 1 | Backend validates request payload | Prevent obvious bad input before reaching persistence |
+| 2 | Insert new `work_task_assignment` row | New active assignee is recorded |
+| 3 | Database closes previous active assignment automatically | History is preserved and only one active row remains |
+| 4 | Database rejects invalid cases | Deleted assignees, final tasks, and invalid time ranges cannot be persisted |
+| 5 | Query by `unassigned_at IS NULL` | Read current assignee |
+
+For the longer version of the rules and backend flow, see `docs/taskAssignmentRules.md`.
 
 ---
 
@@ -361,7 +402,6 @@ inventory_move
 | scheduled_end | timestamp with time zone | Yes | - | - |
 | order_sequence | integer | No | - | - |
 | is_final | boolean | Yes | false | - |
-| status_id | integer | No | - | FOREIGN KEY |
 | created_at | timestamp with time zone | Yes | now() | - |
 | updated_at | timestamp with time zone | Yes | now() | - |
 | created_by | character varying | Yes | - | - |
@@ -371,12 +411,18 @@ inventory_move
 |---|---|---|
 | work_order_pkey | PRIMARY KEY | (id) |
 | work_order_repair_request_item_id_fkey | FOREIGN KEY | (repair_request_item_id) REFERENCES public.repair_request_item(id) |
-| work_order_status_id_fkey | FOREIGN KEY | (status_id) REFERENCES public.repair_status(id) |
 
 ## public.work_order_part
 
 > Role: **intent layer** — records what parts a work order needs/used. Does NOT directly affect stock.
 > Link `inventory_move_item_id` after actual consumption to tie planned usage → actual stock movement.
+> This table must not become a second stock table. Stock still comes only from `inventory_move_item`.
+
+Design notes:
+- `work_order_part.quantity` should be treated as operational intent or requested usage for the work order.
+- Actual stock reduction only happens when an `inventory_move` and `inventory_move_item` are created.
+- `inventory_move_item_id` is the bridge from work execution to stock movement, not a replacement for movement history.
+- With the current one `work_order_part` -> one `inventory_move_item` design, partial consumption across multiple transactions is only clean if the work order part is split into multiple rows. Otherwise the model starts mixing planned quantity and actual quantity in one record.
 
 | Column | Type | Nullable | Default | Column Constraints |
 |---|---|---|---|---|
@@ -397,6 +443,29 @@ inventory_move
 | work_order_part_work_order_id_fkey | FOREIGN KEY | (work_order_id) REFERENCES public.work_order(id) |
 | work_order_part_part_id_fkey | FOREIGN KEY | (part_id) REFERENCES public.part(id) |
 | fk_work_order_part_inventory_move_item | FOREIGN KEY | (inventory_move_item_id) REFERENCES public.inventory_move_item(id) |
+
+---
+
+## public.work_task_assignment
+
+Note: a new append-only table `work_task_assignment` is used to record assignee history for `work_task`. The authoritative, longer specification and backend flow are documented in `docs/databaseSchema-details.md`.
+
+Brief schema (summary):
+
+| Column | Type | Notes |
+|---|---:|---|
+| id | integer | PK, serial |
+| work_task_id | integer | FK -> `work_task(id)` |
+| assignee_id | integer | FK -> `users(id)` (NOT NULL) |
+| assigned_by | integer | FK -> `users(id)` (NOT NULL) |
+| assigned_at | timestamp with time zone | default `now()` |
+| unassigned_at | timestamp with time zone | NULL if active; set when assignment ends |
+
+Design highlights:
+- The table is append-only: history is preserved and `unassigned_at` is the only mutable field.
+- Enforce single active assignee per `work_task` via DB constraint (partial unique index) or trigger.
+- Backend should treat assign/reassign as an atomic operation: validate + insert in a transaction, rely on DB mechanisms to close prior active assignment.
+- See `docs/databaseSchema-details.md` for full rules, sample SQL, and backend flow examples.
 
 ## public.work_task
 

@@ -1,4 +1,4 @@
-import Elysia from "elysia";
+import Elysia, { t } from "elysia";
 import { AuthenticationController } from "../Auth/AuthenticationController";
 import { UserController } from "../Master/UserController";
 import { IServiceManager } from "@/Applications/Services/Core/IServiceManager";
@@ -11,6 +11,10 @@ import { RepairRequestController } from "../Features/RepairRequestController";
 import { ProductTypeController } from "../Master/ProductTypeController";
 import { ProductController } from "../Master/ProductController";
 import { ApiConfiguration } from "@/Applications/Services/Core/IConfigurationManager";
+import { WorkOrderController } from "../Master/WorkOrderController";
+import { WorkOrderPartController } from "../Master/WorkOrderPartController";
+import { WorkTaskController } from "../Master/WorkTaskController";
+import { PartStockController } from "../Master/PartStockController";
 
 export class ControllerManager
 {
@@ -25,6 +29,10 @@ export class ControllerManager
     private readonly productTypeController: ProductTypeController;
     private readonly productController: ProductController;
     private readonly apiVersioningConfiguration: ApiConfiguration;
+    private readonly workorderController: WorkOrderController;
+    private readonly workOrderPartController: WorkOrderPartController;
+    private readonly workTaskController: WorkTaskController;
+    private readonly partStockController: PartStockController;
 
     constructor(serviceManager: IServiceManager)
     {
@@ -39,6 +47,11 @@ export class ControllerManager
         this.productTypeController = new ProductTypeController(serviceManager);
         this.productController = new ProductController(serviceManager);
         this.apiVersioningConfiguration = serviceManager.configurationManager.api;
+        this.workorderController = new WorkOrderController(serviceManager);
+        this.workOrderPartController = new WorkOrderPartController(serviceManager);
+        this.workTaskController = new WorkTaskController(serviceManager);
+        this.partStockController = new PartStockController(serviceManager);
+
     }
 
     public RegisterRoutes(app: Elysia<any>): void
@@ -87,6 +100,10 @@ export class ControllerManager
                 };
             },
             {
+                response: t.Object({
+                    supportedVersions: t.Array(t.String()),
+                    defaultVersion: t.String(),
+                }),
                 detail: {
                     summary: "Get supported API versions",
                     tags: ["Versioning"],
@@ -112,6 +129,9 @@ export class ControllerManager
         this.repairRequestController.RegisterRoutes(app);
         this.productTypeController.RegisterRoutes(app);
         this.productController.RegisterRoutes(app);
-        this.inventoryMoveController.RegisterRoutes(app);
+        this.workorderController.RegisterRoutes(app);
+        this.workOrderPartController.RegisterRoutes(app);
+        this.workTaskController.RegisterRoutes(app);
+        this.partStockController.RegisterRoutes(app);
     }
 }

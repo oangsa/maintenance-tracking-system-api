@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { DepartmentParameter } from "../../../Domains/RequestFeatures/DepartmentParameter";
-import { DepartmentForCreateSchema, DepartmentIdParamSchema, DepartmentParameterSchema, DeleteCollectionSchema, DepartmentForUpdateSchema} from "../../Validators/DepartmentSchemaValidation";
+import { DepartmentForCreateSchema, DepartmentIdParamSchema, DepartmentParameterSchema, DeleteCollectionSchema, DepartmentForUpdateSchema, DepartmentResponseSchema} from "../../Validators/DepartmentSchemaValidation";
 import { DepartmentNotFoundException } from "../../../Domains/Exceptions/Department/DepartmentNotFoundException";
 import { DepartmentDuplicateBadRequestException } from "../../../Domains/Exceptions/Department/DepartmentDuplicateBadReqeustException";
 
@@ -55,6 +55,7 @@ export class DepartmentController
                     },
                     {
                         body: DepartmentParameterSchema,
+                        response: t.Array(DepartmentResponseSchema),
                         detail: { summary: "Search departments", tags: ["Departments"] },
                     },
                 )
@@ -80,6 +81,7 @@ export class DepartmentController
                     },
                     {
                         params: DepartmentIdParamSchema,
+                        response: DepartmentResponseSchema,
                         detail: { summary: "Get department by ID", tags: ["Departments"] },
                     },
                 )
@@ -105,6 +107,7 @@ export class DepartmentController
                     },
                     {
                         body: DepartmentForCreateSchema,
+                        response: DepartmentResponseSchema,
                         detail: { summary: "Create department", tags: ["Departments"] },
                     },
                 )
@@ -132,6 +135,7 @@ export class DepartmentController
                     {
                         params: DepartmentIdParamSchema,
                         body: DepartmentForUpdateSchema,
+                        response: DepartmentResponseSchema,
                         detail: { summary: "Update departmemt", tags: ["Departments"] },
                     },
                 )
@@ -157,6 +161,7 @@ export class DepartmentController
                     },
                     {
                         params: DepartmentIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete department", tags: ["Departments"] },
                     },
                 )
@@ -183,6 +188,7 @@ export class DepartmentController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete departments collection",
                             tags: ["Departments"],

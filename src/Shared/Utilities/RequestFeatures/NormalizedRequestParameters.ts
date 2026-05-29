@@ -2,7 +2,7 @@ import { RequestParameters } from "../../../Domains/RequestFeatures/Core/Request
 
 const MAX_PAGE_SIZE = 50
 
-export function normalizeRequestParameters( params: Partial<RequestParameters>): RequestParameters
+export function normalizeRequestParameters<T extends Partial<RequestParameters>>(params: T): T & RequestParameters
 {
     let pageNumber = params.pageNumber ?? 1
     let pageSize = params.pageSize ?? 10
@@ -23,6 +23,7 @@ export function normalizeRequestParameters( params: Partial<RequestParameters>):
     }
 
     return {
+        ...params,
         pageNumber,
         pageSize,
         search: params.search,
@@ -30,5 +31,5 @@ export function normalizeRequestParameters( params: Partial<RequestParameters>):
         orderBy: params.orderBy,
         deleted: params.deleted ?? false,
         isDownload
-    }
+    } as T & RequestParameters
 }

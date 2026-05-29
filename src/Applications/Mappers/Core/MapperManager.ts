@@ -3,10 +3,14 @@ import { DepartmentMapper, IDepartmentMapper } from "../DepartmentMapper";
 import { IRepairStatusMapper, RepairStatusMapper } from "../RepairStatusMapper";
 import { PartMapper, IPartMapper } from "../PartMapper";
 import { IRepairRequestItemStatusMapper, RepairRequestItemStatusMapper } from "../RepairRequestItemStatusMapper";
-import { IInventoryMoveMapper, InventoryMoveMapper } from "../InventoryMoveMapper"
+import { IInventoryMoveMapper, InventoryMoveMapper } from "../InventoryMoveMapper";
 import { IRepairRequestMapper, RepairRequestMapper } from "../RepairRequestMapper";
 import { ProductTypeMapper, IProductTypeMapper } from "../ProductTypeMapper";
 import { ProductMapper, IProductMapper } from "../ProductMapper";
+import { IRepairRequestStatusLogMapper, RepairRequestStatusLogMapper } from "../RepairRequestStatusLogMapper";
+import { WorkOrderMapper, IWorkOrderMapper } from "../WorkOrderMapper";
+import { WorkOrderPartMapper, IWorkOrderPartMapper } from "../WorkOrderPartMapper";
+import { WorkTaskMapper, IWorkTaskMapper } from "../WorkTaskMapper";
 
 export interface IMapperManager
 {
@@ -15,10 +19,14 @@ export interface IMapperManager
     departmentMapper: IDepartmentMapper;
     repairStatusMapper: IRepairStatusMapper;
     repairRequestItemStatusMapper: IRepairRequestItemStatusMapper;
-    inventoryMoveMapper: IInventoryMoveMapper
+    inventoryMoveMapper: IInventoryMoveMapper;
     repairRequestMapper: IRepairRequestMapper;
     productTypeMapper: IProductTypeMapper;
     productMapper: IProductMapper;
+    repairRequestStatusLogMapper: IRepairRequestStatusLogMapper;
+    workOrderMapper: IWorkOrderMapper;
+    workOrderPartMapper: IWorkOrderPartMapper;
+    workTaskMapper: IWorkTaskMapper;
 }
 
 export class MapperManager implements IMapperManager
@@ -32,6 +40,10 @@ export class MapperManager implements IMapperManager
     private readonly _repairRequestMapper: IRepairRequestMapper;
     private readonly _productTypeMapper: IProductTypeMapper;
     private readonly _productMapper: IProductMapper;
+    private readonly _repairRequestStatusLogMapper: IRepairRequestStatusLogMapper;
+    private readonly _workOrderMapper: IWorkOrderMapper;
+    private readonly _workOrderPartMapper: IWorkOrderPartMapper;
+    private readonly _workTaskMapper: IWorkTaskMapper;
 
     constructor()
     {
@@ -44,6 +56,10 @@ export class MapperManager implements IMapperManager
         this._repairRequestMapper = new RepairRequestMapper();
         this._productTypeMapper = new ProductTypeMapper();
         this._productMapper = new ProductMapper();
+        this._repairRequestStatusLogMapper = new RepairRequestStatusLogMapper();
+        this._workOrderMapper = new WorkOrderMapper();
+        this._workOrderPartMapper = new WorkOrderPartMapper();
+        this._workTaskMapper = new WorkTaskMapper();
     }
 
     get userMapper(): IUserMapper
@@ -59,13 +75,13 @@ export class MapperManager implements IMapperManager
     get repairStatusMapper(): IRepairStatusMapper
     {
         return this._repairStatusMapper;
-    }  
-      
+    }
+
     get partMapper(): IPartMapper
     {
         return this._partMapper;
     }
-  
+
     get repairRequestItemStatusMapper(): IRepairRequestItemStatusMapper
     {
         return this._repairRequestItemStatusMapper;
@@ -75,6 +91,7 @@ export class MapperManager implements IMapperManager
     {
         return this._inventoryMoveMapper;
     }
+
     get repairRequestMapper(): IRepairRequestMapper
     {
         return this._repairRequestMapper;
@@ -88,5 +105,25 @@ export class MapperManager implements IMapperManager
     get productMapper(): IProductMapper
     {
         return this._productMapper;
+    }
+
+    get repairRequestStatusLogMapper(): IRepairRequestStatusLogMapper
+    {
+        return this._repairRequestStatusLogMapper;
+    }
+
+    get workOrderMapper(): IWorkOrderMapper
+    {
+        return this._workOrderMapper;
+    }
+
+    get workOrderPartMapper(): IWorkOrderPartMapper
+    {
+        return this._workOrderPartMapper;
+    }
+
+    get workTaskMapper(): IWorkTaskMapper
+    {
+        return this._workTaskMapper;
     }
 }

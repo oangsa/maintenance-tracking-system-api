@@ -32,6 +32,14 @@ export class RoleAuthorizationGuard
         }
     }
 
+    static assertMinimumRole(actorRole: string, minimumRole: Role): void
+    {
+        if (this.getRank(actorRole) < this.getRank(minimumRole))
+        {
+            throw new ForbiddenException(`A '${actorRole}' is not allowed to perform this action. Minimum role: '${minimumRole}'.`);
+        }
+    }
+
     static assertCanRead(_actorRole: string): void
     {
         // All authenticated users may list and view user profiles.

@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { PartParameter } from "../../../Domains/RequestFeatures/PartParameter";
-import { PartForCreateSchema, PartIdParamSchema, PartParameterSchema, DeleteCollectionSchema, PartForUpdateSchema} from "../../Validators/PartSchemaValidation";
+import { PartForCreateSchema, PartIdParamSchema, PartParameterSchema, DeleteCollectionSchema, PartForUpdateSchema, PartResponseSchema} from "../../Validators/PartSchemaValidation";
 import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
 import { PartDuplicateBadRequestException } from "../../../Domains/Exceptions/Part/PartDuplicateBadRequestException";
 
@@ -56,6 +56,7 @@ export class PartController
                     },
                     {
                         body: PartParameterSchema,
+                        response: t.Array(PartResponseSchema),
                         detail: { summary: "Search parts", tags: ["Parts"] },
                     },
                 )
@@ -81,6 +82,7 @@ export class PartController
                     },
                     {
                         params: PartIdParamSchema,
+                        response: PartResponseSchema,
                         detail: { summary: "Get part by ID", tags: ["Parts"] },
                     },
                 )
@@ -107,6 +109,7 @@ export class PartController
                     },
                     {
                         body: PartForCreateSchema,
+                        response: PartResponseSchema,
                         detail: { summary: "Create part", tags: ["Parts"] },
                     },
                 )
@@ -134,6 +137,7 @@ export class PartController
                     {
                         params: PartIdParamSchema,
                         body: PartForUpdateSchema,
+                        response: PartResponseSchema,
                         detail: { summary: "Update part", tags: ["Parts"] },
                     },
                 )
@@ -159,6 +163,7 @@ export class PartController
                     },
                     {
                         params:PartIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete part", tags: ["Parts"] },
                     },
                 )
@@ -185,6 +190,7 @@ export class PartController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete parts collection", tags: ["Parts"],
                         },

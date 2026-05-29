@@ -7,6 +7,7 @@ export interface InventoryMoveItem {
     quantityIn: number;
     quantityOut: number;
     note: string;
+    workOrderPartId?: number | null;
     createdAt: string;
     updatedAt: string;
     createdBy: string;

@@ -1,7 +1,9 @@
 import { IProductTypeRepository } from "@/Domains/Repositories/IProductTypeRepository";
 import { AppDrizzleDB } from "../../Database";
 import { ProductType } from "@/Infrastructures/Entities/Master/ProductType";
-import { productType as productTypeTable, department as departmentTable } from "@/Infrastructures/Database/Drizzle/schema";
+import { productType as productTypeTable, department as departmentTable, product as productTable, part as partTable } from "@/Infrastructures/Database/Drizzle/schema";
+import { Product } from "@/Infrastructures/Entities/Master/Product";
+import { Part } from "@/Infrastructures/Entities/Master/Part";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
 import { ProductTypeParameter } from "@/Domains/RequestFeatures/ProductTypeParameter";
@@ -66,25 +68,25 @@ export class ProductTypeRepository implements IProductTypeRepository
     {
         const result = await this._db.db.execute<ProductTypeRow>(sql`
             SELECT
-                pt.id,
-                pt.code,
-                pt.name,
-                pt.department_id,
-                pt.created_at,
-                pt.updated_at,
-                pt.created_by,
-                pt.updated_by,
-                pt.deleted,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${productTypeTable} pt
-            LEFT JOIN ${departmentTable} d ON pt.department_id = d.id
-            WHERE pt.id = ${id}
+                product_type.id,
+                product_type.code,
+                product_type.name,
+                product_type.department_id,
+                product_type.created_at,
+                product_type.updated_at,
+                product_type.created_by,
+                product_type.updated_by,
+                product_type.deleted,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
+            FROM ${productTypeTable} product_type
+            LEFT JOIN ${departmentTable} department ON product_type.department_id = department.id
+            WHERE product_type.id = ${id}
         `);
 
         if (result.length === 0)
@@ -97,29 +99,29 @@ export class ProductTypeRepository implements IProductTypeRepository
 
     async GetProductTypeByCode(code: string, includeDeleted: boolean = false): Promise<ProductType | null>
     {
-        const deletedFilter = includeDeleted ? sql`` : sql`AND pt.deleted = false`;
+        const deletedFilter = includeDeleted ? sql`` : sql`AND product_type.deleted = false`;
 
         const result = await this._db.db.execute<ProductTypeRow>(sql`
             SELECT
-                pt.id,
-                pt.code,
-                pt.name,
-                pt.department_id,
-                pt.created_at,
-                pt.updated_at,
-                pt.created_by,
-                pt.updated_by,
-                pt.deleted,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${productTypeTable} pt
-            LEFT JOIN ${departmentTable} d ON pt.department_id = d.id
-            WHERE pt.code = ${code}
+                product_type.id,
+                product_type.code,
+                product_type.name,
+                product_type.department_id,
+                product_type.created_at,
+                product_type.updated_at,
+                product_type.created_by,
+                product_type.updated_by,
+                product_type.deleted,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
+            FROM ${productTypeTable} product_type
+            LEFT JOIN ${departmentTable} department ON product_type.department_id = department.id
+            WHERE product_type.code = ${code}
               ${deletedFilter}
             LIMIT 1
         `);
@@ -157,24 +159,24 @@ export class ProductTypeRepository implements IProductTypeRepository
 
         const innerQuery = sql`
             SELECT
-                pt.id,
-                pt.code,
-                pt.name,
-                pt.department_id,
-                pt.created_at,
-                pt.updated_at,
-                pt.created_by,
-                pt.updated_by,
-                pt.deleted,
-                d.name AS department_name,
-                d.code AS department_code,
-                d.created_at AS department_created_at,
-                d.updated_at AS department_updated_at,
-                d.created_by AS department_created_by,
-                d.updated_by AS department_updated_by,
-                d.deleted AS department_deleted
-            FROM ${productTypeTable} pt
-            LEFT JOIN ${departmentTable} d ON pt.department_id = d.id
+                product_type.id,
+                product_type.code,
+                product_type.name,
+                product_type.department_id,
+                product_type.created_at,
+                product_type.updated_at,
+                product_type.created_by,
+                product_type.updated_by,
+                product_type.deleted,
+                department.name AS department_name,
+                department.code AS department_code,
+                department.created_at AS department_created_at,
+                department.updated_at AS department_updated_at,
+                department.created_by AS department_created_by,
+                department.updated_by AS department_updated_by,
+                department.deleted AS department_deleted
+            FROM ${productTypeTable} product_type
+            LEFT JOIN ${departmentTable} department ON product_type.department_id = department.id
         `;
 
         const [productTypeResults, countResult] = await Promise.all([
@@ -230,7 +232,7 @@ export class ProductTypeRepository implements IProductTypeRepository
             `);
 
         const created = result[0]!;
-        
+
         // Fetch the full object with department info
         return this.GetProductTypeById(created.id) as Promise<ProductType>;
     }
@@ -267,5 +269,77 @@ export class ProductTypeRepository implements IProductTypeRepository
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ${id}
         `);
+    }
+
+    async GetProductsByProductTypeId(id: number): Promise<Product[]>
+    {
+        const result = await this._db.db.execute<any>(sql`
+            SELECT 
+                product.id, 
+                product.code, 
+                product.name, 
+                product.product_type_id, 
+                product.created_at, 
+                product.updated_at, 
+                product.created_by, 
+                product.updated_by, 
+                product.deleted,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name
+            FROM ${productTable} product
+            LEFT JOIN ${productTypeTable} product_type ON product.product_type_id = product_type.id
+            WHERE product.product_type_id = ${id} AND product.deleted = false
+        `);
+
+        return result.map(row => ({
+            id: row.id,
+            code: row.code,
+            name: row.name,
+            productTypeId: row.product_type_id,
+            productTypeCode: row.product_type_code,
+            productTypeName: row.product_type_name,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            createdBy: row.created_by,
+            updatedBy: row.updated_by,
+            deleted: row.deleted
+        }));
+    }
+
+    async GetPartsByProductTypeId(id: number): Promise<Part[]>
+    {
+        const result = await this._db.db.execute<any>(sql`
+            SELECT 
+                part.id, 
+                part.code, 
+                part.name, 
+                part.product_type_id, 
+                part.total_stock,
+                part.created_at, 
+                part.updated_at, 
+                part.created_by, 
+                part.updated_by, 
+                part.deleted,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name
+            FROM ${partTable} part
+            LEFT JOIN ${productTypeTable} product_type ON part.product_type_id = product_type.id
+            WHERE part.product_type_id = ${id} AND part.deleted = false
+        `);
+
+        return result.map(row => ({
+            id: row.id,
+            code: row.code,
+            name: row.name,
+            productTypeId: row.product_type_id,
+            productTypeCode: row.product_type_code,
+            productTypeName: row.product_type_name,
+            totalStock: row.total_stock ?? 0,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            createdBy: row.created_by,
+            updatedBy: row.updated_by,
+            deleted: row.deleted
+        }));
     }
 }

@@ -14,6 +14,7 @@ import { Role } from "../../../Shared/Enums/Role";
 import { InventoryMoveNotFoundException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveNotFoundException";
 import { InventoryMoveDuplicateBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveDuplicateBadRequestException";
 
+
 export class InventoryMoveService implements IInventoryMoveService {
     private readonly _repositoryManager: IRepositoryManager;
     private readonly _mapperManager: IMapperManager;
@@ -25,8 +26,8 @@ export class InventoryMoveService implements IInventoryMoveService {
         this._userProvider = userProvider;
     }
 
-    private ExpectRole(role: Role): void {
-        RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
+    private ExpectMinimumRole(role: Role): void {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledBy(): string {
@@ -37,15 +38,34 @@ export class InventoryMoveService implements IInventoryMoveService {
     private async GetInventoryMoveAndCheckIfItExists(id: number): Promise<InventoryMove> {
         const inventoryMoveEntity = await this._repositoryManager.inventoryMoveRepository.GetInventoryMoveById(id);
 
-        if (!inventoryMoveEntity) {
+        if (!inventoryMoveEntity || inventoryMoveEntity.deleted === true) {
             throw new InventoryMoveNotFoundException(id);
         }
 
         return inventoryMoveEntity;
     }
 
+
+    private ValidateCreateInventoryMoveItems(items: InventoryMoveForCreateDto["inventoryMoveItems"]): void {
+        if (!items || items.length === 0) {
+            throw new Error("At least one inventory move item is required");
+        }
+        for (const [index, item] of items.entries()) {
+            const inQty = item.quantityIn ?? 0;
+            const outQty = item.quantityOut ?? 0;
+
+            const isIn = inQty > 0;
+            const isOut = outQty > 0;
+
+            // กฎ XOR: ต้องมีทิศทางเดียวเท่านั้น
+            if ((isIn && isOut) || (!isIn && !isOut)) {
+                throw new Error(`Item[${index}] invalid: must have exactly one direction (quantityIn XOR quantityOut)`);
+            }
+        }
+    }
+
     async GetListInventoryMove(parameters: InventoryMoveParameter): Promise<PagedResult<InventoryMoveDto>> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         const pagedInventoryMoves = await this._repositoryManager.inventoryMoveRepository.GetListInventoryMove(parameters);
 
@@ -56,12 +76,16 @@ export class InventoryMoveService implements IInventoryMoveService {
     }
 
     async GetInventoryMove(id: number): Promise<InventoryMoveDto> {
+        this.ExpectMinimumRole("manager");
+
         const inventoryMoveEntity = await this.GetInventoryMoveAndCheckIfItExists(id);
         return this._mapperManager.inventoryMoveMapper.InventoryMoveToDto(inventoryMoveEntity);
     }
 
     async CreateInventoryMove(inventoryMoveForCreateDto: InventoryMoveForCreateDto): Promise<InventoryMoveDto> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
+
+        this.ValidateCreateInventoryMoveItems(inventoryMoveForCreateDto.inventoryMoveItems);
 
         const moveNo = inventoryMoveForCreateDto.moveNo ?? `MV-${new Date().getTime()}`;
         
@@ -92,6 +116,7 @@ export class InventoryMoveService implements IInventoryMoveService {
                 quantityIn: item.quantityIn,
                 quantityOut: item.quantityOut,
                 note: item.note ?? "",
+                workOrderPartId: item.workOrderPartId ?? null, 
                 createdAt: dateNow,
                 updatedAt: dateNow,
                 createdBy: userName,
@@ -123,8 +148,35 @@ export class InventoryMoveService implements IInventoryMoveService {
         }
     }
 
+    async ReverseInventoryMove(id: number, dto: InventoryMoveForCreateDto): Promise<InventoryMoveDto> {
+        this.ExpectMinimumRole("manager");
+
+        // 1. ดึงรายการต้นฉบับมาตรวจสอบ
+        const originalMove = await this.GetInventoryMoveAndCheckIfItExists(id);
+
+        // 2. สลับทิศทางของจำนวน (In เป็น Out, Out เป็น In)
+        const reverseItems = originalMove.inventoryMoveItems.map(item => ({
+            partId: item.partId,
+            quantityIn: item.quantityIn > 0 ? 0 : item.quantityOut, // ถ้าเดิม In > 0 ใหม่ต้องเป็น 0 
+            quantityOut: item.quantityIn > 0 ? item.quantityIn : 0, // ถ้าเดิม In > 0 ใหม่ต้องเป็น Out
+            note: `Reverse of MV: ${originalMove.moveNo}. ${item.note ?? ""}`,
+            workOrderPartId: item.workOrderPartId // คงการเชื่อมโยงเดิมไว้
+        }));
+
+        const reverseDto: InventoryMoveForCreateDto = {
+            moveNo: dto.moveNo ?? `REV-${originalMove.moveNo}-${new Date().getTime()}`,
+            moveDate: dto.moveDate ?? new Date().toISOString(),
+            reason: dto.reason ?? "adjust",
+            remark: dto.remark ?? `Reversing movement ${originalMove.moveNo}`,
+            inventoryMoveItems: reverseItems
+        };
+
+        // 3. เรียกใช้ CreateInventoryMove เพื่อบันทึกรายการหักล้าง
+        return await this.CreateInventoryMove(reverseDto);
+    }           
+
     async UpdateInventoryMove(id: number, inventoryMoveForUpdateDto: InventoryMoveForUpdateDto): Promise<InventoryMoveDto> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         const entity = await this.GetInventoryMoveAndCheckIfItExists(id);
 
@@ -142,7 +194,7 @@ export class InventoryMoveService implements IInventoryMoveService {
     }
 
     async DeleteInventoryMove(id: number): Promise<void> {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
         
         await this.GetInventoryMoveAndCheckIfItExists(id);
 
@@ -153,5 +205,9 @@ export class InventoryMoveService implements IInventoryMoveService {
         for (const id of ids) {
             await this.DeleteInventoryMove(id);
         }
+    }
+
+    async CheckIfWorkOrderPartConsumed(workOrderPartId: number): Promise<boolean> {
+        return await this._repositoryManager.inventoryMoveRepository.CheckIfWorkOrderPartExistsInMove(workOrderPartId);
     }
 }

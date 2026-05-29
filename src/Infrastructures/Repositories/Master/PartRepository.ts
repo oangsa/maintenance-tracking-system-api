@@ -17,6 +17,7 @@ type PartRow = {
     product_type_id: number;
     product_type_code: string | null;
     product_type_name: string | null;
+    total_stock: number | null;
     created_at: string | null;
     updated_at: string | null;
     created_by: string | null;
@@ -33,7 +34,7 @@ export class PartRepository implements IPartRepository
         this._db = db;
     }
 
-    
+
     private mapRowToPart(row: PartRow): Part
     {
         return {
@@ -43,6 +44,7 @@ export class PartRepository implements IPartRepository
             productTypeId: row.product_type_id,
             productTypeCode: row.product_type_code ?? '',
             productTypeName: row.product_type_name ?? '',
+            totalStock: row.total_stock ?? 0,
             createdAt: row.created_at ?? '',
             updatedAt: row.updated_at ?? '',
             createdBy: row.created_by,
@@ -56,21 +58,28 @@ export class PartRepository implements IPartRepository
         const result = await this._db.db.execute<PartRow>(sql`
 
             SELECT
-                p.id,
-                p.code,
-                p.name,
-                pt.id As product_type_id,
-                pt.code AS product_type_code,
-                pt.name AS product_type_name,
-                p.created_at,
-                p.updated_at,
-                p.created_by,
-                p.updated_by,
-                p.deleted
-            FROM ${partTable} p
-            Join product_type pt on pt.id = p.product_type_id
-            WHERE p.id = ${id} AND p.deleted = false
-            limit 1
+                part.id,
+                part.code,
+                part.name,
+                product_type.id As product_type_id,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name,
+                COALESCE(stock_agg.total_stock, 0) AS total_stock,
+                part.created_at,
+                part.updated_at,
+                part.created_by,
+                part.updated_by,
+                part.deleted
+            FROM ${partTable} part
+            JOIN product_type product_type ON product_type.id = part.product_type_id
+            LEFT JOIN (
+                SELECT part_id, SUM(quantity_in - quantity_out) AS total_stock
+                FROM inventory_move_item
+                WHERE deleted = false
+                GROUP BY part_id
+            ) stock_agg ON stock_agg.part_id = part.id
+            WHERE part.id = ${id} AND part.deleted = false
+            LIMIT 1
         `);
 
         if (result.length === 0)
@@ -83,25 +92,25 @@ export class PartRepository implements IPartRepository
 
     async GetPartByCode(code: string, includeDeleted: boolean = false): Promise<Part | null>
     {
-        const deletedFilter = includeDeleted ? sql`` : sql`AND deleted = false`;
+        const deletedFilter = includeDeleted ? sql`` : sql`AND part.deleted = false`;
 
         const result = await this._db.db.execute<PartRow>(sql`
            SELECT
-                p.id,
-                p.code,
-                p.name,
-                pt.id As product_type_id,
-                pt.code AS product_type_code,
-                pt.name AS product_type_name,
-                p.created_at,
-                p.updated_at,
-                p.created_by,
-                p.updated_by,
-                p.deleted
-            FROM ${partTable} p
-            Join product_type pt on pt.id = p.product_type_id
-            WHERE p.code = ${code}
-              ${deletedFilter}
+                part.id,
+                part.code,
+                part.name,
+                product_type.id As product_type_id,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name,
+                part.created_at,
+                part.updated_at,
+                part.created_by,
+                part.updated_by,
+                part.deleted
+            FROM ${partTable} part
+            Join product_type product_type on product_type.id = part.product_type_id
+            WHERE part.code = ${code}
+            ${deletedFilter}
             LIMIT 1
         `);
 
@@ -138,19 +147,26 @@ export class PartRepository implements IPartRepository
 
         const innerQuery = sql`
             SELECT
-                p.id,
-                p.code,
-                p.name,
-                pt.id AS product_type_id,
-                pt.code AS product_type_code,
-                pt.name AS product_type_name,
-                p.created_at,
-                p.updated_at,
-                p.created_by,
-                p.updated_by,
-                p.deleted
-            FROM ${partTable} p
-            JOIN product_type pt ON pt.id = p.product_type_id
+                part.id,
+                part.code,
+                part.name,
+                product_type.id AS product_type_id,
+                product_type.code AS product_type_code,
+                product_type.name AS product_type_name,
+                COALESCE(stock_agg.total_stock, 0) AS total_stock,
+                part.created_at,
+                part.updated_at,
+                part.created_by,
+                part.updated_by,
+                part.deleted
+            FROM ${partTable} part
+            JOIN product_type product_type ON product_type.id = part.product_type_id
+            LEFT JOIN (
+                SELECT part_id, SUM(quantity_in - quantity_out) AS total_stock
+                FROM inventory_move_item
+                WHERE deleted = false
+                GROUP BY part_id
+            ) stock_agg ON stock_agg.part_id = part.id
         `;
 
         const [partResults, countResult] = await Promise.all([
@@ -177,7 +193,6 @@ export class PartRepository implements IPartRepository
 
     async CreatePart(part: Part): Promise<Part>
     {
-        console.log(part);
         const result = await this._db.db.execute<PartRow>(sql`
             INSERT INTO ${partTable} (
                 code,

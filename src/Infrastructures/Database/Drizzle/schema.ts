@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, serial, integer, varchar, text, timestamp, boolean, index, foreignKey, primaryKey, unique } from "drizzle-orm/pg-core"
+import { pgEnum, pgTable, serial, integer, varchar, text, timestamp, boolean, index, uniqueIndex, foreignKey, primaryKey, unique, check } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const repairPriority = pgEnum("repair_priority", ["low", "medium", "high", "urgent"])
@@ -44,6 +44,7 @@ export const inventoryMoveItem = pgTable("inventory_move_item", {
 	createdBy: varchar("created_by", { length: 50 }),
 	updatedBy: varchar("updated_by", { length: 50 }),
 	deleted: boolean().default(false),
+	workOrderPartId: integer("work_order_part_id").references(() => workOrderPart.id),
 });
 
 export const part = pgTable("part", {
@@ -202,8 +203,6 @@ export const workOrder = pgTable("work_order", {
 	scheduledStart: timestamp("scheduled_start", { withTimezone: true }),
 	scheduledEnd: timestamp("scheduled_end", { withTimezone: true }),
 	orderSequence: integer("order_sequence").notNull(),
-	isFinal: boolean("is_final").default(false),
-	statusId: integer("status_id").notNull().references(() => repairStatus.id),
 	createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 150 }),
@@ -221,7 +220,6 @@ export const workOrderPart = pgTable("work_order_part", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
 	createdBy: varchar("created_by", { length: 150 }),
 	updatedBy: varchar("updated_by", { length: 150 }),
-	inventoryMoveItemId: integer("inventory_move_item_id").references(() => inventoryMoveItem.id),
 });
 
 export const workTask = pgTable("work_task", {
@@ -236,3 +234,18 @@ export const workTask = pgTable("work_task", {
 	createdBy: varchar("created_by", { length: 150 }),
 	updatedBy: varchar("updated_by", { length: 150 }),
 });
+
+export const workTaskAssignment = pgTable.withRLS("work_task_assignment", {
+	id: serial().primaryKey(),
+	workTaskId: integer("work_task_id").notNull().references(() => workTask.id),
+	assigneeId: integer("assignee_id").notNull().references(() => users.id),
+	assignedBy: integer("assigned_by").notNull().references(() => users.id),
+	assignedAt: timestamp("assigned_at", { withTimezone: true }).default(sql`now()`),
+	unassignedAt: timestamp("unassigned_at", { withTimezone: true }),
+	createdAt: timestamp("created_at", { withTimezone: true }).default(sql`now()`),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).default(sql`now()`),
+	createdBy: varchar("created_by"),
+	updatedBy: varchar("updated_by"),
+}, (table) => [
+	uniqueIndex("ux_wta_one_active_per_task").using("btree", table.workTaskId.asc().nullsLast()).where(sql`(unassigned_at IS NULL)`),
+check("chk_wta_time_valid", sql`((unassigned_at IS NULL) OR (unassigned_at >= assigned_at))`),]);

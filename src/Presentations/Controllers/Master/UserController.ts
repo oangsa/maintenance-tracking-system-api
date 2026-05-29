@@ -1,11 +1,12 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { UserParameter } from "../../../Domains/RequestFeatures/UserParameter";
-import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema } from "../../Validators/UserSchemaValidation";
+import { DeleteCollectionSchema, UserForCreateSchema, UserForUpdateSchema, UserIdParamSchema, UserParameterSchema, UserResponseSchema } from "../../Validators/UserSchemaValidation";
+import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 
 export class UserController
 {
@@ -43,6 +44,7 @@ export class UserController
                         });
                     },
                     {
+                        response: UserResponseSchema,
                         detail: { summary: "Get current user profile", tags: ["Users"] },
                     },
                 )
@@ -61,6 +63,8 @@ export class UserController
                                     searchTerm: body.searchTerm,
                                     deleted: body.deleted ?? false,
                                     excludeId: currentUser!.userId,
+                                    departmentId: body.departmentId,
+                                    workOrderId: body.workOrderId,
                                 };
 
                                 const result = await this._service.userService.GetListUser(params);
@@ -78,6 +82,7 @@ export class UserController
                     },
                     {
                         body: UserParameterSchema,
+                        response: t.Array(UserResponseSchema),
                         detail: { summary: "Search users", tags: ["Users"] },
                     },
                 )
@@ -103,6 +108,7 @@ export class UserController
                     },
                     {
                         params: UserIdParamSchema,
+                        response: UserResponseSchema,
                         detail: { summary: "Get user by ID", tags: ["Users"] },
                     },
                 )
@@ -128,6 +134,7 @@ export class UserController
                     },
                     {
                         body: UserForCreateSchema,
+                        response: UserResponseSchema,
                         detail: { summary: "Create user", tags: ["Users"] },
                     },
                 )
@@ -155,6 +162,7 @@ export class UserController
                     {
                         params: UserIdParamSchema,
                         body: UserForUpdateSchema,
+                        response: UserResponseSchema,
                         detail: { summary: "Update user", tags: ["Users"] },
                     },
                 )
@@ -180,6 +188,7 @@ export class UserController
                     },
                     {
                         params: UserIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete user", tags: ["Users"] },
                     },
                 )
@@ -206,6 +215,7 @@ export class UserController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete user collection",
                             tags: ["Users"],
@@ -218,6 +228,17 @@ export class UserController
     private handleError(error: any, set: any)
     {
         if (error instanceof UserNotFoundException)
+        {
+            set.status = 404;
+
+            return {
+                statusCode: 404,
+                message: error.message,
+                error: "Not Found",
+            };
+        }
+
+        if (error instanceof WorkOrderNotFoundException)
         {
             set.status = 404;
 

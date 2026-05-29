@@ -1,9 +1,9 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { IServiceManager } from "../../../Applications/Services/Core/IServiceManager";
 import { JwtPlugin } from "../../Plugins/JwtPlugin";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
 import { ProductParameter } from "../../../Domains/RequestFeatures/ProductParameter";
-import { ProductForCreateSchema, ProductIdParamSchema, ProductParameterSchema, DeleteCollectionSchema, ProductForUpdateSchema } from "../../Validators/ProductSchemaValidation";
+import { ProductForCreateSchema, ProductIdParamSchema, ProductParameterSchema, DeleteCollectionSchema, ProductForUpdateSchema, ProductResponseSchema } from "../../Validators/ProductSchemaValidation";
 import { ProductNotFoundException } from "../../../Domains/Exceptions/Product/ProductNotFoundException";
 import { ProductDuplicateBadRequestException } from "../../../Domains/Exceptions/Product/ProductDuplicateBadRequestException";
 
@@ -55,6 +55,7 @@ export class ProductController
                     },
                     {
                         body: ProductParameterSchema,
+                        response: t.Array(ProductResponseSchema),
                         detail: { summary: "Search products", tags: ["Products"] },
                     },
                 )
@@ -80,6 +81,7 @@ export class ProductController
                     },
                     {
                         params: ProductIdParamSchema,
+                        response: ProductResponseSchema,
                         detail: { summary: "Get product by ID", tags: ["Products"] },
                     },
                 )
@@ -105,6 +107,7 @@ export class ProductController
                     },
                     {
                         body: ProductForCreateSchema,
+                        response: ProductResponseSchema,
                         detail: { summary: "Create product", tags: ["Products"] },
                     },
                 )
@@ -132,6 +135,7 @@ export class ProductController
                     {
                         params: ProductIdParamSchema,
                         body: ProductForUpdateSchema,
+                        response: ProductResponseSchema,
                         detail: { summary: "Update product", tags: ["Products"] },
                     },
                 )
@@ -156,6 +160,7 @@ export class ProductController
                     },
                     {
                         params: ProductIdParamSchema,
+                        response: t.Any(),
                         detail: { summary: "Delete product", tags: ["Products"] },
                     },
                 )
@@ -182,6 +187,7 @@ export class ProductController
                     },
                     {
                         body: DeleteCollectionSchema,
+                        response: t.Any(),
                         detail: {
                             summary: "Delete products collection", tags: ["Products"],
                         },
