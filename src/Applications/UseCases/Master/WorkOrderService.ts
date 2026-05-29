@@ -116,6 +116,11 @@ export class WorkOrderService implements IWorkOrderService
         {
 
             const createdWorkOrder = await this._repositoryManager.workOrderRepository.CreateWorkOrder(newWorkOrder);
+            const APPROVED_STATUS_ID = 2;;
+            await this._repositoryManager.repairRequestRepository.UpdateRepairRequestItemStatus(
+                WorkOrderForCreateDto.repairRequestItemId, 
+                APPROVED_STATUS_ID
+            );
             return this._mapperManager.workOrderMapper.WorkOrderToDto(createdWorkOrder);
         }
         catch (error: any)
@@ -178,10 +183,15 @@ export class WorkOrderService implements IWorkOrderService
     {
         this.ExpectMinimumRole('manager');
 
-        await this.GetWorkOrderAndCheckIfItExists(id);
+        const workOrderEntity = await this.GetWorkOrderAndCheckIfItExists(id);
         try
         {
             await this._repositoryManager.workOrderRepository.DeleteWorkOrder(id);
+            const PENDING_STATUS_ID = 1;
+            await this._repositoryManager.repairRequestRepository.UpdateRepairRequestItemStatus(
+                workOrderEntity.repairRequestItemId, 
+                PENDING_STATUS_ID
+            );
         }
         catch (error: any)
         {
