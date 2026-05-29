@@ -22,7 +22,10 @@ type WorkOrderRow = {
     created_by: string | null;
     updated_by: string | null;
     repair_request_id?: number;
+    department_id?: number | null;
+    repair_request_item_department_id?: number | null;
     repair_request_item_description?: string;
+    repair_request_item_repair_status_id?: number | null;
     repair_request_item_repair_status_name?: string;
     repair_request_item_repair_status_code?: string;
     repair_request_item_repair_status_order_sequence?: number | null;
@@ -123,6 +126,7 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 work_order.order_sequence,
                 false AS is_final,
                 repair_request_item.repair_status_id AS status_id,
+                repair_request_item.repair_status_id AS repair_request_item_repair_status_id,
                 work_order.created_at,
                 work_order.updated_at,
                 work_order.created_by,
@@ -234,11 +238,14 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 work_order.id,
                 work_order.repair_request_item_id,
                 repair_request_item.repair_request_id,
+                repair_request_item.department_id AS department_id,
+                repair_request_item.department_id AS repair_request_item_department_id,
                 work_order.scheduled_start,
                 work_order.scheduled_end,
                 work_order.order_sequence,
                 false AS is_final,
                 repair_request_item.repair_status_id AS status_id,
+                repair_request_item.repair_status_id AS repair_request_item_repair_status_id,
                 work_order.created_at,
                 work_order.updated_at,
                 work_order.created_by,
@@ -328,11 +335,14 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 work_order.id,
                 work_order.repair_request_item_id,
                 repair_request_item.repair_request_id,
+                repair_request_item.department_id AS department_id,
+                repair_request_item.department_id AS repair_request_item_department_id,
                 work_order.scheduled_start,
                 work_order.scheduled_end,
                 work_order.order_sequence,
                 false AS is_final,
                 repair_request_item.repair_status_id AS status_id,
+                repair_request_item.repair_status_id AS repair_request_item_repair_status_id,
                 work_order.created_at,
                 work_order.updated_at,
                 work_order.created_by,
