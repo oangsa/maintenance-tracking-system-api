@@ -17,7 +17,8 @@ export const InventoryMoveItemResponseSchema = t.Object({
     partId: t.Number(),
     quantityIn: t.Number(),
     quantityOut: t.Number(),
-    note: t.Nullable(t.String()),
+    note: t.Optional(t.Nullable(t.String())),
+    workOrderPartId: t.Optional(t.Nullable(t.Number())),
 });
 
 export const InventoryMoveResponseSchema = t.Object({
