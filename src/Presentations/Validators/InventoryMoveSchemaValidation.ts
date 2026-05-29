@@ -24,7 +24,13 @@ export const InventoryMoveItemResponseSchema = t.Object({
 export const InventoryMoveResponseSchema = t.Object({
     id: t.Number(),
     moveNo: t.String(),
-    reason: t.Enum(InventoryMoveReason),
+    reason: t.Union([
+        t.Literal("buy"),
+        t.Literal("use"),
+        t.Literal("lost"),
+        t.Literal("found"),
+        t.Literal("adjust"),
+    ]),
     moveDate: t.String(),
     remark: t.String(),
     createdAt: t.Nullable(t.String()),

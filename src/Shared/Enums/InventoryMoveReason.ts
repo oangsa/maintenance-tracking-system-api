@@ -3,6 +3,6 @@ export const InventoryMoveReason = {
     use: "use",
     lost: "lost",
     found: "found",
-    adjustment: "adjustment"
+    adjust: "adjust"
 } as const;
 export type InventoryMoveReason = typeof InventoryMoveReason[keyof typeof InventoryMoveReason];
