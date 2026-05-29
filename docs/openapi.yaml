@@ -3728,9 +3728,6 @@ components:
           type: string
         orderSequence:
           type: number
-        statusId:
-          type: number
-          nullable: true
         createdAt:
           type: string
           nullable: true
@@ -3758,6 +3755,42 @@ components:
           type: string
         repairRequestRequestNo:
           type: string
+        workTaskId:
+          type: number
+          nullable: true
+        workTaskDescription:
+          type: string
+          nullable: true
+        workTaskNote:
+          type: string
+          nullable: true
+        workTaskStartedAt:
+          type: string
+          nullable: true
+        workTaskEndedAt:
+          type: string
+          nullable: true
+        workTaskAssigneeId:
+          type: number
+          nullable: true
+        workTaskAssigneeName:
+          type: string
+          nullable: true
+        workTaskAssigneeEmail:
+          type: string
+          nullable: true
+        workTaskAssignedById:
+          type: number
+          nullable: true
+        workTaskAssignedByName:
+          type: string
+          nullable: true
+        workTaskAssignmentAssignedAt:
+          type: string
+          nullable: true
+        workTaskAssignmentUnassignedAt:
+          type: string
+          nullable: true
 
     WorkOrderForCreate:
       type: object

@@ -16,7 +16,6 @@ export class WorkOrderMapper implements IWorkOrderMapper
             scheduledStart: WorkOrder.scheduledStart,
             scheduledEnd: WorkOrder.scheduledEnd,
             orderSequence: WorkOrder.orderSequence,
-            statusId: WorkOrder.statusId,
             createdAt: WorkOrder.createdAt,
             updatedAt: WorkOrder.updatedAt,
             createdBy: WorkOrder.createdBy,
@@ -27,6 +26,18 @@ export class WorkOrderMapper implements IWorkOrderMapper
             repairRequestItemRepairStatusName: WorkOrder.repairRequestItem?.repairStatus?.name ?? null,
             repairRequestItemProductName: WorkOrder.repairRequestItem?.product?.name,
             repairRequestRequestNo: WorkOrder.repairRequestRequestNo ?? undefined,
+            workTaskId: WorkOrder.workTask?.id ?? null,
+            workTaskDescription: WorkOrder.workTask?.description ?? null,
+            workTaskNote: WorkOrder.workTask?.note ?? null,
+            workTaskStartedAt: WorkOrder.workTask?.startedAt ?? null,
+            workTaskEndedAt: WorkOrder.workTask?.endedAt ?? null,
+            workTaskAssigneeId: WorkOrder.workTask?.assigneeId ?? null,
+            workTaskAssigneeName: WorkOrder.workTask?.assigneeName ?? null,
+            workTaskAssigneeEmail: WorkOrder.workTask?.assigneeEmail ?? null,
+            workTaskAssignedById: WorkOrder.workTask?.assignedById ?? null,
+            workTaskAssignedByName: WorkOrder.workTask?.assignedByName ?? null,
+            workTaskAssignmentAssignedAt: WorkOrder.workTask?.assignedAt ?? null,
+            workTaskAssignmentUnassignedAt: WorkOrder.workTask?.unassignedAt ?? null,
 
         };
     }

@@ -17,7 +17,6 @@ export const WorkOrderResponseSchema = t.Object({
     scheduledStart: t.String(),
     scheduledEnd: t.String(),
     orderSequence: t.Number(),
-    statusId: t.Nullable(t.Number()),
     createdAt: t.Nullable(t.String()),
     updatedAt: t.Nullable(t.String()),
     createdBy: t.Nullable(t.String()),
@@ -28,6 +27,18 @@ export const WorkOrderResponseSchema = t.Object({
     repairRequestItemRepairStatusName: t.Nullable(t.String()),
     repairRequestItemProductName: t.Optional(t.String()),
     repairRequestRequestNo: t.Optional(t.String()),
+    workTaskId: t.Nullable(t.Number()),
+    workTaskDescription: t.Nullable(t.String()),
+    workTaskNote: t.Nullable(t.String()),
+    workTaskStartedAt: t.Nullable(t.String()),
+    workTaskEndedAt: t.Nullable(t.String()),
+    workTaskAssigneeId: t.Nullable(t.Number()),
+    workTaskAssigneeName: t.Nullable(t.String()),
+    workTaskAssigneeEmail: t.Nullable(t.String()),
+    workTaskAssignedById: t.Nullable(t.Number()),
+    workTaskAssignedByName: t.Nullable(t.String()),
+    workTaskAssignmentAssignedAt: t.Nullable(t.String()),
+    workTaskAssignmentUnassignedAt: t.Nullable(t.String()),
 });
 
 export const WorkOrderForCreateSchema = t.Object({

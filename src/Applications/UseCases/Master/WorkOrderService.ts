@@ -104,7 +104,6 @@ export class WorkOrderService implements IWorkOrderService
             scheduledEnd: WorkOrderForCreateDto.scheduledEnd ?? "",
             orderSequence: WorkOrderForCreateDto.orderSequence,
             isFinal: WorkOrderForCreateDto.isFinal ?? false,
-            statusId: null,
             createdAt: dateNow,
             updatedAt: dateNow,
             createdBy: this.getCalledBy(),
@@ -158,7 +157,6 @@ export class WorkOrderService implements IWorkOrderService
             scheduledEnd: WorkOrderForUpdateDto.scheduledEnd ?? WorkOrderEntity.scheduledEnd,
             orderSequence: WorkOrderForUpdateDto.orderSequence ?? WorkOrderEntity.orderSequence,
             isFinal: WorkOrderForUpdateDto.isFinal ?? WorkOrderEntity.isFinal,
-            statusId: WorkOrderEntity.statusId,
             updatedAt: new Date().toISOString(),
             updatedBy: this.getCalledBy(),
         };
