@@ -32,6 +32,18 @@ type WorkOrderRow = {
     repair_request_item_product_name?: string | null;
     repair_request_item_product_type_id?: number | null;
     repair_request_request_no?: string;
+    work_task_id?: number | null;
+    work_task_description?: string | null;
+    work_task_note?: string | null;
+    work_task_started_at?: string | null;
+    work_task_ended_at?: string | null;
+    work_task_assignee_id?: number | null;
+    work_task_assignee_name?: string | null;
+    work_task_assignee_email?: string | null;
+    work_task_assigned_by_user_id?: number | null;
+    work_task_assigned_by_user_name?: string | null;
+    work_task_assignment_assigned_at?: string | null;
+    work_task_assignment_unassigned_at?: string | null;
 };
 
 
@@ -53,7 +65,6 @@ export class WorkOrderRepository implements IWorkOrderRepository
             scheduledEnd: row.scheduled_end ? String(row.scheduled_end) : "",
             orderSequence: row.order_sequence,
             isFinal: row.is_final ?? false,
-            statusId: row.status_id,
             createdAt: row.created_at ?? null,
             updatedAt: row.updated_at ?? null,
             createdBy: row.created_by,
@@ -81,6 +92,22 @@ export class WorkOrderRepository implements IWorkOrderRepository
                     : null,
             },
             repairRequestRequestNo: row.repair_request_request_no ?? null,
+            workTask: row.work_task_id !== null && row.work_task_id !== undefined
+                ? {
+                    id: row.work_task_id,
+                    description: row.work_task_description ?? "",
+                    note: row.work_task_note ?? null,
+                    startedAt: row.work_task_started_at ? String(row.work_task_started_at) : null,
+                    endedAt: row.work_task_ended_at ? String(row.work_task_ended_at) : null,
+                    assigneeId: row.work_task_assignee_id ?? null,
+                    assigneeName: row.work_task_assignee_name ?? null,
+                    assigneeEmail: row.work_task_assignee_email ?? null,
+                    assignedById: row.work_task_assigned_by_user_id ?? null,
+                    assignedByName: row.work_task_assigned_by_user_name ?? null,
+                    assignedAt: row.work_task_assignment_assigned_at ? String(row.work_task_assignment_assigned_at) : null,
+                    unassignedAt: row.work_task_assignment_unassigned_at ? String(row.work_task_assignment_unassigned_at) : null,
+                }
+                : null,
         };
     }
 
@@ -110,12 +137,30 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 product.name AS repair_request_item_product_name,
                 product.product_type_id AS repair_request_item_product_type_id,
                 repair_request.request_no AS repair_request_request_no,
-                repair_request.request_no AS work_order_no
+                repair_request.request_no AS work_order_no,
+                work_task.id AS work_task_id,
+                work_task.description AS work_task_description,
+                work_task.note AS work_task_note,
+                work_task.started_at AS work_task_started_at,
+                work_task.ended_at AS work_task_ended_at,
+                work_task_assignment.assignee_id AS work_task_assignee_id,
+                work_task_assignee_user.name AS work_task_assignee_name,
+                work_task_assignee_user.email AS work_task_assignee_email,
+                work_task_assignment.assigned_by AS work_task_assigned_by_user_id,
+                work_task_assigned_by_user.name AS work_task_assigned_by_user_name,
+                work_task_assignment.assigned_at AS work_task_assignment_assigned_at,
+                work_task_assignment.unassigned_at AS work_task_assignment_unassigned_at
             FROM ${workOrderTable} work_order
             LEFT JOIN repair_request_item ON work_order.repair_request_item_id = repair_request_item.id
             LEFT JOIN repair_request_item_status ON repair_request_item.repair_status_id = repair_request_item_status.id
             LEFT JOIN product ON repair_request_item.product_id = product.id
             LEFT JOIN repair_request ON repair_request_item.repair_request_id = repair_request.id
+            LEFT JOIN work_task ON work_order.id = work_task.work_order_id
+            LEFT JOIN work_task_assignment
+                ON work_task.id = work_task_assignment.work_task_id
+                AND work_task_assignment.unassigned_at IS NULL
+            LEFT JOIN users work_task_assignee_user ON work_task_assignment.assignee_id = work_task_assignee_user.id
+            LEFT JOIN users work_task_assigned_by_user ON work_task_assignment.assigned_by = work_task_assigned_by_user.id
             WHERE work_order.id = ${id}
             LIMIT 1
         `);
@@ -208,12 +253,30 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 product.name AS repair_request_item_product_name,
                 product.product_type_id AS repair_request_item_product_type_id,
                 repair_request.request_no AS repair_request_request_no,
-                repair_request.request_no AS work_order_no
+                repair_request.request_no AS work_order_no,
+                work_task.id AS work_task_id,
+                work_task.description AS work_task_description,
+                work_task.note AS work_task_note,
+                work_task.started_at AS work_task_started_at,
+                work_task.ended_at AS work_task_ended_at,
+                work_task_assignment.assignee_id AS work_task_assignee_id,
+                work_task_assignee_user.name AS work_task_assignee_name,
+                work_task_assignee_user.email AS work_task_assignee_email,
+                work_task_assignment.assigned_by AS work_task_assigned_by_user_id,
+                work_task_assigned_by_user.name AS work_task_assigned_by_user_name,
+                work_task_assignment.assigned_at AS work_task_assignment_assigned_at,
+                work_task_assignment.unassigned_at AS work_task_assignment_unassigned_at
             FROM ${workOrderTable} work_order
             LEFT JOIN repair_request_item ON work_order.repair_request_item_id = repair_request_item.id
             LEFT JOIN repair_request_item_status ON repair_request_item.repair_status_id = repair_request_item_status.id
             LEFT JOIN product ON repair_request_item.product_id = product.id
             LEFT JOIN repair_request ON repair_request_item.repair_request_id = repair_request.id
+            LEFT JOIN work_task ON work_order.id = work_task.work_order_id
+            LEFT JOIN work_task_assignment
+                ON work_task.id = work_task_assignment.work_task_id
+                AND work_task_assignment.unassigned_at IS NULL
+            LEFT JOIN users work_task_assignee_user ON work_task_assignment.assignee_id = work_task_assignee_user.id
+            LEFT JOIN users work_task_assigned_by_user ON work_task_assignment.assigned_by = work_task_assigned_by_user.id
         `;
 
         const [WorkOrderResults, countResult] = await Promise.all([
@@ -284,12 +347,30 @@ export class WorkOrderRepository implements IWorkOrderRepository
                 product.name AS repair_request_item_product_name,
                 product.product_type_id AS repair_request_item_product_type_id,
                 repair_request.request_no AS repair_request_request_no,
-                repair_request.request_no AS work_order_no
+                repair_request.request_no AS work_order_no,
+                work_task.id AS work_task_id,
+                work_task.description AS work_task_description,
+                work_task.note AS work_task_note,
+                work_task.started_at AS work_task_started_at,
+                work_task.ended_at AS work_task_ended_at,
+                work_task_assignment.assignee_id AS work_task_assignee_id,
+                work_task_assignee_user.name AS work_task_assignee_name,
+                work_task_assignee_user.email AS work_task_assignee_email,
+                work_task_assignment.assigned_by AS work_task_assigned_by_user_id,
+                work_task_assigned_by_user.name AS work_task_assigned_by_user_name,
+                work_task_assignment.assigned_at AS work_task_assignment_assigned_at,
+                work_task_assignment.unassigned_at AS work_task_assignment_unassigned_at
             FROM ${workOrderTable} work_order
             LEFT JOIN repair_request_item ON work_order.repair_request_item_id = repair_request_item.id
             LEFT JOIN repair_request_item_status ON repair_request_item.repair_status_id = repair_request_item_status.id
             LEFT JOIN product ON repair_request_item.product_id = product.id
             LEFT JOIN repair_request ON repair_request_item.repair_request_id = repair_request.id
+            LEFT JOIN work_task ON work_order.id = work_task.work_order_id
+            LEFT JOIN work_task_assignment
+                ON work_task.id = work_task_assignment.work_task_id
+                AND work_task_assignment.unassigned_at IS NULL
+            LEFT JOIN users work_task_assignee_user ON work_task_assignment.assignee_id = work_task_assignee_user.id
+            LEFT JOIN users work_task_assigned_by_user ON work_task_assignment.assigned_by = work_task_assigned_by_user.id
         `;
 
         const [WorkOrderResults, countResult] = await Promise.all([
