@@ -3546,6 +3546,8 @@ components:
         - id
         - inventoryMoveId
         - partId
+        - partCode
+        - partName
         - quantityIn
         - quantityOut
         - note
@@ -3556,6 +3558,10 @@ components:
           type: number
         partId:
           type: number
+        partCode:
+          type: string
+        partName:
+          type: string
         quantityIn:
           type: number
         quantityOut:
@@ -3565,6 +3571,12 @@ components:
           nullable: true
         workOrderPartId:
           type: number
+          nullable: true
+        workOrderPartPartCode:
+          type: string
+          nullable: true
+        workOrderPartPartName:
+          type: string
           nullable: true
 
     InventoryMoveItemForCreate:

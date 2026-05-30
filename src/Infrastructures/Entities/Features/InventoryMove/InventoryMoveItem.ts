@@ -4,10 +4,14 @@ export interface InventoryMoveItem {
     id: number;
     inventoryMoveId: number;
     partId: number;
+    partCode: string;
+    partName: string;
     quantityIn: number;
     quantityOut: number;
     note: string;
     workOrderPartId?: number | null;
+    workOrderPartPartCode?: string | null;
+    workOrderPartPartName?: string | null;
     createdAt: string;
     updatedAt: string;
     createdBy: string;

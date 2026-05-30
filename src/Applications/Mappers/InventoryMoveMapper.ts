@@ -28,9 +28,14 @@ export class InventoryMoveMapper implements IInventoryMoveMapper {
             id: item.id,
             inventoryMoveId: item.inventoryMoveId,
             partId: item.partId,
+            partCode: item.partCode,
+            partName: item.partName,
             quantityIn: item.quantityIn,
             quantityOut: item.quantityOut,
             note: item.note,
+            workOrderPartId: item.workOrderPartId ?? null,
+            workOrderPartPartCode: item.workOrderPartPartCode ?? null,
+            workOrderPartPartName: item.workOrderPartPartName ?? null,
         };
     }
 }

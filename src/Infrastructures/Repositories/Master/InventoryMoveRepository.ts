@@ -27,10 +27,14 @@ type InventoryMoveItemRow = {
     id: number;
     inventory_move_id: number;
     part_id: number;
+    part_code: string;
+    part_name: string;
     quantity_in: number;
     quantity_out: number;
     note: string | null;
     work_order_part_id: number | null;
+    work_order_part_part_code: string | null;
+    work_order_part_part_name: string | null;
     created_at: string | null;
     updated_at: string | null;
     created_by: string | null;
@@ -67,10 +71,14 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
             id: row.id,
             inventoryMoveId: row.inventory_move_id,
             partId: row.part_id,
+            partCode: row.part_code,
+            partName: row.part_name,
             quantityIn: row.quantity_in,
             quantityOut: row.quantity_out,
             note: row.note ?? "",
             workOrderPartId: row.work_order_part_id,
+            workOrderPartPartCode: row.work_order_part_part_code,
+            workOrderPartPartName: row.work_order_part_part_name,
             createdAt: row.created_at ?? "",
             updatedAt: row.updated_at ?? "",
             createdBy: row.created_by ?? "",
@@ -99,12 +107,47 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
                 `);
 
                 if (itemResult[0]) {
-                    insertedHeader.inventoryMoveItems.push(this.mapRowToInventoryMoveItem(itemResult[0]));
+                    // keep this branch for INSERT result existence only; full response hydration happens below
                 }
             }
         }
 
-        return insertedHeader; 
+        const fullMoveResult = await tx.execute<InventoryMoveRow>(sql`
+            SELECT * FROM ${inventoryMoveTable}
+            WHERE id = ${insertedHeader.id}
+            LIMIT 1
+        `);
+
+        const fullMove = this.mapRowToInventoryMove(fullMoveResult[0]!);
+        const fullItemsResult = await tx.execute<InventoryMoveItemRow>(sql`
+            SELECT
+                inventory_move_item.id,
+                inventory_move_item.inventory_move_id,
+                inventory_move_item.part_id,
+                inventory_move_item_part.code AS part_code,
+                inventory_move_item_part.name AS part_name,
+                inventory_move_item.quantity_in,
+                inventory_move_item.quantity_out,
+                inventory_move_item.note,
+                inventory_move_item.work_order_part_id,
+                work_order_part_part.code AS work_order_part_part_code,
+                work_order_part_part.name AS work_order_part_part_name,
+                inventory_move_item.created_at,
+                inventory_move_item.updated_at,
+                inventory_move_item.created_by,
+                inventory_move_item.updated_by,
+                inventory_move_item.deleted
+            FROM ${inventoryMoveItemTable} inventory_move_item
+            LEFT JOIN part inventory_move_item_part ON inventory_move_item.part_id = inventory_move_item_part.id
+            LEFT JOIN work_order_part ON inventory_move_item.work_order_part_id = work_order_part.id
+            LEFT JOIN part work_order_part_part ON work_order_part.part_id = work_order_part_part.id
+            WHERE inventory_move_item.inventory_move_id = ${insertedHeader.id}
+              AND inventory_move_item.deleted = false
+        `);
+
+        fullMove.inventoryMoveItems = Array.from(fullItemsResult).map((row) => this.mapRowToInventoryMoveItem(row));
+
+        return fullMove; 
     });
 }
 
@@ -118,7 +161,29 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
         const move = this.mapRowToInventoryMove(moveResult[0]);
 
         const itemsResult = await this._db.db.execute<InventoryMoveItemRow>(sql`
-            SELECT * FROM ${inventoryMoveItemTable} WHERE inventory_move_id = ${id} AND deleted = false
+            SELECT
+                inventory_move_item.id,
+                inventory_move_item.inventory_move_id,
+                inventory_move_item.part_id,
+                inventory_move_item_part.code AS part_code,
+                inventory_move_item_part.name AS part_name,
+                inventory_move_item.quantity_in,
+                inventory_move_item.quantity_out,
+                inventory_move_item.note,
+                inventory_move_item.work_order_part_id,
+                work_order_part_part.code AS work_order_part_part_code,
+                work_order_part_part.name AS work_order_part_part_name,
+                inventory_move_item.created_at,
+                inventory_move_item.updated_at,
+                inventory_move_item.created_by,
+                inventory_move_item.updated_by,
+                inventory_move_item.deleted
+            FROM ${inventoryMoveItemTable} inventory_move_item
+            LEFT JOIN part inventory_move_item_part ON inventory_move_item.part_id = inventory_move_item_part.id
+            LEFT JOIN work_order_part ON inventory_move_item.work_order_part_id = work_order_part.id
+            LEFT JOIN part work_order_part_part ON work_order_part.part_id = work_order_part_part.id
+            WHERE inventory_move_item.inventory_move_id = ${id}
+              AND inventory_move_item.deleted = false
         `);
 
         move.inventoryMoveItems = Array.from(itemsResult).map(row => this.mapRowToInventoryMoveItem(row));
@@ -181,9 +246,29 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
     if (inventoryMoves.length > 0) {
         const moveIds = inventoryMoves.map(m => m.id);
         const allItemsResult = await this._db.db.execute<InventoryMoveItemRow>(sql`
-            SELECT * FROM ${inventoryMoveItemTable} 
-            WHERE inventory_move_id IN ${sql`(${sql.join(moveIds, sql`, `)})`} 
-            AND deleted = false
+            SELECT
+                inventory_move_item.id,
+                inventory_move_item.inventory_move_id,
+                inventory_move_item.part_id,
+                inventory_move_item_part.code AS part_code,
+                inventory_move_item_part.name AS part_name,
+                inventory_move_item.quantity_in,
+                inventory_move_item.quantity_out,
+                inventory_move_item.note,
+                inventory_move_item.work_order_part_id,
+                work_order_part_part.code AS work_order_part_part_code,
+                work_order_part_part.name AS work_order_part_part_name,
+                inventory_move_item.created_at,
+                inventory_move_item.updated_at,
+                inventory_move_item.created_by,
+                inventory_move_item.updated_by,
+                inventory_move_item.deleted
+            FROM ${inventoryMoveItemTable} inventory_move_item
+            LEFT JOIN part inventory_move_item_part ON inventory_move_item.part_id = inventory_move_item_part.id
+            LEFT JOIN work_order_part ON inventory_move_item.work_order_part_id = work_order_part.id
+            LEFT JOIN part work_order_part_part ON work_order_part.part_id = work_order_part_part.id
+            WHERE inventory_move_item.inventory_move_id IN ${sql`(${sql.join(moveIds, sql`, `)})`} 
+              AND inventory_move_item.deleted = false
         `);
 
         const allItems = Array.from(allItemsResult).map(row => this.mapRowToInventoryMoveItem(row));
