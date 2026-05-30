@@ -773,8 +773,8 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const whereConditions: SQL[] = [sql`repair_request.deleted = ${normalizedParams.deleted ?? false}`];
 
-    let lowerBound: string | null = null;
-    let upperBound: string | null = null;
+        let lowerBound: string | null = null;
+        let upperBound: string | null = null;
 
         if (normalizedParams.search && normalizedParams.search.length > 0) {
             for (const filter of normalizedParams.search) {
@@ -792,23 +792,30 @@ export class RepairRequestRepository implements IRepairRequestRepository
             }
         }
 
-        if (lowerBound) {
+        if (lowerBound)
+        {
             whereConditions.push(sql`repair_request.requested_at >= ${lowerBound}`);
         }
 
-        if (upperBound) {
+        if (upperBound)
+        {
             whereConditions.push(sql`repair_request.requested_at <= ${upperBound}`);
         }
 
-        if (normalizedParams.search && normalizedParams.search.length > 0) {
+        if (normalizedParams.search && normalizedParams.search.length > 0)
+        {
             const otherFilters = normalizedParams.search.filter(f => f.name !== 'requested_at');
-            if (otherFilters.length > 0) {
+
+            if (otherFilters.length > 0)
+            {
                 const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(otherFilters);
-            if (filterSQL) whereConditions.push(filterSQL);
+
+                if (filterSQL) whereConditions.push(filterSQL);
             }
         }
 
-        if (normalizedParams.searchTerm) {
+        if (normalizedParams.searchTerm)
+        {
             const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(normalizedParams.searchTerm);
             if (searchSQL) whereConditions.push(searchSQL);
         }
@@ -820,7 +827,7 @@ export class RepairRequestRepository implements IRepairRequestRepository
         const innerQuery = sql`
             SELECT
                 product.name AS product_name,
-                CAST(COUNT(DISTINCT repair_request.id) AS INTEGER) AS value
+                SUM(repair_request_item.quantity)::int AS value
             FROM ${repairRequestTable} repair_request
             INNER JOIN ${repairRequestItemTable} repair_request_item
                 ON repair_request_item.repair_request_id = repair_request.id
@@ -955,7 +962,7 @@ export class RepairRequestRepository implements IRepairRequestRepository
         const totalCount = countResult[0]?.count ?? 0;
         const items = rows.map(row => {
             const item = this.mapRowToRepairRequestItem(row);
-            (item as any).requestNo = (row as any).request_no; 
+            (item as any).requestNo = (row as any).request_no;
             return item;
         });
 

@@ -48,7 +48,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async GetListWorkOrderPart(parameters: WorkOrderPartParameter): Promise<PagedResult<WorkOrderPartDto>>
     {
-        //this.ExpectRole('employee');
 
         const pagedWorkOrderParts = await this._repositoryManager.workOrderPartRepository.GetListWorkOrderPart(parameters);
 
@@ -60,8 +59,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async GetWorkOrderPart(id: number): Promise<WorkOrderPartDto>
     {
-        //this.ExpectRole('employee');
-
         const workOrderPartEntity = await this.GetWorkOrderPartAndCheckIfItExists(id);
 
         return this._mapperManager.workOrderPartMapper.WorkOrderPartToDto(workOrderPartEntity);
@@ -69,8 +66,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async CreateWorkOrderPart(workOrderPartForCreateDto: WorkOrderPartForCreateDto): Promise<WorkOrderPartDto>
     {
-        //this.ExpectRole('employee');
-
         const foundWorkOrder = await this._repositoryManager.workOrderRepository.GetWorkOrderById(workOrderPartForCreateDto.workOrderId);
         if (!foundWorkOrder) {
             throw new WorkOrderNotFoundException(workOrderPartForCreateDto.workOrderId);
@@ -102,13 +97,13 @@ export class WorkOrderPartService implements IWorkOrderPartService
             }
         };
 
-        try 
+        try
         {
             const createdWorkOrderPart = await this._repositoryManager.workOrderPartRepository.CreateWorkOrderPart(newWorkOrderPart);
-        
+
             return this._mapperManager.workOrderPartMapper.WorkOrderPartToDto(createdWorkOrderPart);
 
-        } 
+        }
         catch (error: any)
         {
             if (error.code === "23505")
@@ -123,8 +118,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async UpdateWorkOrderPart(id: number, workOrderPartForUpdateDto: WorkOrderPartForUpdateDto): Promise<WorkOrderPartDto>
     {
-        //this.ExpectRole('employee');
-
         const workOrderPartEntity = await this.GetWorkOrderPartAndCheckIfItExists(id);
         const isConsumed = await this._repositoryManager.inventoryMoveRepository.CheckIfWorkOrderPartExistsInMove(id);
         if (isConsumed)
@@ -158,9 +151,6 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async DeleteWorkOrderPart(id: number): Promise<void>
     {
-        this.ExpectRole('admin'); 
-        
-
         await this.GetWorkOrderPartAndCheckIfItExists(id);
         const isConsumed = await this._repositoryManager.inventoryMoveRepository.CheckIfWorkOrderPartExistsInMove(id);
         if (isConsumed)
