@@ -40,6 +40,7 @@ type InventoryMoveItemRow = {
 
 export class InventoryMoveRepository implements IInventoryMoveRepository {
     private readonly _db: AppDrizzleDB;
+    private static readonly ReverseRemarkMarkerPrefix = "[SYSTEM_REVERSE_OF_INVENTORY_MOVE_ID:";
 
     constructor(db: AppDrizzleDB) {
         this._db = db;
@@ -245,5 +246,23 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
             WHERE work_order_part_id = ${workOrderPartId} AND deleted = false
         `);
         return (result[0]?.count ?? 0) > 0;     
+    }
+
+    async CheckIfInventoryMoveAlreadyReversed(originalInventoryMoveId: number): Promise<boolean> {
+        const marker = `${InventoryMoveRepository.ReverseRemarkMarkerPrefix}${originalInventoryMoveId}]`;
+
+        const result = await this._db.db.execute<{ count: number }>(sql`
+            SELECT COUNT(*)::int AS count
+            FROM ${inventoryMoveTable} reversed_inventory_move
+            WHERE reversed_inventory_move.remark LIKE ${`%${marker}%`}
+               OR reversed_inventory_move.move_no LIKE (
+                    SELECT CONCAT('REV-', original_inventory_move.move_no, '-%')
+                    FROM ${inventoryMoveTable} original_inventory_move
+                    WHERE original_inventory_move.id = ${originalInventoryMoveId}
+                    LIMIT 1
+               )
+        `);
+
+        return (result[0]?.count ?? 0) > 0;
     }
 }

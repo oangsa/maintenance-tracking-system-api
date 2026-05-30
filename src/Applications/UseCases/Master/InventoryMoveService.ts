@@ -13,12 +13,14 @@ import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication
 import { Role } from "../../../Shared/Enums/Role";
 import { InventoryMoveNotFoundException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveNotFoundException";
 import { InventoryMoveDuplicateBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveDuplicateBadRequestException";
+import { InventoryMoveAlreadyReversedBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveAlreadyReversedBadRequestException";
 
 
 export class InventoryMoveService implements IInventoryMoveService {
     private readonly _repositoryManager: IRepositoryManager;
     private readonly _mapperManager: IMapperManager;
     private readonly _userProvider: IUserProvider;
+    private static readonly ReverseRemarkMarkerPrefix = "[SYSTEM_REVERSE_OF_INVENTORY_MOVE_ID:";
 
     constructor(coreAdapterManager: ICoreAdapterManager, mapperManager: IMapperManager, userProvider: IUserProvider) {
         this._repositoryManager = coreAdapterManager.repositoryManager;
@@ -153,6 +155,11 @@ export class InventoryMoveService implements IInventoryMoveService {
 
         // 1. ดึงรายการต้นฉบับมาตรวจสอบ
         const originalMove = await this.GetInventoryMoveAndCheckIfItExists(id);
+        const alreadyReversed = await this._repositoryManager.inventoryMoveRepository.CheckIfInventoryMoveAlreadyReversed(originalMove.id);
+
+        if (alreadyReversed) {
+            throw new InventoryMoveAlreadyReversedBadRequestException(originalMove.id);
+        }
 
         // 2. สลับทิศทางของจำนวน (In เป็น Out, Out เป็น In)
         const reverseItems = originalMove.inventoryMoveItems.map(item => ({
@@ -163,11 +170,15 @@ export class InventoryMoveService implements IInventoryMoveService {
             workOrderPartId: item.workOrderPartId // คงการเชื่อมโยงเดิมไว้
         }));
 
+        const reverseRemarkMarker = `${InventoryMoveService.ReverseRemarkMarkerPrefix}${originalMove.id}]`;
+
         const reverseDto: InventoryMoveForCreateDto = {
             moveNo: dto.moveNo ?? `REV-${originalMove.moveNo}-${new Date().getTime()}`,
             moveDate: dto.moveDate ?? new Date().toISOString(),
             reason: dto.reason ?? "adjust",
-            remark: dto.remark ?? `Reversing movement ${originalMove.moveNo}`,
+            remark: dto.remark
+                ? `${dto.remark} ${reverseRemarkMarker}`
+                : `Reversing movement ${originalMove.moveNo} ${reverseRemarkMarker}`,
             inventoryMoveItems: reverseItems
         };
 

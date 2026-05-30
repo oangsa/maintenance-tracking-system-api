@@ -13,6 +13,7 @@ import {
 } from "../../Validators/InventoryMoveSchemaValidation";
 import { InventoryMoveNotFoundException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveNotFoundException";
 import { InventoryMoveDuplicateBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveDuplicateBadRequestException";
+import { InventoryMoveAlreadyReversedBadRequestException } from "../../../Domains/Exceptions/InventoryMove/InventoryMoveAlreadyReversedBadRequestException";
 
 export class InventoryMoveController
 {
@@ -256,6 +257,16 @@ export class InventoryMoveController
                 statusCode: 400, 
                 message: error.message, 
                 error: "Bad Request" 
+            };
+        }
+
+        if (error instanceof InventoryMoveAlreadyReversedBadRequestException)
+        {
+            set.status = 400;
+            return {
+                statusCode: 400,
+                message: error.message,
+                error: "Bad Request"
             };
         }
 
