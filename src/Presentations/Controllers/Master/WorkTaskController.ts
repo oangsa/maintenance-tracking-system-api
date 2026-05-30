@@ -10,6 +10,7 @@ import { WorkTaskAlreadyExistsBadRequestException } from "@/Domains/Exceptions/W
 import { UsersNotInSameDepartmentBadRequestException } from "@/Domains/Exceptions/WorkTask/UsersNotInSameDepartmentBadRequestException";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
+import { BadRequestException } from "../../../Domains/Exceptions/BadRequestException";
 
 
 export class WorkTaskController
@@ -333,6 +334,17 @@ export class WorkTaskController
             };
         }
 
+        if (error instanceof BadRequestException)
+        {
+            set.status = 400;
+
+            return {
+                statusCode: 400,
+                message: error.message,
+                error: "Bad Request",
+            };
+        }
+
         if (error instanceof ForbiddenException)
         {
             set.status = 403;
@@ -341,6 +353,17 @@ export class WorkTaskController
                 statusCode: 403,
                 message: error.message,
                 error: "Forbidden",
+            };
+        }
+
+        if ((error.message ?? "").toLowerCase().includes("insert into work_task_assignment"))
+        {
+            set.status = 400;
+
+            return {
+                statusCode: 400,
+                message: "Unable to assign task due to assignment rules. Please verify task status and assignee data.",
+                error: "Bad Request",
             };
         }
 

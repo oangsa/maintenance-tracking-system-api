@@ -294,9 +294,7 @@ export class WorkTaskRepository implements IWorkTaskRepository
     {
         await this._db.db.execute(sql`
             UPDATE work_task_assignment
-            SET unassigned_at = CURRENT_TIMESTAMP,
-                updated_by = ${actionByName ?? null},
-                updated_at = CURRENT_TIMESTAMP
+            SET unassigned_at = CURRENT_TIMESTAMP
             WHERE work_task_id = ${workTaskId} 
             AND unassigned_at IS NULL
         `);
@@ -304,23 +302,12 @@ export class WorkTaskRepository implements IWorkTaskRepository
             INSERT INTO work_task_assignment (
                 work_task_id,
                 assignee_id,
-                assigned_by,
-                created_by,
-                updated_by,
-                assigned_at,
-                created_at,
-                updated_at
-            
+                assigned_by
             )
             VALUES (
                 ${workTaskId},
                 ${assigneeId},
-                ${assignedById},
-                ${actionByName ?? null},
-                ${actionByName ?? null},
-                CURRENT_TIMESTAMP,
-                CURRENT_TIMESTAMP,
-                CURRENT_TIMESTAMP
+                ${assignedById}
             )
         `);
     }
@@ -329,10 +316,7 @@ export class WorkTaskRepository implements IWorkTaskRepository
     {
         await this._db.db.execute(sql`
             UPDATE work_task_assignment
-            SET 
-                unassigned_at = CURRENT_TIMESTAMP,
-                updated_by = ${actionByName ?? null},
-                updated_at = CURRENT_TIMESTAMP
+            SET unassigned_at = CURRENT_TIMESTAMP
             WHERE work_task_id = ${workTaskId} 
             AND unassigned_at IS NULL
         `);

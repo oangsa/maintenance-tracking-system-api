@@ -2380,6 +2380,60 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/repair-requests/reports/top-repaired-products/search:
+    post:
+      tags:
+        - Repair Requests
+      summary: Get top repaired products performance report
+      operationId: searchTopRepairedProductsPerformanceReport
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestSearchRequest'
+            examples:
+              dateRange:
+                value:
+                  pageNumber: 1
+                  pageSize: 10
+                  orderBy: ""
+                  search:
+                    - name: requested_at
+                      condition: GREATEROREQUAL
+                      value: '2026-04-01T00:00:00+07:00'
+                    - name: requested_at
+                      condition: LESSEROREQUAL
+                      value: '2026-04-30T23:59:59+07:00'
+      responses:
+        '200':
+          description: Top repaired products performance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopRepairedProductsPerformanceReport'
+              examples:
+                success:
+                  value:
+                    - productName: Laptop
+                      value: 12
+                    - productName: Printer
+                      value: 8
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/repair-requests/reports/monthly-product-type/search:
     post:
       tags:

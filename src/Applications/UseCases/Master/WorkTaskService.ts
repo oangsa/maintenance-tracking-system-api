@@ -20,6 +20,7 @@ import { Role } from "../../../Shared/Enums/Role";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 import { ForbiddenException } from "../../../Domains/Exceptions/ForbiddenException";
+import { BadRequestMessageException } from "../../../Domains/Exceptions/BadRequestException";
 
 
 
@@ -111,6 +112,101 @@ export class WorkTaskService implements IWorkTaskService
         return workTaskEntity;
     }
 
+    private TranslateWorkTaskAssignmentDatabaseError(error: any, workTaskId: number, assigneeId: number, assignedById: number): never
+    {
+        const errorCode = error?.code ?? error?.cause?.code;
+        const errorConstraint = `${error?.constraint ?? ""}${error?.cause?.constraint ? ` ${error.cause.constraint}` : ""}`.toLowerCase();
+        const errorMessage = `${error?.message ?? ""}${error?.cause?.message ? ` ${error.cause.message}` : ""}`.toLowerCase();
+
+        if (errorCode === "23503")
+        {
+            if (errorConstraint.includes("assignee") || errorMessage.includes("assignee"))
+            {
+                throw new UserNotFoundException(assigneeId);
+            }
+
+            if (errorConstraint.includes("assigned_by") || errorMessage.includes("assigned_by"))
+            {
+                throw new UserNotFoundException(assignedById);
+            }
+
+            if (errorConstraint.includes("work_task") || errorMessage.includes("work_task"))
+            {
+                throw new WorkTaskNotFoundException(workTaskId);
+            }
+        }
+
+        if (
+            errorCode === "23514" ||
+            errorConstraint.includes("final") ||
+            errorMessage.includes("final") ||
+            errorMessage.includes("already completed")
+        )
+        {
+            throw new WorkTaskAlreadyCompletedBadRequestException(workTaskId);
+        }
+
+        if (errorCode === "23505" || errorConstraint.includes("ux_wta_one_active_per_task"))
+        {
+            throw new BadRequestMessageException("The task assignment changed concurrently. Please retry the assignment.");
+        }
+
+        if (errorCode === "42501")
+        {
+            throw new ForbiddenException("Database policy denied task assignment (insufficient permission or RLS policy).");
+        }
+
+        if (errorCode === "42703")
+        {
+            const rawMessage = `${error?.cause?.message ?? error?.message ?? "Unknown undefined-column error"}`;
+            const normalizedRawMessage = rawMessage.replace(/\s+/g, " ").trim();
+            throw new BadRequestMessageException(`Task assignment failed due to database schema mismatch: ${normalizedRawMessage}`);
+        }
+
+        if (
+            errorMessage.includes("insert into work_task_assignment") ||
+            errorMessage.includes("work_task_assignment")
+        )
+        {
+            const safeConstraintName = errorConstraint.trim().length > 0 ? errorConstraint : "unknown_constraint";
+            const safeCode = errorCode ?? "unknown_code";
+            throw new BadRequestMessageException(`Task assignment was rejected by database rule (${safeCode}, ${safeConstraintName}).`);
+        }
+
+        throw error;
+    }
+
+    private async AssignWorkTaskWithGuards(workTaskId: number, assigneeId: number): Promise<void>
+    {
+        const assignedById = this.getCalledById();
+
+        if (assignedById <= 0)
+        {
+            throw new ForbiddenException("Current user context is invalid for task assignment.");
+        }
+
+        const assigner = await this._repositoryManager.userRepository.GetUserById(assignedById);
+
+        if (!assigner)
+        {
+            throw new UserNotFoundException(assignedById);
+        }
+
+        try
+        {
+            await this._repositoryManager.workTaskRepository.AssignWorkTask(
+                workTaskId,
+                assigneeId,
+                assignedById,
+                this.getCalledByName()
+            );
+        }
+        catch (error: any)
+        {
+            this.TranslateWorkTaskAssignmentDatabaseError(error, workTaskId, assigneeId, assignedById);
+        }
+    }
+
     async GetListWorkTask(parameters: WorkTaskParameter): Promise<PagedResult<WorkTaskDto>>
     {
         //this.ExpectRole('admin');
@@ -166,12 +262,16 @@ export class WorkTaskService implements IWorkTaskService
             updatedBy: this.getCalledByName(),
         };
 
-        const createdTask = await this._repositoryManager.workTaskRepository.CreateWorkTask(
-            newWorkTask,
-            workTaskForCreateDto.assigneeId,
-            workTaskForCreateDto.assigneeId ? this.getCalledById() : undefined 
-        );
-        return this._mapperManager.workTaskMapper.WorkTaskToDto(createdTask);
+        const createdTask = await this._repositoryManager.workTaskRepository.CreateWorkTask(newWorkTask);
+
+        if (workTaskForCreateDto.assigneeId)
+        {
+            await this.AssignWorkTaskWithGuards(createdTask.id, workTaskForCreateDto.assigneeId);
+        }
+
+        const updatedCreatedTask = await this.GetWorkTaskAndCheckIfItExists(createdTask.id);
+
+        return this._mapperManager.workTaskMapper.WorkTaskToDto(updatedCreatedTask);
     }
 
     async UpdateWorkTask(id: number, workTaskForUpdateDto: WorkTaskForUpdateDto): Promise<WorkTaskDto>
@@ -217,12 +317,7 @@ export class WorkTaskService implements IWorkTaskService
 
         await this.AssertAssigneeAllowedForWorkOrder(existingTask.workOrderId, workTaskAssignForCreateDto.assigneeId);
 
-        await this._repositoryManager.workTaskRepository.AssignWorkTask(
-            id,
-            workTaskAssignForCreateDto.assigneeId,
-            this.getCalledById(),
-            this.getCalledByName()
-        );
+        await this.AssignWorkTaskWithGuards(id, workTaskAssignForCreateDto.assigneeId);
 
         const updatedTask = await this.GetWorkTaskAndCheckIfItExists(id);
         return this._mapperManager.workTaskMapper.WorkTaskToDto(updatedTask);
