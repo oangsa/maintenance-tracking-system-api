@@ -17,10 +17,12 @@ import { BadRequestMessageException } from "@/Domains/Exceptions/BadRequestExcep
 import { RepairRequest } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequest";
 import { RepairRequestItem } from "@/Infrastructures/Entities/Features/RepairRequest/RepairRequestItem";
 import { RepairRequestItemForCreateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemForCreateDto";
+import { RepairRequestItemRepairStatusForUpdateDto } from "@/Applications/DataTransferObjects/RepairRequestItem/RepairRequestItemRepairStatusForUpdateDto";
 import { RepairRequestCountGroupByStatusDto } from "@/Applications/DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
 import { DateVerification, IDateVerification } from "@/Shared/Utilities/DateVerification/DateVerification";
 import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
+import { RepairRequestItemNotFoundException } from "@/Domains/Exceptions/RepairRequestItem/RepairRequestItemNotFoundException";
 
 
 export class RepairRequestService implements IRepairRequestService
@@ -140,6 +142,48 @@ export class RepairRequestService implements IRepairRequestService
             items: this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(pagedData.items),
             meta: pagedData.meta,
         };
+    }
+
+    async UpdateRepairRequestItemStatus(id: number, dto: RepairRequestItemRepairStatusForUpdateDto): Promise<RepairRequestItemDto>
+    {
+        this.assertManagerOrAdmin();
+
+        const repairRequestItemEntity = await this._repositoryManager.repairRequestRepository.GetRepairRequestItemById(id);
+
+        if (!repairRequestItemEntity)
+        {
+            throw new RepairRequestItemNotFoundException(id);
+        }
+
+        const targetRepairRequestItemStatus = await this._repositoryManager.repairRequestItemStatusRepository.GetRepairRequestItemStatusById(dto.repairStatusId);
+
+        if (!targetRepairRequestItemStatus || targetRepairRequestItemStatus.deleted)
+        {
+            throw new BadRequestMessageException(`Repair request item status with id ${dto.repairStatusId} is not available.`);
+        }
+
+        await this._repositoryManager.repairRequestRepository.UpdateRepairRequestItemStatus(id, dto.repairStatusId);
+
+        const updatedRepairRequestItemEntity = await this._repositoryManager.repairRequestRepository.GetRepairRequestItemById(id);
+
+        if (!updatedRepairRequestItemEntity)
+        {
+            throw new RepairRequestItemNotFoundException(id);
+        }
+
+        const currentUser = this._userProvider.getCurrentUser();
+        const autoCompleteNote = dto.note
+            ? `Auto-completed from repair request item ${id}. Note: ${dto.note}`
+            : `Auto-completed from repair request item ${id}.`;
+
+        await this._repositoryManager.repairRequestRepository.TryAutoCompleteRepairRequestById(
+            updatedRepairRequestItemEntity.repairRequestId,
+            currentUser?.userId ?? null,
+            this.getCalledBy(),
+            autoCompleteNote,
+        );
+
+        return this._mapperManager.repairRequestMapper.RepairRequestItemsToDto([updatedRepairRequestItemEntity])[0]!;
     }
 
     async GetRepairRequestAudits(id: number): Promise<RepairRequestStatusLogDto[]>
@@ -347,7 +391,7 @@ export class RepairRequestService implements IRepairRequestService
         return await this._repositoryManager.repairRequestRepository.GetMonthlyRepairTrendByProductTypeReport(startDate, endDate);
     }
 
-     async GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItemDto>>
+    async GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItemDto>>
     {
         const pagedData = await this._repositoryManager.repairRequestRepository.GetAllRepairRequestItems(parameters);
         return {

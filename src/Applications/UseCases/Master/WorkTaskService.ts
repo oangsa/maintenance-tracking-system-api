@@ -112,6 +112,25 @@ export class WorkTaskService implements IWorkTaskService
         return workTaskEntity;
     }
 
+    private async TryAutoCompleteRepairRequestFromWorkOrder(workOrderId: number): Promise<void>
+    {
+        const repairRequestId = await this._repositoryManager.workOrderRepository.GetRepairRequestIdByWorkOrderId(workOrderId);
+
+        if (repairRequestId === null)
+        {
+            return;
+        }
+
+        const currentUser = this._userProvider.getCurrentUser();
+
+        await this._repositoryManager.repairRequestRepository.TryAutoCompleteRepairRequestById(
+            repairRequestId,
+            currentUser?.userId ?? null,
+            this.getCalledByName(),
+            `Auto-completed after finishing work task for work order ${workOrderId}.`,
+        );
+    }
+
     private TranslateWorkTaskAssignmentDatabaseError(error: any, workTaskId: number, assigneeId: number, assignedById: number): never
     {
         const errorCode = error?.code ?? error?.cause?.code;
@@ -271,6 +290,11 @@ export class WorkTaskService implements IWorkTaskService
 
         const updatedCreatedTask = await this.GetWorkTaskAndCheckIfItExists(createdTask.id);
 
+        if (updatedCreatedTask.endedAt !== null)
+        {
+            await this.TryAutoCompleteRepairRequestFromWorkOrder(updatedCreatedTask.workOrderId);
+        }
+
         return this._mapperManager.workTaskMapper.WorkTaskToDto(updatedCreatedTask);
     }
 
@@ -295,6 +319,14 @@ export class WorkTaskService implements IWorkTaskService
         };
 
         const updatedTask = await this._repositoryManager.workTaskRepository.UpdateWorkTask(updatedTaskData);
+
+        const isTaskNowFinished = updatedTask.endedAt !== null;
+        const wasTaskFinishedBefore = existingTask.endedAt !== null;
+
+        if (isTaskNowFinished && !wasTaskFinishedBefore)
+        {
+            await this.TryAutoCompleteRepairRequestFromWorkOrder(updatedTask.workOrderId);
+        }
 
         return this._mapperManager.workTaskMapper.WorkTaskToDto(updatedTask);
     }

@@ -209,6 +209,26 @@ export class WorkOrderRepository implements IWorkOrderRepository
         return result[0].repair_request_item_department_id;
     }
 
+    async GetRepairRequestIdByWorkOrderId(workOrderId: number): Promise<number | null>
+    {
+        const result = await this._db.db.execute<{ repair_request_id: number }>(sql`
+            SELECT
+                repair_request_item.repair_request_id
+            FROM ${workOrderTable} work_order
+            JOIN repair_request_item repair_request_item
+                ON repair_request_item.id = work_order.repair_request_item_id
+            WHERE work_order.id = ${workOrderId}
+            LIMIT 1
+        `);
+
+        if (result.length === 0 || !result[0])
+        {
+            return null;
+        }
+
+        return result[0].repair_request_id;
+    }
+
 
     async GetListWorkOrder(parameters: WorkOrderParameter): Promise<PagedResult<WorkOrder>>
     {

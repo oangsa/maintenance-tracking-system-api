@@ -82,6 +82,11 @@ export const RepairRequestForUpdateSchema = t.Object({
     currentStatusId: t.Optional(t.Number()),
 });
 
+export const RepairRequestItemRepairStatusForUpdateSchema = t.Object({
+    repairStatusId: t.Number({ minimum: 1 }),
+    note: t.Optional(t.Nullable(t.String())),
+});
+
 export const RepairRequestIdParamSchema = t.Object({
     id: t.String({ pattern: "^[0-9]+$" }),
 });

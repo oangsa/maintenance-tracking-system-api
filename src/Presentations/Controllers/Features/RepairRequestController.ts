@@ -5,8 +5,9 @@ import { BadRequestException } from "@/Domains/Exceptions/BadRequestException";
 import { ForbiddenException } from "@/Domains/Exceptions/ForbiddenException";
 import { RepairRequestParameter } from "@/Domains/RequestFeatures/RepairRequestParameter";
 import { RepairRequestItemParameter } from "@/Domains/RequestFeatures/RepairRequestItemParameter";
-import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema, MonthlyRepairTrendByProductTypeReportResponseSchema, TopRepairedProductsPerformanceReportResponseSchema } from "../../Validators/RepairRequestSchemaValidation";
+import { RepairRequestForCreateSchema, RepairRequestForUpdateSchema, RepairRequestIdParamSchema, RepairRequestParameterSchema, RepairRequestItemParameterSchema, DeleteRepairRequestCollectionSchema, RepairRequestItemResponseSchema, RepairRequestStatusLogResponseSchema, RepairRequestItemForCreateSchema, RepairRequestCountGroupByStatusResponseSchema, RepairRequestResponseSchema, MonthlyRepairTrendByProductTypeReportResponseSchema, TopRepairedProductsPerformanceReportResponseSchema, RepairRequestItemRepairStatusForUpdateSchema } from "../../Validators/RepairRequestSchemaValidation";
 import { RepairRequestNotFoundException } from "@/Domains/Exceptions/RepairRequest/RepairRequestNotFoundException";
+import { RepairRequestItemNotFoundException } from "@/Domains/Exceptions/RepairRequestItem/RepairRequestItemNotFoundException";
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
 import { WorkOrderResponseSchema, WorkOrderParameterSchema } from "@/Presentations/Validators/WorkOrderSchemaValidation";
@@ -449,6 +450,38 @@ export class RepairRequestController
                     }
                 )
         );
+
+        app.group("/repair-request-items", (app) =>
+            app
+                .use(JwtPlugin(secret, this._service.authService))
+                .put(
+                    "/:id/status",
+                    async ({ params, body, currentUser, set }) =>
+                    {
+                        return this._service.userProvider.run(currentUser!, async () =>
+                        {
+                            try
+                            {
+                                const id = parseInt(params.id, 10);
+                                const result = await this._service.repairRequestService.UpdateRepairRequestItemStatus(id, body);
+                                set.status = 200;
+
+                                return result;
+                            }
+                            catch (error: any)
+                            {
+                                return this.handleError(error, set);
+                            }
+                        });
+                    },
+                    {
+                        params: RepairRequestIdParamSchema,
+                        body: RepairRequestItemRepairStatusForUpdateSchema,
+                        response: RepairRequestItemResponseSchema,
+                        detail: { summary: "Update repair request item status", tags: ["Repair Requests"] },
+                    },
+                ),
+        );
     }
 
     private handleError(error: any, set: any): any
@@ -464,7 +497,7 @@ export class RepairRequestController
             };
         }
 
-        if (error instanceof RepairRequestNotFoundException)
+        if (error instanceof RepairRequestNotFoundException || error instanceof RepairRequestItemNotFoundException)
         {
             set.status = 404;
 

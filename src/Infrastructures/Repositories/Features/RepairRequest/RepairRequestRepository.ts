@@ -7,10 +7,13 @@ import {
     repairRequest as repairRequestTable,
     repairRequestItem as repairRequestItemTable,
     repairStatus as repairStatusTable,
+    repairRequestStatusLog as repairRequestStatusLogTable,
     repairRequestItemStatus as repairRequestItemStatusTable,
     product as productTable,
     users as usersTable,
     productType as productTypeTable,
+    workOrder as workOrderTable,
+    workTask as workTaskTable,
 } from "@/Infrastructures/Database/Drizzle/schema";
 import { sql, SQL } from "drizzle-orm";
 import { PagedResult } from "@/Domains/RequestFeatures/Core/PageResult";
@@ -78,6 +81,10 @@ type RepairRequestCntGroupByStatusRow = {
 type TopRepairedProductsPerformanceReportRow = {
     productName: string;
     value: number;
+};
+
+type FinalRepairStatusRow = {
+    id: number;
 };
 
 export class RepairRequestRepository implements IRepairRequestRepository
@@ -318,6 +325,43 @@ export class RepairRequestRepository implements IRepairRequestRepository
         const row = result[0] as RepairRequestRow;
         const itemMap = await this.loadItemsForRepairRequestIds([row.id]);
         return this.mapRowToRepairRequest(row, itemMap.get(row.id) ?? []);
+    }
+
+    async GetRepairRequestItemById(itemId: number): Promise<RepairRequestItem | null>
+    {
+        const itemRows = await this._db.db.execute<RepairRequestItemRow>(sql`
+            SELECT
+                repair_request_item.id,
+                repair_request_item.repair_request_id,
+                repair_request_item.product_id,
+                repair_request_item.description,
+                repair_request_item.quantity,
+                repair_request_item.repair_status_id,
+                repair_request_item.department_id,
+                repair_request_item.created_at,
+                repair_request_item.updated_at,
+                repair_request_item.created_by,
+                repair_request_item.updated_by,
+                product.code AS product_code,
+                product.name AS product_name,
+                product.product_type_id AS product_type_id,
+                item_status.code AS repair_status_code,
+                item_status.name AS repair_status_name,
+                item_status.order_sequence AS repair_status_order_sequence,
+                item_status.is_final AS repair_status_is_final
+            FROM ${repairRequestItemTable} repair_request_item
+            LEFT JOIN ${productTable} product ON product.id = repair_request_item.product_id
+            LEFT JOIN ${repairRequestItemStatusTable} item_status ON item_status.id = repair_request_item.repair_status_id
+            WHERE repair_request_item.id = ${itemId}
+            LIMIT 1
+        `);
+
+        if (itemRows.length === 0 || !itemRows[0])
+        {
+            return null;
+        }
+
+        return this.mapRowToRepairRequestItem(itemRows[0] as RepairRequestItemRow);
     }
 
     async GetListRepairRequest(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequest>>
@@ -978,6 +1022,162 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ${itemId}
         `);
+    }
+
+    private async GetFinalRepairStatusId(): Promise<number | null>
+    {
+        const result = await this._db.db.execute<FinalRepairStatusRow>(sql`
+            SELECT
+                repair_status.id
+            FROM ${repairStatusTable} repair_status
+            WHERE repair_status.deleted = false
+              AND repair_status.is_final = true
+            ORDER BY repair_status.order_sequence DESC, repair_status.id DESC
+            LIMIT 1
+        `);
+
+        if (result.length === 0 || !result[0])
+        {
+            return null;
+        }
+
+        return result[0].id;
+    }
+
+    private async AreAllWorkOrdersFinishedByRepairRequestId(repairRequestId: number): Promise<boolean>
+    {
+        const result = await this._db.db.execute<{ has_unfinished: boolean; work_order_count: number }>(sql`
+            SELECT
+                EXISTS (
+                    SELECT 1
+                    FROM ${workOrderTable} work_order
+                    LEFT JOIN ${workTaskTable} work_task ON work_task.work_order_id = work_order.id
+                    LEFT JOIN ${repairRequestItemTable} repair_request_item ON repair_request_item.id = work_order.repair_request_item_id
+                    WHERE repair_request_item.repair_request_id = ${repairRequestId}
+                      AND (work_task.id IS NULL OR work_task.ended_at IS NULL)
+                ) AS has_unfinished,
+                (
+                    SELECT COUNT(1)::int
+                    FROM ${workOrderTable} work_order
+                    LEFT JOIN ${repairRequestItemTable} repair_request_item ON repair_request_item.id = work_order.repair_request_item_id
+                    WHERE repair_request_item.repair_request_id = ${repairRequestId}
+                ) AS work_order_count
+        `);
+
+        const row = result[0];
+        if (!row)
+        {
+            return false;
+        }
+
+        return row.work_order_count > 0 && row.has_unfinished === false;
+    }
+
+    private async AreAllRepairRequestItemsCompletedByRepairRequestId(repairRequestId: number): Promise<boolean>
+    {
+        const result = await this._db.db.execute<{ has_unfinished: boolean; item_count: number }>(sql`
+            SELECT
+                EXISTS (
+                    SELECT 1
+                    FROM ${repairRequestItemTable} repair_request_item
+                    LEFT JOIN ${repairRequestItemStatusTable} repair_request_item_status
+                        ON repair_request_item_status.id = repair_request_item.repair_status_id
+                    WHERE repair_request_item.repair_request_id = ${repairRequestId}
+                      AND COALESCE(repair_request_item_status.is_final, false) = false
+                ) AS has_unfinished,
+                (
+                    SELECT COUNT(1)::int
+                    FROM ${repairRequestItemTable} repair_request_item
+                    WHERE repair_request_item.repair_request_id = ${repairRequestId}
+                ) AS item_count
+        `);
+
+        const row = result[0];
+        if (!row)
+        {
+            return false;
+        }
+
+        return row.item_count > 0 && row.has_unfinished === false;
+    }
+
+    async TryAutoCompleteRepairRequestById(
+        repairRequestId: number,
+        changedBy: number | null,
+        actionBy: string,
+        note: string | null = null
+    ): Promise<boolean>
+    {
+        const allFinished = await this.AreAllWorkOrdersFinishedByRepairRequestId(repairRequestId);
+        const allRepairRequestItemsCompleted = await this.AreAllRepairRequestItemsCompletedByRepairRequestId(repairRequestId);
+
+        if (!allFinished && !allRepairRequestItemsCompleted)
+        {
+            return false;
+        }
+
+        const finalStatusId = await this.GetFinalRepairStatusId();
+        if (finalStatusId === null)
+        {
+            return false;
+        }
+
+        const repairRequestResult = await this._db.db.execute<{ current_status_id: number }>(sql`
+            SELECT current_status_id
+            FROM ${repairRequestTable}
+            WHERE id = ${repairRequestId}
+            LIMIT 1
+        `);
+
+        if (repairRequestResult.length === 0 || !repairRequestResult[0])
+        {
+            return false;
+        }
+
+        const currentStatusId = repairRequestResult[0].current_status_id;
+
+        if (currentStatusId === finalStatusId)
+        {
+            return false;
+        }
+
+        await this._db.db.execute(sql`
+            UPDATE ${repairRequestTable}
+            SET
+                current_status_id = ${finalStatusId},
+                updated_at = CURRENT_TIMESTAMP,
+                updated_by = ${actionBy}
+            WHERE id = ${repairRequestId}
+        `);
+
+        await this._db.db.execute(sql`
+            INSERT INTO ${repairRequestStatusLogTable} (
+                repair_request_id,
+                old_status_id,
+                new_status_id,
+                changed_by,
+                note,
+                changed_at,
+                created_at,
+                updated_at,
+                created_by,
+                updated_by
+            )
+            VALUES (
+                ${repairRequestId},
+                ${currentStatusId},
+                ${finalStatusId},
+                ${changedBy},
+                ${note},
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP,
+                ${actionBy},
+                ${actionBy}
+            )
+        `);
+
+        return true;
     }
 
 }

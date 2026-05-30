@@ -11,6 +11,7 @@ export interface IRepairRequestRepository
 {
     GetRepairRequestById(id: number): Promise<RepairRequest | null>;
     GetRepairRequestByRequestNo(requestNo: string, includeDeleted?: boolean): Promise<RepairRequest | null>;
+    GetRepairRequestItemById(itemId: number): Promise<RepairRequestItem | null>;
     GetListRepairRequest(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequest>>;
     GetListRepairRequestItemsByRequestId(repairRequestId: number, parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItem>>;
     GetRepairRequestCountGroupByStatus(parameters: RepairRequestParameter): Promise<PagedResult<RepairRequestCountGroupByStatus>>;
@@ -22,4 +23,5 @@ export interface IRepairRequestRepository
     GetMonthlyRepairTrendByProductTypeReport(startDate: Date, endDate: Date): Promise<MonthlyRepairTrendByProductTypeReport[]>;
     GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItem>>;
     UpdateRepairRequestItemStatus(itemId: number, newStatusId: number): Promise<void>;
+    TryAutoCompleteRepairRequestById(repairRequestId: number, changedBy: number | null, actionBy: string, note?: string | null): Promise<boolean>;
 }

@@ -2173,6 +2173,42 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/v1/repair-request-items/{id}/status:
+    parameters:
+      - $ref: '#/components/parameters/IdPathParam'
+    put:
+      tags:
+        - Repair Requests
+      summary: Update repair request item status
+      operationId: updateRepairRequestItemStatus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepairRequestItemRepairStatusForUpdate'
+      responses:
+        '200':
+          description: Repair request item status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepairRequestItem'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/v1/repair-requests/{id}/audits:
     parameters:
       - $ref: '#/components/parameters/IdPathParam'
@@ -4421,6 +4457,18 @@ components:
           minimum: 1
         departmentId:
           type: number
+
+    RepairRequestItemRepairStatusForUpdate:
+      type: object
+      required:
+        - repairStatusId
+      properties:
+        repairStatusId:
+          type: number
+          minimum: 1
+        note:
+          type: string
+          nullable: true
 
     RepairRequestForCreate:
       type: object
