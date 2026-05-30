@@ -33,6 +33,11 @@ export class ProductTypeService implements IProductTypeService
         RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
     private getCalledBy(): string
     {
         const current = this._userProvider.getCurrentUser();
@@ -53,7 +58,7 @@ export class ProductTypeService implements IProductTypeService
 
     async GetListProductType(parameters: ProductTypeParameter): Promise<PagedResult<ProductTypeDto>>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedProductTypes = await this._repositoryManager.productTypeRepository.GetListProductType(parameters);
 

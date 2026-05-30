@@ -32,6 +32,11 @@ export class DepartmentService implements IDepartmentService
         RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
     private getCalledBy(): string
     {
         const current = this._userProvider.getCurrentUser();
@@ -52,7 +57,7 @@ export class DepartmentService implements IDepartmentService
 
     async GetListDepartment(parameters: DepartmentParameter): Promise<PagedResult<DepartmentDto>>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedDepartments = await this._repositoryManager.departmentRepository.GetListDepartment(parameters);
 

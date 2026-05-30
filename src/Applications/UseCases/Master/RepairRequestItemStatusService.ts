@@ -32,6 +32,11 @@ export class RepairRequestItemStatusService implements IRepairRequestItemStatusS
         RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
     private getCalledBy(): string
     {
         const current = this._userProvider.getCurrentUser();
@@ -52,7 +57,7 @@ export class RepairRequestItemStatusService implements IRepairRequestItemStatusS
 
     async GetListRepairRequestItemStatus(parameters: RepairRequestItemStatusParameter): Promise<PagedResult<RepairRequestItemStatusDto>>
     {
-        this.ExpectRole("admin");
+        this.ExpectMinimumRole("manager");
 
         const pagedRepairRequestItemStatuses = await this._repositoryManager.repairRequestItemStatusRepository.GetListRepairRequestItemStatus(parameters);
 

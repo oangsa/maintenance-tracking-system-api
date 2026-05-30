@@ -33,6 +33,11 @@ export class PartService implements IPartService
         RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
     private getCalledBy(): string
     {
         const current = this._userProvider.getCurrentUser();
@@ -53,7 +58,7 @@ export class PartService implements IPartService
 
     async GetListPart(parameters: PartParameter): Promise<PagedResult<PartDto>>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedParts = await this._repositoryManager.partRepository.GetListPart(parameters);
 

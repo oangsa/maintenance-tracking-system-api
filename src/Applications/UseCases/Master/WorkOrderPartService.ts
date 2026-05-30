@@ -14,6 +14,8 @@ import { WorkOrderPartDuplicateBadRequestException } from "../../../Domains/Exce
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 import { WorkOrderPartAlreadyConsumedBadRequestException } from "../../../Domains/Exceptions/WorkOrderPart/WorkOrderPartAlreadyConsumedBadRequestException";
 import { PartNotFoundException } from "../../../Domains/Exceptions/Part/PartNotFoundException";
+import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
+import { Role } from "../../../Shared/Enums/Role";
 
 export class WorkOrderPartService implements IWorkOrderPartService
 {
@@ -34,6 +36,11 @@ export class WorkOrderPartService implements IWorkOrderPartService
         return current?.name ?? "System";
     }
 
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
     private async GetWorkOrderPartAndCheckIfItExists(id: number): Promise<WorkOrderPart>
     {
         const workOrderPartEntity = await this._repositoryManager.workOrderPartRepository.GetWorkOrderPartById(id);
@@ -48,6 +55,7 @@ export class WorkOrderPartService implements IWorkOrderPartService
 
     async GetListWorkOrderPart(parameters: WorkOrderPartParameter): Promise<PagedResult<WorkOrderPartDto>>
     {
+        this.ExpectMinimumRole('manager');
 
         const pagedWorkOrderParts = await this._repositoryManager.workOrderPartRepository.GetListWorkOrderPart(parameters);
 

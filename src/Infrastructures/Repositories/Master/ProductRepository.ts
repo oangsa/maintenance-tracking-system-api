@@ -14,6 +14,8 @@ type ProductRow = {
     code: string;
     name: string;
     product_type_id: number;
+    department_id?: number | null;
+    product_type_department_id?: number | null;
     product_type_code: string | null;
     product_type_name: string | null;
     created_at: string | null;
@@ -57,6 +59,8 @@ export class ProductRepository implements IProductRepository
                 product.code,
                 product.name,
                 product_type.id AS product_type_id,
+                product_type.department_id AS department_id,
+                product_type.department_id AS product_type_department_id,
                 product_type.code AS product_type_code,
                 product_type.name AS product_type_name,
                 product.created_at,
@@ -88,6 +92,8 @@ export class ProductRepository implements IProductRepository
                 product.code,
                 product.name,
                 product_type.id AS product_type_id,
+                product_type.department_id AS department_id,
+                product_type.department_id AS product_type_department_id,
                 product_type.code AS product_type_code,
                 product_type.name AS product_type_name,
                 product.created_at,
@@ -139,6 +145,8 @@ export class ProductRepository implements IProductRepository
                 product.code,
                 product.name,
                 product_type.id AS product_type_id,
+                product_type.department_id AS department_id,
+                product_type.department_id AS product_type_department_id,
                 product_type.code AS product_type_code,
                 product_type.name AS product_type_name,
                 product.created_at,

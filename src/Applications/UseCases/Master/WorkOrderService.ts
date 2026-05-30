@@ -53,7 +53,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async GetListWorkOrder(parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>
     {
-        // this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedWorkOrders = await this._repositoryManager.workOrderRepository.GetListWorkOrder(parameters);
 
@@ -65,8 +65,7 @@ export class WorkOrderService implements IWorkOrderService
 
     async GetListWorkOrderByRepairRequestId(repairRequestId: number, parameters: WorkOrderParameter): Promise<PagedResult<WorkOrderDto>>
     {
-        // TODO: Consider allowing 'manager' or higher role to view work orders by repair request id
-        // this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedWorkOrders = await this._repositoryManager.workOrderRepository.GetListWorkOrderByRepairRequestId(repairRequestId, parameters);
 

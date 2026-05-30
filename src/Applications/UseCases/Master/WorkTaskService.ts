@@ -209,7 +209,7 @@ export class WorkTaskService implements IWorkTaskService
 
     async GetListWorkTask(parameters: WorkTaskParameter): Promise<PagedResult<WorkTaskDto>>
     {
-        //this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedWorkTasks = await this._repositoryManager.workTaskRepository.GetListWorkTask(parameters);
 

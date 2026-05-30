@@ -12,6 +12,7 @@ import { RepairStatusNotFoundException } from "../../../Domains/Exceptions/Repai
 import { RepairStatus } from "../../../Infrastructures/Entities/Master/RepairStatus";
 import { RepairStatusDuplicateBadRequestException } from "../../../Domains/Exceptions/RepairStatus/RepairStatusDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
+import { Role } from "../../../Shared/Enums/Role";
 
 export class RepairStatusService implements IRepairStatusService
 {
@@ -29,6 +30,11 @@ export class RepairStatusService implements IRepairStatusService
     private ExpectRole(role: string): void
     {
         RoleAuthorizationGuard.assertExpectedRole(this._userProvider.getCurrentUser()?.role!, role as any);
+    }
+
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
     }
 
     private getCalledBy(): string
@@ -51,7 +57,7 @@ export class RepairStatusService implements IRepairStatusService
 
     async GetListRepairStatus(parameters: RepairStatusParameter): Promise<PagedResult<RepairStatusDto>>
     {
-        this.ExpectRole('admin');
+        this.ExpectMinimumRole('manager');
 
         const pagedData = await this._repositoryManager.repairStatusRepository.GetListRepairStatus(parameters);
 

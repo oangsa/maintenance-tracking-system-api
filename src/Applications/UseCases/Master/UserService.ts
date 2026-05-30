@@ -12,6 +12,7 @@ import { User } from "../../../Infrastructures/Entities/Master/User";
 import { UserNotFoundException } from "../../../Domains/Exceptions/User/UserNotFoundException";
 import { UserDuplicateBadRequestException } from "../../../Domains/Exceptions/User/UserDuplicateBadRequestException";
 import { RoleAuthorizationGuard } from "../../../Shared/Utilities/Authentication/RoleAuthorizationGuard";
+import { Role } from "../../../Shared/Enums/Role";
 import { hashPassword } from "../../../Shared/Utilities/Authentication/PasswordUtils";
 import { WorkOrderNotFoundException } from "../../../Domains/Exceptions/WorkOrder/WorkOrderNotFoundException";
 
@@ -34,6 +35,11 @@ export class UserService implements IUserService
         return current?.name ?? "System";
     }
 
+    private ExpectMinimumRole(role: Role): void
+    {
+        RoleAuthorizationGuard.assertMinimumRole(this._userProvider.getCurrentUser()?.role!, role);
+    }
+
     private async GetUserAndCheckIfItExists(id: number): Promise<User>
     {
         const userEntity = await this._repositoryManager.userRepository.GetUserById(id);
@@ -48,6 +54,8 @@ export class UserService implements IUserService
 
     async GetListUser(parameters: UserParameter): Promise<PagedResult<UserDto>>
     {
+        this.ExpectMinimumRole('manager');
+
         const currentUser = this._userProvider.getCurrentUser();
         let resolvedParameters: UserParameter = {
             ...parameters,
