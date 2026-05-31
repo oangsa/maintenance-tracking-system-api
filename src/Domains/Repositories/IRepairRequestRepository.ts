@@ -6,6 +6,7 @@ import { PagedResult } from "../RequestFeatures/Core/PageResult";
 import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
 import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
+import { NumberOfRepairRequestsByDepartmentReportDto } from "@/Applications/DataTransferObjects/RepairRequest/NumberOfRepairRequestsByDepartmentReportDto";
 
 export interface IRepairRequestRepository
 {
@@ -24,4 +25,5 @@ export interface IRepairRequestRepository
     GetAllRepairRequestItems(parameters: RepairRequestItemParameter): Promise<PagedResult<RepairRequestItem>>;
     UpdateRepairRequestItemStatus(itemId: number, newStatusId: number): Promise<void>;
     TryAutoCompleteRepairRequestById(repairRequestId: number, changedBy: number | null, actionBy: string, note?: string | null): Promise<boolean>;
+    GetNumberOfRepairRequestsByDepartmentReport(parameters: RepairRequestParameter): Promise<NumberOfRepairRequestsByDepartmentReportDto[]>;
 }

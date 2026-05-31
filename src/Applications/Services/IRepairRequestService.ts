@@ -11,6 +11,7 @@ import { RepairRequestItemRepairStatusForUpdateDto } from "../DataTransferObject
 import { RepairRequestCountGroupByStatusDto } from "../DataTransferObjects/RepairRequest/RepairRequestCountGroupByStatusDto";
 import { TopRepairedProductsPerformanceReportDto } from "../DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
+import { NumberOfRepairRequestsByDepartmentReportDto } from "@/Applications/DataTransferObjects/RepairRequest/NumberOfRepairRequestsByDepartmentReportDto";
 
 export interface IRepairRequestService
 {
@@ -28,4 +29,5 @@ export interface IRepairRequestService
     DeleteRepairRequest(id: number): Promise<void>;
     DeleteRepairRequestCollection(ids: number[]): Promise<void>;
     GetMonthlyRepairTrendByProductTypeReport(parameters: RepairRequestParameter): Promise<MonthlyRepairTrendByProductTypeReport[]>;
+    GetNumberOfRepairRequestsByDepartmentReport(parameters: RepairRequestParameter): Promise<NumberOfRepairRequestsByDepartmentReportDto[]>
 }

@@ -23,6 +23,7 @@ import { DateVerification, IDateVerification } from "@/Shared/Utilities/DateVeri
 import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
 import { RepairRequestItemNotFoundException } from "@/Domains/Exceptions/RepairRequestItem/RepairRequestItemNotFoundException";
+import { NumberOfRepairRequestsByDepartmentReportDto } from "@/Applications/DataTransferObjects/RepairRequest/NumberOfRepairRequestsByDepartmentReportDto";
 
 
 export class RepairRequestService implements IRepairRequestService
@@ -398,5 +399,28 @@ export class RepairRequestService implements IRepairRequestService
             items: this._mapperManager.repairRequestMapper.RepairRequestItemsToDto(pagedData.items),
             meta: pagedData.meta,
         };
+    }
+
+    public async GetNumberOfRepairRequestsByDepartmentReport(parameters: RepairRequestParameter): Promise<NumberOfRepairRequestsByDepartmentReportDto[]>
+    {
+        const searches = parameters.search ?? [];
+        const requestedAtFilters = searches.filter(s => s.name?.toLowerCase() === "requested_at");
+
+        const lowerBoundConditions = ["GREATER", "GREATEROREQUAL"];
+        const upperBoundConditions = ["LESSER", "LESSEROREQUAL"];
+
+        const lowerBound = requestedAtFilters.find(f =>
+            lowerBoundConditions.includes((f.condition ?? "").toUpperCase())
+        );
+        const upperBound = requestedAtFilters.find(f =>
+            upperBoundConditions.includes((f.condition ?? "").toUpperCase())
+        );
+
+        if (!lowerBound?.value || !upperBound?.value) {
+            throw new BadRequestMessageException("Date range (requested_at) is required with both lower and upper bounds for this report.");
+        }
+        
+        this.ValidateRequestedAtDateRange(parameters);
+        return await this._repositoryManager.repairRequestRepository.GetNumberOfRepairRequestsByDepartmentReport(parameters);
     }
 }
