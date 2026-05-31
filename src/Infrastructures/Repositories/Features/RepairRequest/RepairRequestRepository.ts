@@ -26,6 +26,7 @@ import { QueryBuilder } from "../../Extensions/QueryBuilder";
 import { RepairRequestCountGroupByStatus } from "@/Infrastructures/Entities/Reports/RepairRequestCountGroupByStatus";
 import { TopRepairedProductsPerformanceReportDto } from "@/Applications/DataTransferObjects/RepairRequest/TopRepairedProductsPerformanceReportDto";
 import { MonthlyRepairTrendByProductTypeReport } from "@/Applications/DataTransferObjects/RepairRequest/MonthlyRepairTrendByProductTypeReportDto";
+import { NumberOfRepairRequestsByDepartmentReportDto } from "@/Applications/DataTransferObjects/RepairRequest/NumberOfRepairRequestsByDepartmentReportDto";
 
 type RepairRequestRow = {
     id: number;
@@ -1178,6 +1179,103 @@ export class RepairRequestRepository implements IRepairRequestRepository
         `);
 
         return true;
+    }
+
+    public async GetNumberOfRepairRequestsByDepartmentReport(parameters: RepairRequestParameter): Promise<NumberOfRepairRequestsByDepartmentReportDto[]>
+    {
+        const normalizedParams = normalizeRequestParameters(parameters);
+
+        const whereConditions: SQL[] = [sql`repair_request.deleted = ${normalizedParams.deleted ?? false}`];
+        let lowerBound: string | null = null;
+        let upperBound: string | null = null;
+
+        if (normalizedParams.search && normalizedParams.search.length > 0) {
+            for (const filter of normalizedParams.search) {
+                if (filter.name === 'requested_at' && filter.value) {
+                    const condition = (filter.condition ?? '').toUpperCase();
+
+                    if (['GREATER', 'GREATEROREQUAL'].includes(condition)) {
+                    lowerBound = filter.value;
+                    }
+
+                    if (['LESSER', 'LESSEROREQUAL'].includes(condition)) {
+                    upperBound = filter.value;
+                    }
+                }
+            }
+        }
+
+        if (lowerBound)
+        {
+            whereConditions.push(sql`repair_request.requested_at >= ${lowerBound}`);
+        }
+
+        if (upperBound)
+        {
+            whereConditions.push(sql`repair_request.requested_at <= ${upperBound}`);
+        }
+
+        if (normalizedParams.search && normalizedParams.search.length > 0)
+        {
+            const otherFilters = normalizedParams.search.filter(f => f.name !== 'requested_at');
+
+            if (otherFilters.length > 0)
+            {
+                const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(otherFilters);
+                
+                if (filterSQL) whereConditions.push(filterSQL);
+            }
+        }
+
+        if (normalizedParams.searchTerm)
+        {
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(normalizedParams.searchTerm);
+            if (searchSQL) whereConditions.push(searchSQL);
+        }
+        
+        const whereClause = sql`
+            WHERE ${sql.join(whereConditions, sql` AND `)}
+        `;
+
+        const innerQuery = sql`
+            SELECT
+                department.name AS department_name,
+                CAST(COUNT(DISTINCT repair_request.id) AS INTEGER) AS value
+            FROM ${repairRequestTable} repair_request
+            INNER JOIN ${repairRequestItemTable} repair_request_item 
+            ON repair_request_item.repair_request_id = repair_request.id
+            INNER JOIN ${departmentTable} department 
+            ON department.id = repair_request_item.department_id
+            ${whereClause}
+            GROUP BY department.name
+            
+        `;
+
+        const normalizedOrderBy = normalizedParams.orderBy
+            ?.replace(/\bdepartmentName\b/g, "department_name")
+            ?.replace(/\bvalue\b/g, "base.value");
+
+        const orderByClause = QueryBuilder.BuildRawSQLOrderQuery(
+            normalizedOrderBy ?? "department_name ASC"
+        );
+
+        const query = sql`
+            SELECT
+                base.department_name AS "departmentName",
+                base.value
+            FROM (${innerQuery}) base
+            ${orderByClause}
+        `;
+
+        type ReportRow = { departmentName: string; value: number };
+        const result = await this._db.db.execute<ReportRow>(query);
+
+        return Array.from(result).map(row => ({
+            departmentName: row.departmentName,
+            value: row.value
+        }));
+        
+       
     }
 
 }

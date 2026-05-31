@@ -125,3 +125,10 @@ export const MonthlyRepairTrendByProductTypeReportResponseSchema = t.Object({
     productTypeName: t.String(),
     value: t.Number(),
 });
+
+export const NumberOfRepairRequestsByDepartmentReportResponseSchema = t.Array(
+    t.Object({
+        departmentName: t.String(),
+        value: t.Number()
+    })
+);
