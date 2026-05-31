@@ -11,6 +11,7 @@ import { RepairRequestItemNotFoundException } from "@/Domains/Exceptions/RepairR
 import { t } from "elysia";
 import { WorkOrderParameter } from "@/Domains/RequestFeatures/WorkOrderParameter";
 import { WorkOrderResponseSchema, WorkOrderParameterSchema } from "@/Presentations/Validators/WorkOrderSchemaValidation";
+import { NumberOfRepairRequestsByDepartmentReportResponseSchema } from "@/Presentations/Validators/RepairRequestSchemaValidation";
 
 export class RepairRequestController
 {
@@ -410,6 +411,26 @@ export class RepairRequestController
                     response: t.Array(MonthlyRepairTrendByProductTypeReportResponseSchema),
                     detail: { summary: "Get monthly repair trend by product type report", tags: ["Repair Requests"] },
                 })
+                .post(
+                    "/reports/by-department/search",
+                    async ({ body, set }) => 
+                    {
+                        
+                        const params = body as RepairRequestParameter;
+
+                        const result = await this._service.repairRequestService.GetNumberOfRepairRequestsByDepartmentReport(params);
+
+                        set.status = 200;
+
+                        return result;
+                    },
+                    {
+                        body: RepairRequestParameterSchema,
+                        response: NumberOfRepairRequestsByDepartmentReportResponseSchema,
+                        detail: 
+                        { summary: "Get repair request count grouped by department", tags: ["Repair Requests"],},
+        
+                    })
                 .post(
                     "/items/search",
                     async ({ body, currentUser, set }) =>

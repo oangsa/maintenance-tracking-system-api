@@ -1,0 +1,3 @@
+import { NumberOfRepairRequestsByDepartmentReportResponseSchema } from "@/Presentations/Validators/RepairRequestSchemaValidation";
+
+export type NumberOfRepairRequestsByDepartmentReportDto = typeof NumberOfRepairRequestsByDepartmentReportResponseSchema.static[0];
