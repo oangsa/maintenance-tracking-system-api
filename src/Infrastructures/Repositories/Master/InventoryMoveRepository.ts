@@ -45,6 +45,7 @@ type InventoryMoveItemRow = {
 export class InventoryMoveRepository implements IInventoryMoveRepository {
     private readonly _db: AppDrizzleDB;
     private static readonly ReverseRemarkMarkerPrefix = "[SYSTEM_REVERSE_OF_INVENTORY_MOVE_ID:";
+    private static readonly BangkokTimezoneOffset = "+07:00";
 
     constructor(db: AppDrizzleDB) {
         this._db = db;
@@ -86,6 +87,62 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
             deleted: row.deleted ?? false,
             part: {} as any 
         };
+    }
+
+    private IsDateOnlyValue(value: string): boolean
+    {
+        return /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+    }
+
+    private GetBangkokStartOfDayTimestamp(dateOnlyValue: string): string
+    {
+        return `${dateOnlyValue}T00:00:00.000${InventoryMoveRepository.BangkokTimezoneOffset}`;
+    }
+
+    private GetBangkokEndOfDayTimestamp(dateOnlyValue: string): string
+    {
+        return `${dateOnlyValue}T23:59:59.999${InventoryMoveRepository.BangkokTimezoneOffset}`;
+    }
+
+    private BuildMoveDateCondition(condition: string, value?: string): SQL | null
+    {
+        const normalizedCondition = condition.toUpperCase();
+        const rawValue = value?.trim() ?? "";
+
+        if (normalizedCondition !== "ISNULL" && normalizedCondition !== "ISNOTNULL" && rawValue === "")
+        {
+            return null;
+        }
+
+        const isDateOnly = this.IsDateOnlyValue(rawValue);
+        const startOfDayValue = isDateOnly ? this.GetBangkokStartOfDayTimestamp(rawValue) : rawValue;
+        const endOfDayValue = isDateOnly ? this.GetBangkokEndOfDayTimestamp(rawValue) : rawValue;
+
+        switch (normalizedCondition)
+        {
+            case "GREATER":
+                return sql`move_date > ${isDateOnly ? endOfDayValue : rawValue}`;
+            case "LESSER":
+                return sql`move_date < ${isDateOnly ? startOfDayValue : rawValue}`;
+            case "GREATEROREQUAL":
+                return sql`move_date >= ${startOfDayValue}`;
+            case "LESSEROREQUAL":
+                return sql`move_date <= ${endOfDayValue}`;
+            case "EQUAL":
+                return isDateOnly
+                    ? sql`(move_date >= ${startOfDayValue} AND move_date <= ${endOfDayValue})`
+                    : sql`move_date = ${rawValue}`;
+            case "NOTEQUAL":
+                return isDateOnly
+                    ? sql`(move_date < ${startOfDayValue} OR move_date > ${endOfDayValue})`
+                    : sql`move_date != ${rawValue}`;
+            case "ISNULL":
+                return sql`move_date IS NULL`;
+            case "ISNOTNULL":
+                return sql`move_date IS NOT NULL`;
+            default:
+                return null;
+        }
     }
 
     async CreateInventoryMove(inventoryMove: InventoryMove): Promise<InventoryMove> {
@@ -192,95 +249,195 @@ export class InventoryMoveRepository implements IInventoryMoveRepository {
     }
 
     async GetListInventoryMove(parameters: InventoryMoveParameter): Promise<PagedResult<InventoryMove>> {
-    const params = normalizeRequestParameters(parameters);
-    const offset = (params.pageNumber - 1) * params.pageSize;
-    const limit = params.pageSize;
+        const params = normalizeRequestParameters(parameters);
+        const offset = (params.pageNumber - 1) * params.pageSize;
+        const limit = params.pageSize;
 
-    // --- [TASK 03 MODIFIED]: เริ่มสร้างเงื่อนไข WHERE ---
-    const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
+        const ITEM_PREFIX = "inventory_move_items_";
 
-    // 1. [FIXED]: จัดการกับ params.search (Array) ที่เคยถูกมองข้าม
-    if (params.search && params.search.length > 0) {
-        params.search.forEach((filter) => {
-            if (filter.name && filter.value) {
-                // กรองเฉพาะฟิลด์ที่มีในตาราง inventory_move
-                // ใช้ ILIKE สำหรับการค้นหาแบบไม่สนตัวพิมพ์เล็ก-ใหญ่ (Case-insensitive)
-                whereConditions.push(sql.raw(`${filter.name}::text ILIKE '%${filter.value}%'`));
+        const mainSearch = (params.search ?? []).filter(search => !search.name?.startsWith(ITEM_PREFIX));
+        const itemSearch = (params.search ?? [])
+            .filter(search => search.name?.startsWith(ITEM_PREFIX))
+            .map(search => ({ ...search, name: `item_base.${search.name!.slice(ITEM_PREFIX.length)}` }));
+
+        let mainSearchTerm = params.searchTerm;
+        let itemSearchTermFields: string[] = [];
+
+        if (params.searchTerm?.name)
+        {
+            const allFields = params.searchTerm.name.split(",").map(field => field.trim());
+            const mainFields = allFields.filter(field => !field.startsWith(ITEM_PREFIX));
+            const itemFields = allFields
+                .filter(field => field.startsWith(ITEM_PREFIX))
+                .map(field => `item_base.${field.slice(ITEM_PREFIX.length)}`);
+
+            mainSearchTerm = mainFields.length > 0
+                ? { name: mainFields.join(","), value: params.searchTerm.value }
+                : undefined;
+            itemSearchTermFields = itemFields;
+        }
+
+        const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
+
+        const moveDateSearch = mainSearch.filter((search) => search.name?.toLowerCase() === "move_date");
+        const nonMoveDateMainSearch = mainSearch.filter((search) => search.name?.toLowerCase() !== "move_date");
+
+        for (const search of moveDateSearch)
+        {
+            const condition = search.condition?.toUpperCase();
+
+            if (!condition)
+            {
+                continue;
             }
-        });
-    }
 
-    // 2. [FIXED]: จัดการกับ searchTerm เพื่อป้องกัน Error 500
-    // เช็คว่าถ้าเป็น Object ให้ดึงค่า value ออกมาใช้
-    if (params.searchTerm && typeof params.searchTerm === 'object') {
-    const searchObj = params.searchTerm as any;
-    if (searchObj.value) {
-        whereConditions.push(sql.raw(`(move_no ILIKE '%${searchObj.value}%' OR remark ILIKE '%${searchObj.value}%')`));
-    }
-} else if (typeof params.searchTerm === 'string' && params.searchTerm !== "") {
-    whereConditions.push(sql.raw(`(move_no ILIKE '%${params.searchTerm}%' OR remark ILIKE '%${params.searchTerm}%')`));
-}
+            const moveDateCondition = this.BuildMoveDateCondition(condition, search.value);
 
-    const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
-    const orderByClause = params.orderBy 
-        ? QueryBuilder.BuildRawSQLOrderQuery(params.orderBy)
-        : sql`ORDER BY created_at DESC`;
+            if (!moveDateCondition)
+            {
+                continue;
+            }
 
-    // 3. [SUCCESS]: ดึงข้อมูล Header
-    const [results, countResult] = await Promise.all([
-        this._db.db.execute<InventoryMoveRow>(sql`
-            SELECT * FROM ${inventoryMoveTable}
-            ${whereClause}
-            ${orderByClause}
-            LIMIT ${limit} OFFSET ${offset}
-        `),
-        this._db.db.execute<{ count: number }>(sql`
-            SELECT COUNT(*)::int AS count FROM ${inventoryMoveTable} ${whereClause}
-        `),
-    ]);
+            whereConditions.push(moveDateCondition);
+        }
 
-    const totalCount = countResult[0]?.count ?? 0;
-    const inventoryMoves = Array.from(results).map(row => this.mapRowToInventoryMove(row));
+        if (nonMoveDateMainSearch.length > 0)
+        {
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(nonMoveDateMainSearch);
+            if (filterSQL) whereConditions.push(filterSQL);
+        }
 
-    // --- [TASK 03 ADDED]: Data Hydration (ดึง Items มาแปะให้ครบตามโจทย์) ---
-    if (inventoryMoves.length > 0) {
-        const moveIds = inventoryMoves.map(m => m.id);
-        const allItemsResult = await this._db.db.execute<InventoryMoveItemRow>(sql`
+        if (mainSearchTerm)
+        {
+            const searchSQL = QueryBuilder.BuildRawSQLSearchExpression(mainSearchTerm);
+            if (searchSQL) whereConditions.push(searchSQL);
+        }
+
+        const itemConditions: SQL[] = [];
+
+        if (itemSearch.length > 0)
+        {
+            const itemFilterSQL = QueryBuilder.BuildRawSQLFilterExpression(itemSearch);
+            if (itemFilterSQL) itemConditions.push(itemFilterSQL);
+        }
+
+        if (itemSearchTermFields.length > 0)
+        {
+            const itemTermConditions = itemSearchTermFields.map(field =>
+            {
+                const parts = field.split(".");
+                const fieldSQL = sql.join(parts.map(part => sql.identifier(part)), sql.raw("."));
+                return sql`${fieldSQL} ILIKE ${`%${params.searchTerm!.value}%`}`;
+            });
+            itemConditions.push(sql`(${sql.join(itemTermConditions, sql` OR `)})`);
+        }
+
+        if (itemConditions.length > 0)
+        {
+            const itemWhereSQL = sql.join(itemConditions, sql` AND `);
+            const itemSubquery = sql`
+                SELECT
+                    inventory_move_item.inventory_move_id,
+                    inventory_move_item.part_id,
+                    inventory_move_item.quantity_in,
+                    inventory_move_item.quantity_out,
+                    inventory_move_item.note,
+                    inventory_move_item.work_order_part_id,
+                    inventory_move_item_part.code AS part_code,
+                    inventory_move_item_part.name AS part_name,
+                    work_order_part_part.code AS work_order_part_part_code,
+                    work_order_part_part.name AS work_order_part_part_name
+                FROM ${inventoryMoveItemTable} inventory_move_item
+                LEFT JOIN part inventory_move_item_part ON inventory_move_item.part_id = inventory_move_item_part.id
+                LEFT JOIN work_order_part ON inventory_move_item.work_order_part_id = work_order_part.id
+                LEFT JOIN part work_order_part_part ON work_order_part.part_id = work_order_part_part.id
+                WHERE inventory_move_item.deleted = false
+            `;
+
+            whereConditions.push(sql`EXISTS (
+                SELECT 1 FROM (${itemSubquery}) item_base
+                WHERE item_base.inventory_move_id = base.id
+                AND ${itemWhereSQL}
+            )`);
+        }
+
+        const whereClause = sql`WHERE ${sql.join(whereConditions, sql` AND `)}`;
+        const orderByClause = params.orderBy
+            ? QueryBuilder.BuildRawSQLOrderQuery(params.orderBy)
+            : sql`ORDER BY created_at DESC`;
+
+        const innerQuery = sql`
             SELECT
-                inventory_move_item.id,
-                inventory_move_item.inventory_move_id,
-                inventory_move_item.part_id,
-                inventory_move_item_part.code AS part_code,
-                inventory_move_item_part.name AS part_name,
-                inventory_move_item.quantity_in,
-                inventory_move_item.quantity_out,
-                inventory_move_item.note,
-                inventory_move_item.work_order_part_id,
-                work_order_part_part.code AS work_order_part_part_code,
-                work_order_part_part.name AS work_order_part_part_name,
-                inventory_move_item.created_at,
-                inventory_move_item.updated_at,
-                inventory_move_item.created_by,
-                inventory_move_item.updated_by,
-                inventory_move_item.deleted
-            FROM ${inventoryMoveItemTable} inventory_move_item
-            LEFT JOIN part inventory_move_item_part ON inventory_move_item.part_id = inventory_move_item_part.id
-            LEFT JOIN work_order_part ON inventory_move_item.work_order_part_id = work_order_part.id
-            LEFT JOIN part work_order_part_part ON work_order_part.part_id = work_order_part_part.id
-            WHERE inventory_move_item.inventory_move_id IN ${sql`(${sql.join(moveIds, sql`, `)})`} 
-              AND inventory_move_item.deleted = false
-        `);
+                inventory_move.id,
+                inventory_move.move_no,
+                inventory_move.reason,
+                inventory_move.move_date,
+                inventory_move.remark,
+                inventory_move.created_at,
+                inventory_move.updated_at,
+                inventory_move.created_by,
+                inventory_move.updated_by,
+                inventory_move.deleted
+            FROM ${inventoryMoveTable} inventory_move
+        `;
 
-        const allItems = Array.from(allItemsResult).map(row => this.mapRowToInventoryMoveItem(row));
+        const [results, countResult] = await Promise.all([
+            this._db.db.execute<InventoryMoveRow>(sql`
+                SELECT * FROM (${innerQuery}) base
+                ${whereClause}
+                ${orderByClause}
+                LIMIT ${limit}
+                OFFSET ${offset}
+            `),
+            this._db.db.execute<{ count: number }>(sql`
+                SELECT COUNT(*)::int AS count
+                FROM (${innerQuery}) base
+                ${whereClause}
+            `),
+        ]);
 
-        // นำ Items ไปใส่ในแต่ละ Header ให้ถูกต้อง
-        inventoryMoves.forEach(move => {
-            move.inventoryMoveItems = allItems.filter(item => item.inventoryMoveId === move.id);
-        });
+        const totalCount = countResult[0]?.count ?? 0;
+        const inventoryMoves = Array.from(results).map(row => this.mapRowToInventoryMove(row));
+
+        if (inventoryMoves.length > 0)
+        {
+            const moveIds = inventoryMoves.map(move => move.id);
+            const allItemsResult = await this._db.db.execute<InventoryMoveItemRow>(sql`
+                SELECT
+                    inventory_move_item.id,
+                    inventory_move_item.inventory_move_id,
+                    inventory_move_item.part_id,
+                    inventory_move_item_part.code AS part_code,
+                    inventory_move_item_part.name AS part_name,
+                    inventory_move_item.quantity_in,
+                    inventory_move_item.quantity_out,
+                    inventory_move_item.note,
+                    inventory_move_item.work_order_part_id,
+                    work_order_part_part.code AS work_order_part_part_code,
+                    work_order_part_part.name AS work_order_part_part_name,
+                    inventory_move_item.created_at,
+                    inventory_move_item.updated_at,
+                    inventory_move_item.created_by,
+                    inventory_move_item.updated_by,
+                    inventory_move_item.deleted
+                FROM ${inventoryMoveItemTable} inventory_move_item
+                LEFT JOIN part inventory_move_item_part ON inventory_move_item.part_id = inventory_move_item_part.id
+                LEFT JOIN work_order_part ON inventory_move_item.work_order_part_id = work_order_part.id
+                LEFT JOIN part work_order_part_part ON work_order_part.part_id = work_order_part_part.id
+                WHERE inventory_move_item.inventory_move_id IN ${sql`(${sql.join(moveIds, sql`, `)})`}
+                  AND inventory_move_item.deleted = false
+            `);
+
+            const allItems = Array.from(allItemsResult).map(row => this.mapRowToInventoryMoveItem(row));
+
+            inventoryMoves.forEach(move =>
+            {
+                move.inventoryMoveItems = allItems.filter(item => item.inventoryMoveId === move.id);
+            });
+        }
+
+        return createPagedResult(inventoryMoves, totalCount, params.pageNumber, params.pageSize);
     }
-
-    return createPagedResult(inventoryMoves, totalCount, params.pageNumber, params.pageSize);
-}
 
     async UpdateInventoryMove(inventoryMove: Partial<InventoryMove>): Promise<InventoryMove> {
         const moveDate = (inventoryMove.moveDate && inventoryMove.moveDate.trim() !== "") 

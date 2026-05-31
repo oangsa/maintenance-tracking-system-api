@@ -90,6 +90,7 @@ type FinalRepairStatusRow = {
 export class RepairRequestRepository implements IRepairRequestRepository
 {
     private readonly _db: AppDrizzleDB;
+    private static readonly BangkokTimezoneOffset = "+07:00";
 
     constructor(db: AppDrizzleDB)
     {
@@ -132,6 +133,95 @@ export class RepairRequestRepository implements IRepairRequestRepository
                 `${numericFieldName} expects a numeric ID. Use ${codeFieldName} for business codes such as P001.`,
             );
         }
+    }
+
+    private IsDateOnlyValue(value: string): boolean
+    {
+        return /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+    }
+
+    private GetBangkokStartOfDayTimestamp(dateOnlyValue: string): string
+    {
+        return `${dateOnlyValue}T00:00:00.000${RepairRequestRepository.BangkokTimezoneOffset}`;
+    }
+
+    private GetBangkokEndOfDayTimestamp(dateOnlyValue: string): string
+    {
+        return `${dateOnlyValue}T23:59:59.999${RepairRequestRepository.BangkokTimezoneOffset}`;
+    }
+
+    private BuildRequestedAtCondition(condition: string, value?: string): SQL | null
+    {
+        const normalizedCondition = condition.toUpperCase();
+        const rawValue = value?.trim() ?? "";
+
+        if (normalizedCondition !== "ISNULL" && normalizedCondition !== "ISNOTNULL" && rawValue === "")
+        {
+            return null;
+        }
+
+        const isDateOnly = this.IsDateOnlyValue(rawValue);
+        const startOfDayValue = isDateOnly ? this.GetBangkokStartOfDayTimestamp(rawValue) : rawValue;
+        const endOfDayValue = isDateOnly ? this.GetBangkokEndOfDayTimestamp(rawValue) : rawValue;
+
+        switch (normalizedCondition)
+        {
+            case "GREATER":
+                return sql`requested_at > ${isDateOnly ? endOfDayValue : rawValue}`;
+            case "LESSER":
+                return sql`requested_at < ${isDateOnly ? startOfDayValue : rawValue}`;
+            case "GREATEROREQUAL":
+                return sql`requested_at >= ${startOfDayValue}`;
+            case "LESSEROREQUAL":
+                return sql`requested_at <= ${endOfDayValue}`;
+            case "EQUAL":
+                return isDateOnly
+                    ? sql`(requested_at >= ${startOfDayValue} AND requested_at <= ${endOfDayValue})`
+                    : sql`requested_at = ${rawValue}`;
+            case "NOTEQUAL":
+                return isDateOnly
+                    ? sql`(requested_at < ${startOfDayValue} OR requested_at > ${endOfDayValue})`
+                    : sql`requested_at != ${rawValue}`;
+            case "ISNULL":
+                return sql`requested_at IS NULL`;
+            case "ISNOTNULL":
+                return sql`requested_at IS NOT NULL`;
+            default:
+                return null;
+        }
+    }
+
+    private NormalizeRequestedAtBoundValue(condition: string, value: string): string
+    {
+        const normalizedCondition = condition.toUpperCase();
+        const rawValue = value.trim();
+
+        if (!this.IsDateOnlyValue(rawValue))
+        {
+            return rawValue;
+        }
+
+        if (normalizedCondition === "GREATER")
+        {
+            return this.GetBangkokEndOfDayTimestamp(rawValue);
+        }
+
+        if (normalizedCondition === "LESSER")
+        {
+            return this.GetBangkokStartOfDayTimestamp(rawValue);
+        }
+
+        if (normalizedCondition === "GREATEROREQUAL")
+        {
+            return this.GetBangkokStartOfDayTimestamp(rawValue);
+        }
+
+        if (normalizedCondition === "LESSEROREQUAL")
+        {
+            return this.GetBangkokEndOfDayTimestamp(rawValue);
+        }
+
+        return rawValue;
     }
 
     private mapRowToRepairRequest(row: RepairRequestRow, items: RepairRequestItem[]): RepairRequest
@@ -402,9 +492,31 @@ export class RepairRequestRepository implements IRepairRequestRepository
 
         const whereConditions: SQL[] = [sql`deleted = ${params.deleted ?? false}`];
 
-        if (mainSearch.length > 0)
+        const requestedAtSearch = mainSearch.filter(s => s.name?.toLowerCase() === "requested_at");
+        const nonRequestedAtMainSearch = mainSearch.filter(s => s.name?.toLowerCase() !== "requested_at");
+
+        for (const search of requestedAtSearch)
         {
-            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(mainSearch);
+            const condition = search.condition?.toUpperCase();
+
+            if (!condition)
+            {
+                continue;
+            }
+
+            const requestedAtCondition = this.BuildRequestedAtCondition(condition, search.value);
+
+            if (!requestedAtCondition)
+            {
+                continue;
+            }
+
+            whereConditions.push(requestedAtCondition);
+        }
+
+        if (nonRequestedAtMainSearch.length > 0)
+        {
+            const filterSQL = QueryBuilder.BuildRawSQLFilterExpression(nonRequestedAtMainSearch);
             if (filterSQL) whereConditions.push(filterSQL);
         }
 
@@ -824,13 +936,14 @@ export class RepairRequestRepository implements IRepairRequestRepository
             for (const filter of normalizedParams.search) {
                 if (filter.name === 'requested_at' && filter.value) {
                     const condition = (filter.condition ?? '').toUpperCase();
+                    const normalizedBoundValue = this.NormalizeRequestedAtBoundValue(condition, filter.value);
 
                     if (['GREATER', 'GREATEROREQUAL'].includes(condition)) {
-                    lowerBound = filter.value;
+                    lowerBound = normalizedBoundValue;
                     }
 
                     if (['LESSER', 'LESSEROREQUAL'].includes(condition)) {
-                    upperBound = filter.value;
+                    upperBound = normalizedBoundValue;
                     }
                 }
             }
